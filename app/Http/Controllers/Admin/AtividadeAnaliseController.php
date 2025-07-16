@@ -32,7 +32,7 @@ class AtividadeAnaliseController extends Controller
             'motivo_rejeicao' => 'required|string|min:10',
         ]);
 
-        // ✅ ATUALIZA O STATUS E GUARDA O MOTIVO DA REJEIÇÃO
+        // ✅ ATUALIZA O STATUS E GUARDA O MOTIVO REJEIÇÃO
         $atividade->update([
             'status' => 'Rejeitada',
             'motivo_rejeicao' => $request->motivo_rejeicao,
