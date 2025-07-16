@@ -107,7 +107,7 @@
                     
                     <!-- NAVEGAÇÃO -->
                     <nav class="hidden md:flex space-x-8" data-aos="fade-down">
-                        <a href="#cursos" class="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Cursos Disponíveis</a>
+                        <a href="#cursos" class="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Áreas de Estágio Disponíveis</a>
                         <a href="#documentos" class="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Editais e Documentos</a>
                         <a href="{{ route('classificacao.index') }}" class="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Classificação</a>
                         <a href="#sobre" class="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Sobre</a>
@@ -166,16 +166,16 @@
                     <!-- ESTATÍSTICAS -->
                     <div class="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8" data-aos="fade-up" data-aos-delay="400">
                         <div class="text-center">
-                            <div class="text-4xl font-bold text-yellow-300 stats-counter">500+</div>
+                            <div class="text-4xl font-bold text-yellow-300 stats-counter">400+</div>
                             <div class="text-gray-200 mt-2">Estagiários Contratados</div>
                         </div>
                         <div class="text-center">
-                            <div class="text-4xl font-bold text-yellow-300 stats-counter">50+</div>
-                            <div class="text-gray-200 mt-2">Empresas Parceiras</div>
+                            <div class="text-4xl font-bold text-yellow-300 stats-counter">30+</div>
+                            <div class="text-gray-200 mt-2">Setores da Prefeitura Atendidos</div>
                         </div>
                         <div class="text-center">
-                            <div class="text-4xl font-bold text-yellow-300 stats-counter">20+</div>
-                            <div class="text-gray-200 mt-2">Cursos Disponíveis</div>
+                            <div class="text-4xl font-bold text-yellow-300 stats-counter">10+</div>
+                            <div class="text-gray-200 mt-2">Áreas de Estágio Disponíveis</div>
                         </div>
                     </div>
                 </div>
@@ -196,10 +196,10 @@
                         <div data-aos="fade-right">
                             <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Sobre Nós</h2>
                             <h3 class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">
-                                Conectando talentos ao futuro
+                                Conectando talentos ao futuro em Mirassol D'Oeste
                             </h3>
                             <p class="mt-6 text-lg text-gray-600 leading-relaxed">
-                                Somos uma plataforma inovadora que conecta estudantes universitários às melhores oportunidades de estágio no mercado. Nossa missão é facilitar o encontro entre talentos promissores e empresas que buscam profissionais qualificados.
+                                Somos o portal oficial de estágio da Prefeitura de Mirassol D'Oeste. Nossa plataforma foi criada para conectar estudantes universitários a oportunidades exclusivas de estágio nos diversos departamentos da administração pública municipal. Nossa missão é impulsionar o desenvolvimento profissional de jovens talentos, facilitando seu primeiro passo em uma carreira de impacto em nossa cidade.
                             </p>
                             <div class="mt-8 space-y-4">
                                 <div class="flex items-center">
@@ -212,20 +212,20 @@
                                     <svg class="w-6 h-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
-                                    <span class="text-gray-700">Acompanhamento personalizado</span>
+                                    <span class="text-gray-700">Desenvolvimento profissional de verdade</span>
                                 </div>
                                 <div class="flex items-center">
                                     <svg class="w-6 h-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
-                                    <span class="text-gray-700">Parcerias com empresas de destaque</span>
+                                    <span class="text-gray-700">Estágios nas unidades da Prefeitura Municipal</span>
                                 </div>
                             </div>
                         </div>
                         <div data-aos="fade-left">
                             <div class="relative">
                                 <div class="absolute -inset-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-25"></div>
-                                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Estudantes" class="relative w-full h-96 object-cover rounded-2xl shadow-2xl">
+                                <img src="https://images.pexels.com/photos/1462630/pexels-photo-1462630.jpeg" alt="Estudantes" class="relative w-full h-96 object-cover rounded-2xl shadow-2xl">
                             </div>
                         </div>
                     </div>
@@ -237,7 +237,7 @@
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="text-center" data-aos="fade-up">
                         <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Oportunidades</h2>
-                        <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Áreas de Atuação</p> {{-- Título ajustado --}}
+                        <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Áreas de Estágio Disponíveis</p> {{-- Título ajustado --}}
                         <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">
                             Formamos um banco de talentos para diversas áreas do conhecimento. Cadastre-se e esteja pronto para quando a oportunidade surgir.
                         </p> {{-- Descrição ajustada --}}
@@ -250,9 +250,14 @@
                                 <div class="p-8">
                                     <div class="flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mx-auto mb-6">
                                         {{-- Ícone genérico para cursos. Você pode adicionar lógica para ícones específicos por curso se tiver um campo 'icone' no seu modelo Curso --}}
-                                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                        </svg>
+                                        @if ($curso->icone_svg)
+    {!! $curso->icone_svg !!} {{-- ✅ EXIBE O SVG CADASTRADO --}}
+@else
+    {{-- Ícone genérico de fallback se nenhum SVG for cadastrado --}}
+    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+    </svg>
+@endif
                                     </div>
                                     <h3 class="text-xl font-semibold text-gray-900 text-center mb-2">{{ $curso->nome }}</h3>
                                     {{-- Removida a linha de vagas disponíveis --}}
@@ -281,8 +286,7 @@
                     <div class="text-center mb-16" data-aos="fade-up">
                         <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Transparência</h2>
                         <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Classificação dos Candidatos</p>
-                        <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">
-                            Acompanhe sua posição no processo seletivo em tempo real. Processo transparente e justo para todos.
+                        <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">Acompanhe sua posição em tempo real
                         </p>
                     </div>
                     
@@ -597,7 +601,7 @@
                     <div data-aos="fade-up" data-aos-duration="1000">
                         <h4 class="text-lg font-semibold text-white mb-4">Links Úteis</h4>
                         <ul class="space-y-2">
-                            <li><a href="#cursos" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Cursos Disponíveis</a></li>
+                            <li><a href="#cursos" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Áreas de Estágio Disponíveis</a></li>
                             <li><a href="#documentos" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Editais e Documentos</a></li>
                             <li><a href="#classificacao" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Classificação</a></li>
                             <li><a href="#sobre" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Sobre Nós</a></li>

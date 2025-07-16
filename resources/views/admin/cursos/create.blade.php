@@ -32,7 +32,8 @@
                        id="nome" 
                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('nome') border-red-500 @enderror" 
                        value="{{ old('nome') }}" 
-                       required>
+                       required
+                       maxlength="255">
                 @error('nome')
                     <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                 @enderror
@@ -47,7 +48,8 @@
                           id="descricao" 
                           rows="3" 
                           class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('descricao') border-red-500 @enderror"
-                          placeholder="Breve descrição do curso">{{ old('descricao') }}</textarea>
+                          placeholder="Breve descrição do curso"
+                          maxlength="500">{{ old('descricao') }}</textarea>
                 @error('descricao')
                     <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                 @enderror
@@ -68,6 +70,21 @@
                 @enderror
             </div>
 
+            {{-- Campo para o Ícone SVG --}}
+            <div>
+                <label for="icone_svg" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Código SVG do Ícone
+                </label>
+                <textarea name="icone_svg" 
+                          id="icone_svg" 
+                          rows="4" 
+                          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('icone_svg') border-red-500 @enderror"
+                          placeholder="Cole o código SVG completo aqui (ex: <svg ...>...</svg>)">{{ old('icone_svg') }}</textarea>
+                @error('icone_svg')
+                    <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
             {{-- Seção de Valores --}}
             <div class="bg-gray-50 p-4 rounded-lg">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -83,6 +100,7 @@
                         </label>
                         <input type="number" 
                                step="0.01" 
+                               min="0"
                                name="valor_bolsa_auxilio" 
                                id="valor_bolsa_auxilio" 
                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('valor_bolsa_auxilio') border-red-500 @enderror" 
@@ -98,6 +116,7 @@
                         </label>
                         <input type="number" 
                                step="0.01" 
+                               min="0"
                                name="valor_auxilio_transporte" 
                                id="valor_auxilio_transporte" 
                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('valor_auxilio_transporte') border-red-500 @enderror" 
@@ -151,7 +170,8 @@
                            id="carga_horaria" 
                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('carga_horaria') border-red-500 @enderror" 
                            value="{{ old('carga_horaria') }}"
-                           placeholder="Ex: 40h semanais">
+                           placeholder="Ex: 40h semanais"
+                           maxlength="50">
                     @error('carga_horaria')
                         <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                     @enderror
@@ -165,7 +185,8 @@
                            id="local_estagio" 
                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('local_estagio') border-red-500 @enderror" 
                            value="{{ old('local_estagio') }}"
-                           placeholder="Ex: Prefeitura Municipal">
+                           placeholder="Ex: Prefeitura Municipal"
+                           maxlength="255">
                     @error('local_estagio')
                         <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                     @enderror

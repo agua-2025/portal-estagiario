@@ -48,6 +48,7 @@ class CursoController extends Controller
             'beneficios' => 'nullable|string',
             'carga_horaria' => 'nullable|string|max:255',
             'local_estagio' => 'nullable|string|max:255',
+            'icone_svg' => 'nullable|string', // ✅ ADICIONADO: Validação para o campo do ícone SVG
         ]);
 
         // 2. Criar o curso no banco
@@ -95,6 +96,7 @@ class CursoController extends Controller
             'beneficios' => 'nullable|string',
             'carga_horaria' => 'nullable|string|max:255',
             'local_estagio' => 'nullable|string|max:255',
+            'icone_svg' => 'nullable|string', // ✅ ADICIONADO: Validação para o campo do ícone SVG
         ]);
 
         // 2. Atualizar o curso no banco
