@@ -7,10 +7,7 @@
         {{-- Cabeçalho --}}
         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
             <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-800">Editar Curso</h1>
-                    <p class="text-sm text-gray-600 mt-1">{{ $curso->nome }}</p>
-                </div>
+                <h1 class="text-2xl font-bold text-gray-800">Editar Curso</h1>
                 <a href="{{ route('admin.cursos.index') }}" 
                    class="text-gray-600 hover:text-gray-800 transition duration-150 ease-in-out">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,7 +18,7 @@
         </div>
 
         {{-- Formulário --}}
-        <form action="{{ route('admin.cursos.update', $curso) }}" method="POST" class="p-6 space-y-6">
+        <form action="{{ route('admin.cursos.update', $curso->id) }}" method="POST" class="p-6 space-y-6">
             @csrf
             @method('PUT')
 
@@ -36,7 +33,8 @@
                        id="nome" 
                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('nome') border-red-500 @enderror" 
                        value="{{ old('nome', $curso->nome) }}" 
-                       required>
+                       required
+                       maxlength="255">
                 @error('nome')
                     <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                 @enderror
@@ -51,7 +49,8 @@
                           id="descricao" 
                           rows="3" 
                           class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('descricao') border-red-500 @enderror"
-                          placeholder="Breve descrição do curso">{{ old('descricao', $curso->descricao) }}</textarea>
+                          placeholder="Breve descrição do curso"
+                          maxlength="500">{{ old('descricao', $curso->descricao) }}</textarea>
                 @error('descricao')
                     <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                 @enderror
@@ -72,6 +71,21 @@
                 @enderror
             </div>
 
+            {{-- Campo para o Ícone SVG --}}
+            <div>
+                <label for="icone_svg" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Código SVG do Ícone
+                </label>
+                <textarea name="icone_svg" 
+                          id="icone_svg" 
+                          rows="4" 
+                          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('icone_svg') border-red-500 @enderror"
+                          placeholder="Cole o código SVG completo aqui (ex: <svg ...>...</svg>)">{{ old('icone_svg', $curso->icone_svg) }}</textarea>
+                @error('icone_svg')
+                    <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
             {{-- Seção de Valores --}}
             <div class="bg-gray-50 p-4 rounded-lg">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -87,6 +101,7 @@
                         </label>
                         <input type="number" 
                                step="0.01" 
+                               min="0"
                                name="valor_bolsa_auxilio" 
                                id="valor_bolsa_auxilio" 
                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('valor_bolsa_auxilio') border-red-500 @enderror" 
@@ -102,6 +117,7 @@
                         </label>
                         <input type="number" 
                                step="0.01" 
+                               min="0"
                                name="valor_auxilio_transporte" 
                                id="valor_auxilio_transporte" 
                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('valor_auxilio_transporte') border-red-500 @enderror" 
@@ -155,7 +171,8 @@
                            id="carga_horaria" 
                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('carga_horaria') border-red-500 @enderror" 
                            value="{{ old('carga_horaria', $curso->carga_horaria) }}"
-                           placeholder="Ex: 40h semanais">
+                           placeholder="Ex: 40h semanais"
+                           maxlength="50">
                     @error('carga_horaria')
                         <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                     @enderror
@@ -169,7 +186,8 @@
                            id="local_estagio" 
                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out @error('local_estagio') border-red-500 @enderror" 
                            value="{{ old('local_estagio', $curso->local_estagio) }}"
-                           placeholder="Ex: Prefeitura Municipal">
+                           placeholder="Ex: Prefeitura Municipal"
+                           maxlength="255">
                     @error('local_estagio')
                         <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                     @enderror
@@ -188,7 +206,7 @@
                 <button type="submit" 
                         class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                     </svg>
                     Atualizar Curso
                 </button>
