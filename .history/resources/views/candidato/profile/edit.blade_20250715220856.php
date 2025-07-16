@@ -376,7 +376,7 @@
                                         <select :class="{ 'border-red-500': isInvalid('instituicao_id', 3) }" x-model="fields.instituicao_id" name="instituicao_id" id="instituicao_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
                                             <option value="">Selecione...</option>
                                             @foreach ($instituicoes as $instituicao)
-                                                <option value="{{ $instituicao->id }}">{{ $instituicao->nome }}</option>
+                                                <option value="{{ $instituicao->id }}" :selected="instituicao.id === parseInt(fields.instituicao_id)">{{ $instituicao->nome }}</option> {{-- ✅ CORRIGIDO: Comparação com parseInt --}}
                                             @endforeach
                                         </select>
                                     </div>

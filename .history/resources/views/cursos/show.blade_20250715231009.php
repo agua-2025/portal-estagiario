@@ -23,74 +23,74 @@
 
     <main class="flex-1 container mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8">
-            <h1 class="text-xl md:text-2xl font-semibold text-gray-900 mb-3 leading-tight">{{ $curso->nome }}</h1>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-tight">{{ $curso->nome }}</h1>
             
             {{-- Descrição --}}
             @if ($curso->descricao)
-                <p class="text-sm text-gray-700 mb-5 leading-relaxed">{{ $curso->descricao }}</p>
+                <p class="text-gray-700 mb-6 leading-relaxed">{{ $curso->descricao }}</p>
             @endif
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {{-- Valor da Bolsa-Auxílio --}}
                 @if ($curso->valor_bolsa_auxilio && $curso->valor_bolsa_auxilio > 0)
-                    <div class="bg-blue-50 p-3 rounded border border-blue-100">
-                        <h2 class="text-sm font-semibold text-blue-800 mb-1">Bolsa-Auxílio</h2>
-                        <p class="text-base font-bold text-blue-900">R$ {{ number_format($curso->valor_bolsa_auxilio, 2, ',', '.') }}</p>
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <h2 class="text-lg font-semibold text-blue-800 mb-2">Bolsa-Auxílio</h2>
+                        <p class="text-lg font-bold text-blue-900">R$ {{ number_format($curso->valor_bolsa_auxilio, 2, ',', '.') }}</p>
                     </div>
                 @endif
                 {{-- Valor do Auxílio Transporte --}}
                 @if ($curso->valor_auxilio_transporte && $curso->valor_auxilio_transporte > 0)
-                    <div class="bg-green-50 p-3 rounded border border-green-100">
-                        <h2 class="text-sm font-semibold text-green-800 mb-1">Auxílio Transporte</h2>
-                        <p class="text-base font-bold text-green-900">R$ {{ number_format($curso->valor_auxilio_transporte, 2, ',', '.') }}</p>
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                        <h2 class="text-lg font-semibold text-green-800 mb-2">Auxílio Transporte</h2>
+                        <p class="text-lg font-bold text-green-900">R$ {{ number_format($curso->valor_auxilio_transporte, 2, ',', '.') }}</p>
                     </div>
                 @endif
             </div>
 
             {{-- Detalhes Completos do Curso --}}
             @if ($curso->detalhes)
-                <div class="mb-5">
-                    <h2 class="text-sm font-semibold text-gray-800 mb-2">Detalhes do Curso</h2>
-                    <p class="text-sm text-gray-700 leading-relaxed">{{ $curso->detalhes }}</p>
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-3">Detalhes do Curso</h2>
+                    <p class="text-gray-700 leading-relaxed">{{ $curso->detalhes }}</p>
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {{-- Requisitos --}}
                 @if ($curso->requisitos)
                     <div>
-                        <h2 class="text-sm font-semibold text-gray-800 mb-2">Requisitos</h2>
-                        <p class="text-sm text-gray-700 leading-relaxed">{{ $curso->requisitos }}</p>
+                        <h2 class="text-lg font-semibold text-gray-800 mb-3">Requisitos</h2>
+                        <p class="text-gray-700 leading-relaxed">{{ $curso->requisitos }}</p>
                     </div>
                 @endif
                 {{-- Benefícios Adicionais --}}
                 @if ($curso->beneficios)
                     <div>
-                        <h2 class="text-sm font-semibold text-gray-800 mb-2">Benefícios</h2>
-                        <p class="text-sm text-gray-700 leading-relaxed">{{ $curso->beneficios }}</p>
+                        <h2 class="text-lg font-semibold text-gray-800 mb-3">Benefícios</h2>
+                        <p class="text-gray-700 leading-relaxed">{{ $curso->beneficios }}</p>
                     </div>
                 @endif
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {{-- Carga Horária --}}
                 @if ($curso->carga_horaria)
                     <div>
-                        <h2 class="text-sm font-semibold text-gray-800 mb-2">Carga Horária</h2>
-                        <p class="text-sm text-gray-700 leading-relaxed">{{ $curso->carga_horaria }}</p>
+                        <h2 class="text-lg font-semibold text-gray-800 mb-3">Carga Horária</h2>
+                        <p class="text-gray-700 leading-relaxed">{{ $curso->carga_horaria }}</p>
                     </div>
                 @endif
                 {{-- Local do Estágio --}}
                 @if ($curso->local_estagio)
                     <div>
-                        <h2 class="text-sm font-semibold text-gray-800 mb-2">Local do Estágio</h2>
-                        <p class="text-sm text-gray-700 leading-relaxed">{{ $curso->local_estagio }}</p>
+                        <h2 class="text-lg font-semibold text-gray-800 mb-3">Local do Estágio</h2>
+                        <p class="text-gray-700 leading-relaxed">{{ $curso->local_estagio }}</p>
                     </div>
                 @endif
             </div>
 
-            <div class="mt-6 text-center">
-                <a href="{{ route('welcome') }}" class="inline-flex items-center px-4 py-2 text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
+            <div class="mt-8 text-center">
+                <a href="{{ route('welcome') }}" class="inline-flex items-center px-6 py-3 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
                     &larr; Voltar para o Início
                 </a>
             </div>

@@ -166,8 +166,8 @@
                         // ✅ CORRIGIDO: Garante que os IDs sejam strings para o Alpine.js
                         $initialData['naturalidade_estado'] = old('naturalidade_estado', (string) $candidato->naturalidade_estado);
                         $initialData['estado'] = old('estado', (string) $candidato->estado);
-                        $initialData['instituicao_id'] = old('instituicao_id', $candidato->instituicao_id ? (string) $candidato->instituicao_id : ''); // ✅ CORREÇÃO: Converter para string
-                        $initialData['curso_id'] = old('curso_id', $candidato->curso_id ? (string) $candidato->curso_id : ''); // ✅ CORREÇÃO: Converter para string
+                        $initialData['instituicao_id'] = old('instituicao_id', (string) $candidato->instituicao_id);
+                        $initialData['curso_id'] = old('curso_id', (string) $candidato->curso_id);
                         
                         // ✅ CORREÇÃO: Garante que as cidades sejam strings também
                         $initialData['naturalidade_cidade'] = old('naturalidade_cidade', $candidato->naturalidade_cidade ?? '');
@@ -376,7 +376,7 @@
                                         <select :class="{ 'border-red-500': isInvalid('instituicao_id', 3) }" x-model="fields.instituicao_id" name="instituicao_id" id="instituicao_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
                                             <option value="">Selecione...</option>
                                             @foreach ($instituicoes as $instituicao)
-                                                <option value="{{ $instituicao->id }}">{{ $instituicao->nome }}</option>
+                                                <option value="{{ $instituicao->id }}" :selected="instituicao.id == fields.instituicao_id">{{ $instituicao->nome }}</option> {{-- ✅ ADICIONADO: selected para pre-selecionar --}}
                                             @endforeach
                                         </select>
                                     </div>
@@ -386,8 +386,8 @@
                                         <label for="curso_id" class="block font-medium text-sm text-gray-700">Curso de Graduação <span class="text-red-500">*</span></label>
                                         <select :class="{ 'border-red-500': isInvalid('curso_id', 3) }" x-model="fields.curso_id" name="curso_id" id="curso_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
                                             <option value="">Selecione o Curso</option>
-                                            <template x-for="curso_item in todosCursos" :key="curso_item.id"> {{-- Agora itera sobre todosCursos diretamente --}}
-                                                <option :value="curso_item.id" x-text="curso_item.nome" :selected="curso_item.id === parseInt(fields.curso_id)"></option> {{-- ✅ CORRIGIDO: Comparação com parseInt --}}
+                                            <template x-for="curso_item in cursosFiltrados" :key="curso_item.id">
+                                                <option :value="curso_item.id" x-text="curso_item.nome" :selected="curso_item.id == fields.curso_id"></option>
                                             </template>
                                         </select>
                                     </div>
