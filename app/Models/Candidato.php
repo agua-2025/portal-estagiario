@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory; // ✅ Corrigido
+use Illuminate\Database\Eloquent\Model; // ✅ Corrigido
 use App\Models\User;
-use App\Models\Curso;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Log; // Adicionado para logs de depuração no cálculo de pontuação
+use App\Models\Curso; // Manter, pois candidato tem curso_id
+use App\Models\Instituicao; // ✅ ADICIONADO: Importa o Model Instituicao
+use Carbon\Carbon; // ✅ Corrigido
+use Illuminate\Support\Facades\Log;
 
 class Candidato extends Model
 {
@@ -17,6 +18,8 @@ class Candidato extends Model
 
     /**
      * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
      */
     protected $fillable = [
         'user_id', 
@@ -30,7 +33,7 @@ class Candidato extends Model
         'rg', 
         'rg_orgao_expedidor', 
         'logradouro', 
-        'numero', 
+        'numero', // ✅ ADICIONADO: Número do endereço
         'bairro',
         'cidade', 
         'estado', 
@@ -45,6 +48,7 @@ class Candidato extends Model
         'semestres_completos',
         'status', 
         'admin_observacao',
+        'instituicao_id', // ✅ MANTER: Instituicao_id é uma coluna direta na tabela candidatos
     ];
 
     /**
@@ -55,12 +59,13 @@ class Candidato extends Model
         'curso_data_inicio' => 'date',
         'curso_previsao_conclusao' => 'date',
         'possui_deficiencia' => 'boolean',
-        'media_aproveitamento' => 'float', // ✅ ADICIONADO: Garante que a média é um float
-        'semestres_completos' => 'integer', // ✅ ADICIONADO: Garante que semestres é um inteiro
+        'media_aproveitamento' => 'float',
+        'semestres_completos' => 'integer',
     ];
 
-    // Garante que os atributos virtuais sejam incluídos.
-    protected $appends = ['instituicao_id', 'completion_percentage']; 
+    // ✅ ATUALIZADO: Removido 'instituicao_id' de $appends, pois é uma coluna direta.
+    // O 'completion_percentage' continua sendo um atributo virtual.
+    protected $appends = ['completion_percentage']; 
 
     public function user()
     {
@@ -73,11 +78,24 @@ class Candidato extends Model
     }
 
     /**
-     * Accessor para obter o ID da instituição através do curso relacionado.
+     * ✅ REMOVIDO: Este acessor não é mais necessário/correto,
+     * pois instituicao_id é uma coluna direta na tabela 'candidatos'.
+     * O relacionamento 'instituicao()' abaixo lida com o acesso ao objeto Instituicao.
      */
+    /*
     public function getInstituicaoIdAttribute(): ?int
     {
         return $this->curso ? $this->curso->instituicao_id : null;
+    }
+    */
+
+    /**
+     * ✅ ADICIONADO: Relacionamento com a Instituição.
+     * Um candidato pertence a uma instituição de ensino.
+     */
+    public function instituicao()
+    {
+        return $this->belongsTo(Instituicao::class);
     }
 
     public static function getCompletableFields(): array
@@ -86,9 +104,13 @@ class Candidato extends Model
             'nome_completo', 'nome_mae', 'data_nascimento', 'sexo', 'cpf', 
             'naturalidade_cidade', 'naturalidade_estado',
             'possui_deficiencia',
-            'telefone', 'cep', 'logradouro', 'numero',
-            'bairro', 'cidade', 'estado',
-            'curso_id', // Este é o ID do curso, que indiretamente indica a instituição
+            'telefone', 'cep', 'logradouro', 
+            'numero', 
+            'bairro',
+            'cidade', 
+            'estado', 
+            'curso_id', 
+            'instituicao_id', // ✅ ADICIONADO: Instituição é um campo a ser preenchido
             'curso_data_inicio',
             'curso_previsao_conclusao',
             'media_aproveitamento',
@@ -112,14 +134,11 @@ class Candidato extends Model
             $value = $this->{$field};
 
             if ($field === 'possui_deficiencia') {
-                if ($value !== null) { // Booleans false/true são considerados preenchidos
+                if ($value !== null) {
                     $filledFields++;
                 }
             } 
-            else if ($value !== null && $value !== '') { // Verifica se não é nulo e não é string vazia
-                // Para campos de texto como CPF, Telefone, etc., que podem ter máscaras,
-                // é bom verificar se há caracteres numéricos após remover a máscara.
-                // No entanto, para o cálculo de porcentagem, um valor não nulo/vazio é suficiente.
+            else if ($value !== null && $value !== '') {
                 $filledFields++;
             }
         }
@@ -136,11 +155,11 @@ class Candidato extends Model
             $value = $this->{$field};
 
             if ($field === 'possui_deficiencia') {
-                if ($value === null) { // Se for null, não está completo
+                if ($value === null) {
                     return false;
                 }
             } else {
-                if ($value === null || $value === '') { // Se for null ou string vazia, não está completo
+                if ($value === null || $value === '') {
                     return false;
                 }
             }
@@ -293,7 +312,6 @@ class Candidato extends Model
                                 $pontosDaAtividade = isset($regra->pontuacao_maxima) && $regra->pontuacao_maxima > 0 
                                     ? min($pontosCalculados, $regra->pontuacao_maxima) 
                                     : $pontosCalculados;
-                                Log::debug("Pontos calculados para 'meses': {$pontosCalculados}, Pontos da atividade (com max): {$pontosDaAtividade}");
                             } else {
                                 Log::debug("Data Fim ({$dataFim->toDateString()}) não é maior ou igual à Data Início ({$dataInicio->toDateString()}). 0 pontos.");
                             }
@@ -333,7 +351,7 @@ class Candidato extends Model
 
         Log::debug('Cálculo de pontuação finalizado. Total: ' . $pontuacaoTotal);
         return [
-            'total' => max(0, $pontuacaoTotal), // ✅ Garante que o total nunca seja negativo
+            'total' => max(0, $pontuacaoTotal),
             'detalhes' => $detalhes,
         ];
     }

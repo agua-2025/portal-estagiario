@@ -11,6 +11,9 @@ use App\Models\Estado;
 use App\Models\Cidade;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon; // ✅ CORRIGIDO: Sintaxe do namespace
+use Illuminate\Support\Facades\Log; // ✅ CORRIGIDO: Sintaxe do namespace
+
 
 class ProfileController extends Controller
 {
@@ -38,9 +41,9 @@ class ProfileController extends Controller
 
         // LISTA 2: Para enviar dados para o frontend (inclui opcionais para pré-preencher).
         $frontendFields = array_merge($completableFields, [
-            'nome_pai',              // Campo opcional (Nome do Pai)
-            'rg',                    // Campo opcional (RG)
-            'rg_orgao_expedidor',    // Campo opcional (Órgão Expedidor)
+            'nome_pai',             // Campo opcional (Nome do Pai)
+            'rg',                   // Campo opcional (RG)
+            'rg_orgao_expedidor',   // Campo opcional (Órgão Expedidor)
         ]);
 
         // Envia todas as variáveis necessárias para a view
@@ -83,6 +86,7 @@ class ProfileController extends Controller
             'estado' => 'required|exists:estados,id',
             'cidade' => 'required|string',
             'curso_id' => 'required|exists:cursos,id',
+            'instituicao_id' => 'required|exists:instituicoes,id', // ✅ ADICIONADO: Instituição é um campo a ser preenchido
             'curso_data_inicio' => 'required|date',
             'curso_previsao_conclusao' => 'required|date|after:curso_data_inicio',
             'media_aproveitamento' => 'required|numeric|between:0,10.00',

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Curso;
-use App\Models\Instituicao;
+use App\Models\Instituicao; // Manter, pois pode ser usado em outras partes do Admin (ex: Candidatos)
 
 
 class CursoController extends Controller
@@ -15,8 +15,8 @@ class CursoController extends Controller
      */
     public function index()
     {
-        // Pega todos os cursos e já carrega a informação da instituição de cada um
-        $cursos = Curso::with('instituicao')->get();
+        // ✅ ATUALIZADO: Removido with('instituicao') pois Curso não tem mais instituicao_id
+        $cursos = Curso::all(); 
         return view('admin.cursos.index', compact('cursos'));
     }
 
@@ -25,10 +25,10 @@ class CursoController extends Controller
      */
     public function create()
     {
-        // Busca todas as instituições em ordem alfabética para popular o <select>
-        $instituicoes = Instituicao::orderBy('nome')->get();
-
-        return view('admin.cursos.create', compact('instituicoes'));
+        // ✅ ATUALIZADO: Instituições não são mais diretamente vinculadas ao curso no cadastro.
+        // Removida a busca por instituicoes e a passagem para a view.
+        // return view('admin.cursos.create', compact('instituicoes')); // Linha original
+        return view('admin.cursos.create'); 
     }
 
     /**
@@ -36,18 +36,18 @@ class CursoController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validar os dados, incluindo os novos campos
+        // 1. Validar os dados, REMOVENDO a validação de instituicao_id
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
-            'instituicao_id' => 'required|exists:instituicoes,id',
-            'descricao' => 'nullable|string', // Novo campo
-            'detalhes' => 'nullable|string', // Novo campo
-            'valor_bolsa_auxilio' => 'nullable|numeric|min:0', // Novo campo
-            'valor_auxilio_transporte' => 'nullable|numeric|min:0', // Novo campo
-            'requisitos' => 'nullable|string', // Novo campo
-            'beneficios' => 'nullable|string', // Novo campo
-            'carga_horaria' => 'nullable|string|max:255', // Novo campo
-            'local_estagio' => 'nullable|string|max:255', // Novo campo
+            // 'instituicao_id' => 'required|exists:instituicoes,id', // ✅ REMOVIDO: Coluna não existe mais em cursos
+            'descricao' => 'nullable|string',
+            'detalhes' => 'nullable|string',
+            'valor_bolsa_auxilio' => 'nullable|numeric|min:0',
+            'valor_auxilio_transporte' => 'nullable|numeric|min:0',
+            'requisitos' => 'nullable|string',
+            'beneficios' => 'nullable|string',
+            'carga_horaria' => 'nullable|string|max:255',
+            'local_estagio' => 'nullable|string|max:255',
         ]);
 
         // 2. Criar o curso no banco
@@ -63,10 +63,6 @@ class CursoController extends Controller
     public function show(string $id)
     {
         // Este método é para exibir um recurso específico.
-        // Se você precisar que este controlador Admin também exiba detalhes
-        // (por exemplo, para uma página de visualização interna do admin),
-        // você pode implementar a lógica aqui.
-        // Ex: $curso = Curso::findOrFail($id); return view('admin.cursos.show', compact('curso'));
         // Por enquanto, não é usado diretamente pelo "Saber Mais" público.
     }
 
@@ -75,10 +71,11 @@ class CursoController extends Controller
      */
     public function edit(Curso $curso)
     {
-        // Buscamos todas as instituições para popular o dropdown
-        $instituicoes = Instituicao::orderBy('nome')->get();
-
-        return view('admin.cursos.edit', compact('curso', 'instituicoes'));
+        // ✅ ATUALIZADO: Instituições não são mais diretamente vinculadas ao curso na edição.
+        // Removida a busca por instituicoes e a passagem para a view.
+        // $instituicoes = Instituicao::orderBy('nome')->get(); // Linha original
+        // return view('admin.cursos.edit', compact('curso', 'instituicoes')); // Linha original
+        return view('admin.cursos.edit', compact('curso')); 
     }
 
     /**
@@ -86,18 +83,18 @@ class CursoController extends Controller
      */
     public function update(Request $request, Curso $curso)
     {
-        // 1. Validar os dados, incluindo os novos campos
+        // 1. Validar os dados, REMOVENDO a validação de instituicao_id
         $validatedData = $request->validate([
             'nome' => 'required|string|max:255',
-            'instituicao_id' => 'required|exists:instituicoes,id',
-            'descricao' => 'nullable|string', // Novo campo
-            'detalhes' => 'nullable|string', // Novo campo
-            'valor_bolsa_auxilio' => 'nullable|numeric|min:0', // Novo campo
-            'valor_auxilio_transporte' => 'nullable|numeric|min:0', // Novo campo
-            'requisitos' => 'nullable|string', // Novo campo
-            'beneficios' => 'nullable|string', // Novo campo
-            'carga_horaria' => 'nullable|string|max:255', // Novo campo
-            'local_estagio' => 'nullable|string|max:255', // Novo campo
+            // 'instituicao_id' => 'required|exists:instituicoes,id', // ✅ REMOVIDO: Coluna não existe mais em cursos
+            'descricao' => 'nullable|string',
+            'detalhes' => 'nullable|string',
+            'valor_bolsa_auxilio' => 'nullable|numeric|min:0',
+            'valor_auxilio_transporte' => 'nullable|numeric|min:0',
+            'requisitos' => 'nullable|string',
+            'beneficios' => 'nullable|string',
+            'carga_horaria' => 'nullable|string|max:255',
+            'local_estagio' => 'nullable|string|max:255',
         ]);
 
         // 2. Atualizar o curso no banco

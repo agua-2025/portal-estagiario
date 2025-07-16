@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Candidato;
 use App\Models\Documento; // ✅ Adicionado para a nova função
 use Illuminate\Http\Request;
+use App\Models\Curso; // Manter, pois candidato tem curso_id
+use App\Models\Instituicao; // Manter, pois candidato tem instituicao_id
 
 class CandidatoController extends Controller
 {
@@ -16,7 +18,9 @@ class CandidatoController extends Controller
     {
         $search = $request->input('search');
 
-        $query = Candidato::query()->with(['user', 'curso.instituicao']);
+        // ✅ CORRIGIDO: Carrega 'curso' e 'instituicao' diretamente do Model Candidato.
+        // Removido 'curso.instituicao' pois Curso não tem mais instituicao_id.
+        $query = Candidato::query()->with(['user', 'curso', 'instituicao']);
 
         if ($search) {
             $query->where('nome_completo', 'like', "%{$search}%")
@@ -33,7 +37,11 @@ class CandidatoController extends Controller
      */
     public function create()
     {
-        //
+        // Se você tiver uma tela de criação de candidato no admin,
+        // e ela precisar de listas de cursos e instituições, você as buscaria aqui.
+        $cursos = Curso::orderBy('nome')->get();
+        $instituicoes = Instituicao::orderBy('nome')->get();
+        return view('admin.candidatos.create', compact('cursos', 'instituicoes'));
     }
 
     /**
@@ -41,7 +49,11 @@ class CandidatoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Lógica para armazenar um novo candidato
+        // Exemplo:
+        // $validatedData = $request->validate([...]);
+        // Candidato::create($validatedData);
+        // return redirect()->route('admin.candidatos.index')->with('success', 'Candidato criado com sucesso!');
     }
 
     /**
@@ -50,10 +62,13 @@ class CandidatoController extends Controller
     public function show(Candidato $candidato)
     {
         // Carrega todas as relações necessárias para exibir o perfil completo
+        // ✅ CORRIGIDO: Carrega 'curso' e 'instituicao' diretamente do Candidato.
+        // Removido 'curso.instituicao' pois Curso não tem mais instituicao_id.
         $candidato->load([
             'user.documentos', 
             'user.candidatoAtividades.tipoDeAtividade', 
-            'curso.instituicao'
+            'curso', // Carrega o curso genérico
+            'instituicao' // Carrega a instituição diretamente do candidato
         ]);
 
         // ✅ AJUSTE CIRÚRGICO AQUI:
@@ -73,7 +88,10 @@ class CandidatoController extends Controller
      */
     public function edit(Candidato $candidato)
     {
-        //
+        // Lógica para exibir o formulário de edição de candidato no admin
+        $cursos = Curso::orderBy('nome')->get();
+        $instituicoes = Instituicao::orderBy('nome')->get();
+        return view('admin.candidatos.edit', compact('candidato', 'cursos', 'instituicoes'));
     }
 
     /**
@@ -100,7 +118,10 @@ class CandidatoController extends Controller
      */
     public function destroy(Candidato $candidato)
     {
-        //
+        // Lógica para apagar um candidato
+        // Exemplo:
+        // $candidato->delete();
+        // return redirect()->route('admin.candidatos.index')->with('success', 'Candidato apagado com sucesso!');
     }
 
     /**

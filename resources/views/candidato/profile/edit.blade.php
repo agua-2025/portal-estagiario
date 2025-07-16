@@ -11,7 +11,7 @@
                                 step: 1,
                                 fields: initialFields,
                                 percentage: 0,
-                                validationAttempted: { step1: false, step2: false },
+                                validationAttempted: { step1: false, step2: false, step3: false }, // ✅ ADICIONADO: step3 para validação
                                 
                                 estados: estados,
                                 todasCidades: todasCidades,
@@ -20,14 +20,14 @@
 
                                 cidadesNaturalidadeFiltradas: [],
                                 cidadesEnderecoFiltradas: [],
-                                cursosFiltrados: [],
+                                cursosFiltrados: todosCursos, // ✅ CORRIGIDO: Inicialmente, todos os cursos
+                                // Não há mais 'cursosFiltrados' por instituição, pois cursos são genéricos.
 
                                 init() {
                                     this.updateAllFilteredLists();
                                     this.calculatePercentage();
 
                                     this.$watch('fields.naturalidade_estado', () => { 
-                                        // Só limpa a cidade se mudou o estado
                                         if (this.fields.naturalidade_estado) {
                                             const cidadesDoEstado = this.todasCidades.filter(c => c.estado_id == this.fields.naturalidade_estado);
                                             const cidadeAtualExiste = cidadesDoEstado.find(c => c.nome === this.fields.naturalidade_cidade);
@@ -39,7 +39,6 @@
                                     });
 
                                     this.$watch('fields.estado', () => { 
-                                        // Só limpa a cidade se mudou o estado
                                         if (this.fields.estado) {
                                             const cidadesDoEstado = this.todasCidades.filter(c => c.estado_id == this.fields.estado);
                                             const cidadeAtualExiste = cidadesDoEstado.find(c => c.nome === this.fields.cidade);
@@ -50,17 +49,9 @@
                                         this.updateAllFilteredLists(); 
                                     });
 
-                                    this.$watch('fields.instituicao_id', () => { 
-                                        // Só limpa o curso se mudou a instituição
-                                        if (this.fields.instituicao_id) {
-                                            const cursosDaInstituicao = this.todosCursos.filter(c => c.instituicao_id == this.fields.instituicao_id);
-                                            const cursoAtualExiste = cursosDaInstituicao.find(c => c.id == this.fields.curso_id);
-                                            if (!cursoAtualExiste) {
-                                                this.fields.curso_id = '';
-                                            }
-                                        }
-                                        this.updateAllFilteredLists(); 
-                                    });
+                                    // ✅ REMOVIDO: O watch para instituicao_id que filtrava cursos.
+                                    // Este filtro não é mais necessário, pois cursos são genéricos.
+                                    // this.$watch('fields.instituicao_id', () => { ... });
 
                                     this.$watch('fields', () => this.calculatePercentage(), { deep: true });
                                 },
@@ -80,33 +71,40 @@
                                         this.cidadesEnderecoFiltradas = [];
                                     }
 
-                                    // Atualiza cursos
-                                    if (this.fields.instituicao_id) {
-                                        this.cursosFiltrados = this.todosCursos.filter(c => c.instituicao_id == this.fields.instituicao_id);
-                                    } else {
-                                        this.cursosFiltrados = [];
-                                    }
+                                    // ✅ CORRIGIDO: cursosFiltrados agora são TODOS os cursos, não filtrados por instituição.
+                                    // A variável 'cursosFiltrados' agora é apenas uma cópia de 'todosCursos'.
+                                    this.cursosFiltrados = this.todosCursos; 
                                 },
                                 
                                 isStep1Valid() { 
                                     return !!this.fields.nome_completo && 
-                                           !!this.fields.nome_mae && 
-                                           !!this.fields.data_nascimento && 
-                                           !!this.fields.sexo && 
-                                           !!this.fields.cpf && 
-                                           !!this.fields.naturalidade_estado && 
-                                           !!this.fields.naturalidade_cidade && 
-                                           (this.fields.possui_deficiencia !== null && this.fields.possui_deficiencia !== ''); 
+                                            !!this.fields.nome_mae && 
+                                            !!this.fields.data_nascimento && 
+                                            !!this.fields.sexo && 
+                                            !!this.fields.cpf && 
+                                            !!this.fields.naturalidade_estado && 
+                                            !!this.fields.naturalidade_cidade && 
+                                            (this.fields.possui_deficiencia !== null && this.fields.possui_deficiencia !== ''); 
                                 },
                                 
                                 isStep2Valid() { 
                                     return !!this.fields.telefone && 
-                                           !!this.fields.cep && 
-                                           !!this.fields.logradouro && 
-                                           !!this.fields.numero && 
-                                           !!this.fields.bairro && 
-                                           !!this.fields.estado && 
-                                           !!this.fields.cidade; 
+                                            !!this.fields.cep && 
+                                            !!this.fields.logradouro && 
+                                            !!this.fields.numero && 
+                                            !!this.fields.bairro && 
+                                            !!this.fields.estado && 
+                                            !!this.fields.cidade; 
+                                },
+
+                                // ✅ NOVO: Validação para a Etapa 3
+                                isStep3Valid() {
+                                    return !!this.fields.instituicao_id && // Instituição de Ensino
+                                           !!this.fields.curso_id &&      // Curso de Graduação
+                                           !!this.fields.curso_data_inicio &&
+                                           !!this.fields.curso_previsao_conclusao &&
+                                           !!this.fields.semestres_completos &&
+                                           !!this.fields.media_aproveitamento;
                                 },
 
                                 attemptNextStep(currentStep) {
@@ -117,11 +115,18 @@
                                         this.validationAttempted.step2 = true;
                                         if (this.isStep2Valid()) { this.step++; }
                                     }
+                                    // ✅ ADICIONADO: Lógica para validar e avançar da etapa 3 (se houver um próximo passo ou antes de submeter)
+                                    // Não há um próximo passo visual, mas é bom ter a validação aqui para consistência.
+                                    else if (currentStep === 3) {
+                                        this.validationAttempted.step3 = true;
+                                        // Se for válido, o formulário será submetido pelo botão "Salvar Perfil"
+                                    }
                                 },
 
                                 isInvalid(field, step) {
                                     if (step === 1 && !this.validationAttempted.step1) return false;
                                     if (step === 2 && !this.validationAttempted.step2) return false;
+                                    if (step === 3 && !this.validationAttempted.step3) return false; // ✅ ADICIONADO: Validação para step 3
                                     
                                     const value = this.fields[field];
                                     if (field === 'possui_deficiencia') {
@@ -149,33 +154,32 @@
                             }
                         }
                     </script>
-@php
-    // Prepara os dados iniciais com o formato correto para o JavaScript
-    $initialData = $candidato->only($profileFields);
-    $initialData['data_nascimento'] = old('data_nascimento', optional($candidato->data_nascimento)->format('Y-m-d'));
-    $initialData['curso_data_inicio'] = old('curso_data_inicio', optional($candidato->curso_data_inicio)->format('Y-m-d'));
-    $initialData['curso_previsao_conclusao'] = old('curso_previsao_conclusao', optional($candidato->curso_previsao_conclusao)->format('Y-m-d'));
-    
-  // ✅ POR esta:
-$initialData['possui_deficiencia'] = old('possui_deficiencia', ($candidato->possui_deficiencia == 1) ? '1' : '0');
-    
-    // ✅ MANTENHA o resto como está
-    $initialData['naturalidade_estado'] = old('naturalidade_estado', (string) $candidato->naturalidade_estado);
-    $initialData['estado'] = old('estado', (string) $candidato->estado);
-    $initialData['instituicao_id'] = old('instituicao_id', (string) $candidato->instituicao_id);
-    $initialData['curso_id'] = old('curso_id', (string) $candidato->curso_id);
-    
-    // ✅ CORREÇÃO: Garante que as cidades sejam strings também
-    $initialData['naturalidade_cidade'] = old('naturalidade_cidade', $candidato->naturalidade_cidade ?? '');
-    $initialData['cidade'] = old('cidade', $candidato->cidade ?? '');
-@endphp
+                    @php
+                        // Prepara os dados iniciais com o formato correto para o JavaScript
+                        $initialData = $candidato->only($profileFields);
+                        $initialData['data_nascimento'] = old('data_nascimento', optional($candidato->data_nascimento)->format('Y-m-d'));
+                        $initialData['curso_data_inicio'] = old('curso_data_inicio', optional($candidato->curso_data_inicio)->format('Y-m-d'));
+                        $initialData['curso_previsao_conclusao'] = old('curso_previsao_conclusao', optional($candidato->curso_previsao_conclusao)->format('Y-m-d'));
+                        
+                        $initialData['possui_deficiencia'] = old('possui_deficiencia', ($candidato->possui_deficiencia == 1) ? '1' : '0');
+                        
+                        // ✅ CORRIGIDO: Garante que os IDs sejam strings para o Alpine.js
+                        $initialData['naturalidade_estado'] = old('naturalidade_estado', (string) $candidato->naturalidade_estado);
+                        $initialData['estado'] = old('estado', (string) $candidato->estado);
+                        $initialData['instituicao_id'] = old('instituicao_id', $candidato->instituicao_id ? (string) $candidato->instituicao_id : ''); // ✅ CORREÇÃO: Converter para string
+                        $initialData['curso_id'] = old('curso_id', $candidato->curso_id ? (string) $candidato->curso_id : ''); // ✅ CORREÇÃO: Converter para string
+                        
+                        // ✅ CORREÇÃO: Garante que as cidades sejam strings também
+                        $initialData['naturalidade_cidade'] = old('naturalidade_cidade', $candidato->naturalidade_cidade ?? '');
+                        $initialData['cidade'] = old('cidade', $candidato->cidade ?? '');
+                    @endphp
 
                     <div x-data="profileFormComponent(
                         @js($initialData),
                         @js($estados),
                         @js($cidades),
                         @js($instituicoes),
-                        @js($cursos),
+                        @js($cursos), {{-- ✅ Passando todos os cursos --}}
                         {{ $totalProfileFieldsCount }},
                         @js(\App\Models\Candidato::getCompletableFields())
                     )" x-init="init()">
@@ -259,6 +263,7 @@ $initialData['possui_deficiencia'] = old('possui_deficiencia', ($candidato->poss
                                             <option value="">Selecione...</option>
                                             <option value="Feminino">Feminino</option>
                                             <option value="Masculino">Masculino</option>
+                                            <option value="Outro">Outro</option>
                                         </select>
                                     </div>
                                     
@@ -368,7 +373,7 @@ $initialData['possui_deficiencia'] = old('possui_deficiencia', ($candidato->poss
                                 <div class="grid grid-cols-12 gap-6">
                                     <div class="col-span-12">
                                         <label for="instituicao_id" class="block font-medium text-sm text-gray-700">Instituição de Ensino <span class="text-red-500">*</span></label>
-                                        <select x-model="fields.instituicao_id" name="instituicao_id" id="instituicao_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <select :class="{ 'border-red-500': isInvalid('instituicao_id', 3) }" x-model="fields.instituicao_id" name="instituicao_id" id="instituicao_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
                                             <option value="">Selecione...</option>
                                             @foreach ($instituicoes as $instituicao)
                                                 <option value="{{ $instituicao->id }}">{{ $instituicao->nome }}</option>
@@ -379,32 +384,32 @@ $initialData['possui_deficiencia'] = old('possui_deficiencia', ($candidato->poss
                                     {{-- ✅ CORREÇÃO: Campo curso_id --}}
                                     <div class="col-span-12">
                                         <label for="curso_id" class="block font-medium text-sm text-gray-700">Curso de Graduação <span class="text-red-500">*</span></label>
-                                        <select x-model="fields.curso_id" name="curso_id" id="curso_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <select :class="{ 'border-red-500': isInvalid('curso_id', 3) }" x-model="fields.curso_id" name="curso_id" id="curso_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
                                             <option value="">Selecione o Curso</option>
-                                            <template x-for="curso_item in cursosFiltrados" :key="curso_item.id">
-                                                <option :value="curso_item.id" x-text="curso_item.nome" :selected="curso_item.id == fields.curso_id"></option>
+                                            <template x-for="curso_item in todosCursos" :key="curso_item.id"> {{-- Agora itera sobre todosCursos diretamente --}}
+                                                <option :value="curso_item.id" x-text="curso_item.nome" :selected="curso_item.id === parseInt(fields.curso_id)"></option> {{-- ✅ CORRIGIDO: Comparação com parseInt --}}
                                             </template>
                                         </select>
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="curso_data_inicio" class="block font-medium text-sm text-gray-700">Data de Início do Curso <span class="text-red-500">*</span></label>
-                                        <input x-model="fields.curso_data_inicio" id="curso_data_inicio" name="curso_data_inicio" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('curso_data_inicio', 3) }" x-model="fields.curso_data_inicio" id="curso_data_inicio" name="curso_data_inicio" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="curso_previsao_conclusao" class="block font-medium text-sm text-gray-700">Previsão de Conclusão <span class="text-red-500">*</span></label>
-                                        <input x-model="fields.curso_previsao_conclusao" name="curso_previsao_conclusao" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('curso_previsao_conclusao', 3) }" x-model="fields.curso_previsao_conclusao" name="curso_previsao_conclusao" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="semestres_completos" class="block font-medium text-sm text-gray-700">Semestres Concluídos <span class="text-red-500">*</span></label>
-                                        <input x-model="fields.semestres_completos" name="semestres_completos" type="number" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('semestres_completos', 3) }" x-model="fields.semestres_completos" name="semestres_completos" type="number" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="media_aproveitamento" class="block font-medium text-sm text-gray-700">Média de Aproveitamento <span class="text-red-500">*</span></label>
-                                        <input x-model="fields.media_aproveitamento" name="media_aproveitamento" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('media_aproveitamento', 3) }" x-model="fields.media_aproveitamento" name="media_aproveitamento" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
                                     </div>
                                 </div>
                             </div>

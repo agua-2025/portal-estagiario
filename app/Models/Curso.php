@@ -16,7 +16,7 @@ class Curso extends Model
      */
     protected $fillable = [
         'nome',
-        'instituicao_id', // Campo existente
+        // 'instituicao_id', // ✅ REMOVIDO: A coluna instituicao_id foi removida da tabela cursos
         'descricao',
         'detalhes',
         'valor_bolsa_auxilio',
@@ -28,10 +28,14 @@ class Curso extends Model
     ];
 
     /**
-     * Get the institution that owns the course.
+     * REMOVIDO: O relacionamento instituicao() não pertence mais ao Model Curso,
+     * pois a coluna instituicao_id foi removida da tabela cursos.
+     * Este relacionamento agora pertence ao Model Candidato.
      */
+    /*
     public function instituicao()
     {
         return $this->belongsTo(Instituicao::class);
     }
+    */
 }

@@ -1,62 +1,100 @@
-<x-app-layout>
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
+@extends('layouts.admin')
 
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                            {{ __('Gestão de Cursos') }}
-                        </h2>
-                        <a href="{{ route('admin.cursos.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        Novo Curso
-                    </a>
-                    </div>
-                    @if (session('success'))
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-        <span class="block sm:inline">{{ session('success') }}</span>
-    </div>
-@endif
+@section('content')
+<div class="px-4 py-8">
+    {{-- Mensagem de Sucesso --}}
+    @if (session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <strong class="font-bold">Sucesso!</strong>
+            <span class="block sm:inline">{{ session('success') }}</span>
+        </div>
+    @endif
 
-<table class="min-w-full ...">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome do Curso</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Instituição</th>
-                                <th class="relative px-6 py-3"></th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse ($cursos as $curso)
-                                <tr>
-                                    <td class="px-6 py-4">{{ $curso->nome }}</td>
-                                    <td class="px-6 py-4">{{ $curso->instituicao->nome ?? 'N/A' }}</td>
-                                    <td class="px-6 py-4 text-right">
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a href="{{ route('admin.cursos.edit', $curso->id) }}" class="text-indigo-600 hover:text-indigo-900 mr-4">Editar</a>
-                                    <form class="inline-block" method="POST" action="{{ route('admin.cursos.destroy', $curso->id) }}" onsubmit="return confirm('Tem certeza que deseja apagar este curso?');">
-                                    @csrf
-                            @method('DELETE')
-        <button type="submit" class="text-red-600 hover:text-red-900">
-            Apagar
-        </button>
-    </form>
-</td>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">
-                                        Nenhum curso cadastrado.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-
-                </div>
+    {{-- Container Principal --}}
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        {{-- Cabeçalho --}}
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800">Gestão de Cursos</h1>
+                <a href="{{ route('admin.cursos.create') }}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Novo Curso
+                </a>
             </div>
         </div>
+
+        {{-- Conteúdo da Tabela --}}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                {{-- Cabeçalho da Tabela --}}
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Nome do Curso
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Ações
+                        </th>
+                    </tr>
+                </thead>
+
+                {{-- Corpo da Tabela --}}
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @forelse ($cursos as $curso)
+                        <tr class="hover:bg-gray-50 transition-colors duration-150">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ $curso->nome }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex justify-end space-x-2">
+                                    {{-- Botão Editar --}}
+                                    <a href="{{ route('admin.cursos.edit', $curso->id) }}" 
+                                       class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                        Editar
+                                    </a>
+
+                                    {{-- Botão Apagar --}}
+                                    <form action="{{ route('admin.cursos.destroy', $curso->id) }}" 
+                                          method="POST" 
+                                          class="inline-block" 
+                                          onsubmit="return confirm('Tem certeza que deseja apagar este curso?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                            Apagar
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="2" class="px-6 py-12 text-center">
+                                <div class="text-gray-400">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                    </svg>
+                                    <p class="mt-2 text-sm text-gray-500">Nenhum curso cadastrado.</p>
+                                    <p class="mt-1 text-sm text-gray-400">Clique em "Novo Curso" para começar.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
-</x-app-layout>
+</div>
+@endsection

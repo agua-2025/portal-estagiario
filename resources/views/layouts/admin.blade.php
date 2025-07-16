@@ -14,7 +14,8 @@
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen"> {{-- Centraliza o conteúdo na tela --}}
+{{-- ✅ ATUALIZADO: Centraliza o conteúdo na tela, sem barra superior --}}
+<body class="bg-gray-100 flex items-center justify-center min-h-screen"> 
     <div class="w-full max-w-4xl mx-auto p-6"> {{-- Container para o conteúdo principal --}}
         @if (session('success'))
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
