@@ -14,7 +14,7 @@
                 <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Classificação Geral dos Candidatos</p>
                 <div class="mt-4 text-lg text-gray-600">
                     <p>Esta lista é dinâmica e pode ser atualizada conforme as análises são concluídas.</p>
-                    </p>
+                    <p>Critério de desempate: maior idade.</p>
                 </div>
             </div>
         </div>

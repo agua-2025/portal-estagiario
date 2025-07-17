@@ -112,10 +112,10 @@
                     </div>
 
                     <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                      @forelse($cursos as $curso)
-                            {{-- ✅ ESTE É O CARD COMPLETO, COM AJUSTES PARA ALTURA IGUAL --}}
-                            <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover-scale flex flex-col h-full"> {{-- Adicionado flex flex-col h-full --}}
-                                <div class="p-8 flex flex-col flex-grow"> {{-- Adicionado flex flex-col flex-grow --}}
+                        @forelse($cursos as $curso)
+                            <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover-scale" data-aos="fade-up" data-aos-delay="100">
+                                {{-- ✅ CONTEÚDO DO CARD AJUSTADO PARA ALINHAR AS ALTURAS --}}
+                                <div class="p-8 flex flex-col h-full">
                                     <div class="flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mx-auto mb-6">
                                         @if ($curso->icone_svg)
                                             {!! $curso->icone_svg !!}
@@ -126,8 +126,9 @@
                                         @endif
                                     </div>
                                     <h3 class="text-xl font-semibold text-gray-900 text-center mb-2">{{ $curso->nome }}</h3>
-                                    <p class="text-gray-600 text-center text-sm mb-4">{{ $curso->descricao ?? 'Detalhes sobre o curso e sua área de atuação.' }}</p> {{-- Mantém sem h-10 --}}
-                                    <div class="flex justify-center mt-auto"> {{-- mt-auto para empurrar o botão para baixo --}}
+                                    {{-- ✅ Removida a classe h-10 da descrição --}}
+                                    <p class="text-gray-600 text-center text-sm mb-4">{{ $curso->descricao ?? 'Detalhes sobre o curso e sua área de atuação.' }}</p>
+                                    <div class="flex justify-center mt-auto"> {{-- ✅ Adicionado mt-auto para empurrar o botão para baixo --}}
                                         <a href="{{ route('cursos.show', $curso->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200">
                                             Saber Mais &rarr;
                                         </a>

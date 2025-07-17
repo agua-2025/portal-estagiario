@@ -21,7 +21,7 @@ class WelcomeController extends Controller
         // (Ex: os 5 primeiros candidatos por pontuação)
         // Carrega os relacionamentos 'curso' e 'instituicao' para evitar problemas de N+1 queries.
         $candidatosClassificacao = Candidato::with(['curso', 'instituicao'])
-                                           ->orderBy('pontuacao_final', 'desc') // Ordena do maior para o menor
+                                           ->orderBy('pontuacao', 'desc') // Ordena do maior para o menor
                                            ->orderBy('nome_completo')    // Critério de desempate
                                            ->take(5)                     // Limita a 5 resultados para a página inicial
                                            ->get();

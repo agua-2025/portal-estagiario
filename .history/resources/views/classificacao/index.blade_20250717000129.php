@@ -12,9 +12,12 @@
             <div data-aos="fade-up">
                 <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Transparência</h2>
                 <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Classificação Geral dos Candidatos</p>
+                <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">
+                    Resultado oficial do processo seletivo da Prefeitura de Mirassol D'Oeste, organizado por área de atuação e ordenado por pontuação.
+                </p>
                 <div class="mt-4 text-lg text-gray-600">
                     <p>Esta lista é dinâmica e pode ser atualizada conforme as análises são concluídas.</p>
-                    </p>
+                    <p>Critério de desempate: maior idade.</p>
                 </div>
             </div>
         </div>

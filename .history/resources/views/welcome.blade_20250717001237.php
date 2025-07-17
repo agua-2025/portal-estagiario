@@ -102,46 +102,50 @@
     </section>
 
     <section id="cursos" class="py-24 bg-gray-50">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="text-center" data-aos="fade-up">
-                        <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Oportunidades</h2>
-                        <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Áreas de Estágio Disponíveis</p>
-                        <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">
-                            Formamos um banco de talentos para diversas áreas do conhecimento. Cadastre-se e esteja pronto para quando a oportunidade surgir.
-                        </p>
-                    </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center" data-aos="fade-up">
+                <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Oportunidades</h2>
+                <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Áreas de Estágio Disponíveis</p>
+                <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">
+                    Formamos um banco de talentos para diversas áreas do conhecimento. Cadastre-se e esteja pronto para quando a oportunidade surgir.
+                </p>
+            </div>
 
-                    <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                      @forelse($cursos as $curso)
-                            {{-- ✅ ESTE É O CARD COMPLETO, COM AJUSTES PARA ALTURA IGUAL --}}
-                            <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover-scale flex flex-col h-full"> {{-- Adicionado flex flex-col h-full --}}
-                                <div class="p-8 flex flex-col flex-grow"> {{-- Adicionado flex flex-col flex-grow --}}
-                                    <div class="flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mx-auto mb-6">
-                                        @if ($curso->icone_svg)
-                                            {!! $curso->icone_svg !!}
-                                        @else
-                                            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                            </svg>
-                                        @endif
-                                    </div>
-                                    <h3 class="text-xl font-semibold text-gray-900 text-center mb-2">{{ $curso->nome }}</h3>
-                                    <p class="text-gray-600 text-center text-sm mb-4">{{ $curso->descricao ?? 'Detalhes sobre o curso e sua área de atuação.' }}</p> {{-- Mantém sem h-10 --}}
-                                    <div class="flex justify-center mt-auto"> {{-- mt-auto para empurrar o botão para baixo --}}
-                                        <a href="{{ route('cursos.show', $curso->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200">
-                                            Saber Mais &rarr;
-                                        </a>
-                                    </div>
+            <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                @forelse($cursos as $curso)
+                   <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover-scale" data-aos="fade-up" data-aos-delay="100">
+                            {{-- ✅ CONTEÚDO AJUSTADO DO CARD AQUI --}}
+                            <div class="p-8 flex flex-col h-full"> {{-- Adicionado flex flex-col h-full --}}
+                                <div class="flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mx-auto mb-6">
+                                    @if ($curso->icone_svg)
+                                        {!! $curso->icone_svg !!}
+                                    @else
+                                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                        </svg>
+                                    @endif
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-900 text-center mb-2">{{ $curso->nome }}</h3>
+                                {{-- ✅ Removida a classe h-10 da descrição --}}
+                                <p class="text-gray-600 text-center text-sm mb-4">{{ $curso->descricao ?? 'Detalhes sobre o curso e sua área de atuação.' }}</p>
+                                <div class="flex justify-center mt-auto"> {{-- ✅ Adicionado mt-auto para empurrar o botão para baixo --}}
+                                    <a href="{{ route('cursos.show', $curso->id) }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200">
+                                        Saber Mais &rarr;
+                                    </a>
                                 </div>
                             </div>
-                        @empty
-                            <div class="col-span-full text-center text-gray-600 text-lg py-10">
-                                Nenhuma área de atuação disponível no momento.
-                            </div>
-                        @endforelse
+                        </div>
+                        </div>
                     </div>
-                </div>
-            </section>
+                @empty
+                    <div class="col-span-full text-center text-gray-600 text-lg py-10">
+                        Nenhuma área de atuação disponível no momento.
+                    </div>
+                @endforelse
+            </div>
+        </div>
+    </section>
+
     <section id="classificacao" class="py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16" data-aos="fade-up">

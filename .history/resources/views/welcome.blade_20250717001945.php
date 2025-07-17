@@ -112,7 +112,8 @@
                     </div>
 
                     <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                      @forelse($cursos as $curso)
+                        @forelse($cursos as $curso)
+                   @forelse($cursos as $curso)
                             {{-- ✅ ESTE É O CARD COMPLETO, COM AJUSTES PARA ALTURA IGUAL --}}
                             <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover-scale flex flex-col h-full"> {{-- Adicionado flex flex-col h-full --}}
                                 <div class="p-8 flex flex-col flex-grow"> {{-- Adicionado flex flex-col flex-grow --}}
