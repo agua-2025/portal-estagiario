@@ -1,245 +1,111 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classificação Geral de Candidatos</title>
-    {{-- Adicionando o Vite para carregar os estilos e scripts do seu projeto --}}
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    {{-- Adicionando o Alpine.js para a interatividade --}}
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        /* Estilos para uma aparência limpa, profissional e compacta */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7fa;
-            color: #333;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 1rem;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 1.5rem;
-            padding: 1.5rem;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1a2e5a;
-            margin-bottom: 0.5rem;
-        }
-        .header p {
-            color: #6c757d;
-            font-size: 1rem;
-        }
-        .info-note {
-            text-align: center;
-            font-size: 0.8rem;
-            color: #6c757d;
-            margin-top: -0.5rem;
-            margin-bottom: 2.5rem;
-        }
-        .course-section {
-            margin-bottom: 2.5rem;
-            background: #ffffff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .course-title {
-            background: #f8f9fa;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid #e9ecef;
-        }
-        .course-title h2 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #1a2e5a;
-        }
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-        }
-        .results-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .results-table th,
-        .results-table td {
-            padding: 0.75rem 1rem; /* Padding ajustado para ser mais compacto */
-            border-bottom: 1px solid #e9ecef;
-            text-align: left;
-            vertical-align: middle;
-            font-size: 0.875rem; /* Fonte pequena */
-            white-space: nowrap;
-        }
-        .results-table th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #495057;
-            text-transform: uppercase;
-            font-size: 0.7rem; /* Fonte do cabeçalho ainda menor */
-            letter-spacing: 0.05em;
-        }
-        .results-table tr:last-of-type td {
-            border-bottom: none;
-        }
-        .results-table tr.main-row:hover {
-            background: #f1f3f5;
-        }
-        .position {
-            text-align: center;
-            font-weight: 700;
-            width: 5%;
-            color: #1a2e5a;
-        }
-        .name {
-            font-weight: 500;
-            white-space: normal; /* Permite quebra de linha no nome */
-        }
-        .cpf {
-            color: #6c757d;
-            font-size: 0.8rem;
-        }
-        .status-col {
-            text-align: center;
-        }
-        .score {
-            text-align: right;
-            font-weight: 700;
-            font-size: 1rem;
-            color: #007bff;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 0.25em 0.6em;
-            font-size: 75%;
-            font-weight: 700;
-            line-height: 1;
-            text-align: center;
-            white-space: nowrap;
-            vertical-align: baseline;
-            border-radius: 0.25rem;
-        }
-        .status-approved {
-            color: #155724;
-            background-color: #d4edda;
-        }
-        .status-rejected {
-            color: #721c24;
-            background-color: #f8d7da;
-        }
-        .details-row td {
-            background-color: #fafafa;
-            padding: 1rem 1.5rem;
-            white-space: normal;
-        }
-        .details-list {
-            font-size: 0.85rem;
-        }
-        .details-list dt {
-            color: #6c757d;
-        }
-        .details-list dd {
-            font-weight: 500;
-        }
-        .no-results {
-            text-align: center;
-            padding: 3rem;
-            color: #6c757d;
-            background: #ffffff;
-            border-radius: 12px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Classificação Geral de Candidatos</h1>
-            <p>Resultado do processo seletivo, organizado por curso e ordenado por pontuação.</p>
-        </div>
+{{-- resources/views/classificacao/index.blade.php --}}
 
-        {{-- ✅ NOTAS IMPORTANTES PARA O UTILIZADOR --}}
-        <div class="info-note">
-            <p>Esta lista é dinâmica e pode ser atualizada conforme as análises são concluídas.</p>
-            <p>Critério de desempate: maior idade.</p>
-        </div>
+@extends('layouts.site') {{-- ✅ ESSENCIAL: DIZ QUE ESTA PÁGINA USA O LAYOUT GLOBAL 'site.blade.php' --}}
 
-        @if($classificacaoPorCurso->isEmpty())
-            <div class="no-results">
-                <h3>Nenhum resultado disponível</h3>
-                <p>A lista de classificação ainda não foi divulgada.</p>
-            </div>
-        @else
-            @foreach($classificacaoPorCurso as $cursoNome => $candidatos)
-                <div class="course-section">
-                    <div class="course-title">
-                        <h2>{{ $cursoNome }}</h2>
-                    </div>
-                    
-                    <div class="table-container">
-                        <table class="results-table">
-                            <thead>
-                                <tr>
-                                    <th class="position">Pos.</th>
-                                    <th class="name">Nome do Candidato</th>
-                                    <th class="cpf">CPF</th>
-                                    <th class="status-col">Status</th>
-                                    <th class="score">Pontuação</th>
-                                    <th class="relative px-4 py-3"><span class="sr-only">Ações</span></th>
-                                </tr>
-                            </thead>
-                            @foreach($candidatos as $index => $candidato)
-                                {{-- ✅ ESTRUTURA DE TABELA EXPANSÍVEL --}}
-                                <tbody x-data="{ open: false }">
-                                    <tr class="main-row">
-                                        <td class="position">{{ $index + 1 }}º</td>
-                                        <td class="name">{{ $candidato->nome }}</td>
-                                        <td class="cpf">{{ substr($candidato->cpf, 0, 3) }}.***.***-**</td>
-                                        <td class="status-col">
-                                            @if($candidato->status === 'Aprovado')
-                                                <span class="status-badge status-approved">Aprovado</span>
-                                            @else
-                                                <span class="status-badge status-rejected">Rejeitado</span>
-                                            @endif
-                                        </td>
-                                        <td class="score">{{ number_format($candidato->pontuacao_final, 2, ',', '.') }}</td>
-                                        <td class="text-right">
-                                            <button @click="open = !open" class="text-indigo-600 hover:text-indigo-900 text-xs font-medium">
-                                                <span x-show="!open">Detalhes</span>
-                                                <span x-show="open">Esconder</span>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr x-show="open" x-transition class="details-row">
-                                        <td colspan="6">
-                                            <dl class="details-list">
-                                                <h4 class="font-semibold mb-2 text-xs uppercase tracking-wider">Extrato de Pontos:</h4>
-                                                @forelse($candidato->pontuacao_detalhes ?? [] as $detalhe)
-                                                    <div class="flex justify-between py-1 border-b border-gray-200 last:border-0">
-                                                        <dt>{{ $detalhe['nome'] }}</dt>
-                                                        <dd>{{ number_format($detalhe['pontos'], 2, ',', '.') }}</dd>
-                                                    </div>
-                                                @empty
-                                                    <p class="italic text-gray-500">Nenhuma pontuação registrada.</p>
-                                                @endforelse
-                                            </dl>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            @endforeach
-                        </table>
-                    </div>
+{{-- Define o título da aba do navegador para esta página --}}
+@section('title', 'Classificação Geral de Candidatos - Portal do Estagiário')
+
+{{-- ✅ INÍCIO DO CONTEÚDO ESPECÍFICO DESTA PÁGINA (o que será injetado no @yield('content')) --}}
+@section('content')
+    <div class="relative min-h-screen z-10 py-12"> {{-- Use py-12 para padding vertical consistente --}}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div data-aos="fade-up">
+                <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Transparência</h2>
+                <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Classificação Geral dos Candidatos</p>
+                <div class="mt-4 text-lg text-gray-600">
+                    <p>Esta lista é dinâmica e pode ser atualizada conforme as análises são concluídas.</p>
+                    </p>
                 </div>
-            @endforeach
-        @endif
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-12 z-10">
+            @if($classificacaoPorCurso->isEmpty())
+                <div class="bg-white rounded-2xl shadow-lg p-8 text-center text-gray-600" data-aos="fade-up">
+                    <h3 class="text-2xl font-semibold mb-2">Nenhum resultado disponível</h3>
+                    <p>A lista de classificação ainda não foi divulgada ou não há candidatos avaliados.</p>
+                </div>
+            @else
+                @foreach($classificacaoPorCurso as $cursoNome => $candidatos)
+                    <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 mb-8 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-2xl">
+                            <h2 class="text-xl font-semibold text-gray-900">{{ $cursoNome }}</h2>
+                        </div>
+
+                        <div class="overflow-x-auto p-6">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pos.</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome do Candidato</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPF</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
+                                        <th class="relative px-4 py-3 text-right"><span class="sr-only">Detalhes</span></th>
+                                    </tr>
+                                </thead>
+                                @foreach($candidatos as $index => $candidato)
+                                    <tbody x-data="{ open: false }" class="bg-white divide-y divide-gray-200">
+                                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-center">
+                                                @php
+                                                    // Replicando a lógica de cores de posição da welcome.blade.php
+                                                    $positionColorClass = 'bg-gray-400 text-white'; 
+                                                    if ($index == 0) $positionColorClass = 'bg-yellow-400 text-white';
+                                                    else if ($index == 1) $positionColorClass = 'bg-slate-400 text-white'; 
+                                                    else if ($index == 2) $positionColorClass = 'bg-orange-400 text-white'; 
+                                                @endphp
+                                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full {{ $positionColorClass }} font-bold text-sm">
+                                                    {{ $index + 1 }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $candidato->nome }}</td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ substr($candidato->cpf ?? '', 0, 3) }}.***.***-**</td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-center">
+                                                @php
+                                                    $statusClass = 'bg-gray-100 text-gray-800'; // Default
+                                                    if ($candidato->status === 'Aprovado') $statusClass = 'status-approved';
+                                                    else if ($candidato->status === 'Rejeitado') $statusClass = 'status-rejected';
+                                                    else if ($candidato->status === 'Em Análise' || $candidato->status === 'Inscrição Incompleta') $statusClass = 'status-analise'; // Mapear Inscrição Incompleta para Em Análise
+                                                @endphp
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $statusClass }}">
+                                                    {{ $candidato->status }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900 text-right">{{ number_format($candidato->pontuacao_final, 2, ',', '.') }}</td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-right">
+                                                <button @click="open = !open" class="text-blue-600 hover:text-blue-900 text-xs font-medium">
+                                                    <span x-show="!open" class="inline-flex items-center">Detalhes <svg class="ml-1 w-3 h-3 transform transition-transform" x-bind:class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span>
+                                                    <span x-show="open" class="inline-flex items-center">Esconder <svg class="ml-1 w-3 h-3 transform transition-transform" x-bind:class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr x-show="open" x-transition x-cloak class="bg-gray-50"> {{-- Adicionado x-cloak --}}
+                                            <td colspan="6" class="px-6 py-4">
+                                                <h5 class="font-semibold mb-2 text-sm text-gray-700">Extrato de Pontos:</h5>
+                                                <dl class="text-sm text-gray-700 space-y-1">
+                                                    @forelse($candidato->pontuacao_detalhes ?? [] as $detalhe)
+                                                        <div class="flex justify-between border-b border-gray-200 pb-1 last:border-0">
+                                                            <dt class="text-gray-600">{{ $detalhe['nome'] }}:</dt>
+                                                            <dd class="font-medium text-gray-800">{{ number_format($detalhe['pontos'], 2, ',', '.') }} pontos</dd>
+                                                        </div>
+                                                    @empty
+                                                        <p class="italic text-gray-500">Nenhuma pontuação detalhada registrada.</p>
+                                                    @endforelse
+                                                    <div class="flex justify-between pt-2 mt-2 border-t border-gray-300 font-bold">
+                                                        <dt>Total Geral:</dt>
+                                                        <dd>{{ number_format($candidato->pontuacao_final, 2, ',', '.') }} pontos</dd>
+                                                    </div>
+                                                </dl>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                @endforeach
+                            </table>
+                        </div>
+                    </div>
+                @endforeach
+            @endif
+        </div>
     </div>
-</body>
-</html>
+@endsection {{-- FIM DO CONTEÚDO ESPECÍFICO DESTA PÁGINA --}}

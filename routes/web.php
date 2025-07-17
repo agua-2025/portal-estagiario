@@ -10,7 +10,7 @@ use App\Http\Controllers\CursoController; // Controlador público para detalhes 
 
 // Controllers Genéricos e de Candidato
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\TesteController;
+//use App\Http\Controllers\TesteController;
 use App\Http\Controllers\Candidato\ProfileController as CandidatoProfileController;
 use App\Http\Controllers\Candidato\DocumentoController;
 use App\Http\Controllers\Candidato\AtividadeController; // Corrigido de App->Http para App\Http
@@ -42,7 +42,7 @@ Route::get('/cursos/{curso}', [CursoController::class, 'show'])->name('cursos.sh
 Route::get('/classificacao', [ClassificacaoController::class, 'index'])->name('classificacao.index');
 
 // Rota de Teste
-Route::get('/teste', [TesteController::class, 'index']);
+//Route::get('/teste', [TesteController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------
