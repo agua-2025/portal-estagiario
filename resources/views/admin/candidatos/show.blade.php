@@ -5,35 +5,43 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 md:p-8 text-gray-900">
 
-                    {{-- CABEÇALHO --}}
-                    <div class="flex flex-col sm:flex-row justify-between items-start mb-6 border-b pb-4">
-                        <div>
-                            <h2 class="text-2xl font-semibold text-gray-800">{{ $candidato->nome_completo ?? $candidato->user->name }}</h2>
-                            <p class="text-sm text-gray-500">Inscrição recebida em: {{ $candidato->created_at->format('d/m/Y H:i') }}</p>
-                        </div>
-                        <div class="mt-4 sm:mt-0 flex flex-col sm:flex-row items-center gap-4">
-                               @php
-                                   $statusClass = 'bg-yellow-100 text-yellow-800';
-                                   $statusText = 'Aguardando Análise';
-                                   if ($candidato->status === 'Aprovado') {
-                                       $statusClass = 'bg-green-100 text-green-800';
-                                       $statusText = 'Aprovado';
-                                   } elseif ($candidato->status === 'Rejeitado') {
-                                       $statusClass = 'bg-red-100 text-red-800';
-                                       $statusText = 'Rejeitado';
-                                   } elseif ($candidato->status === 'Em Análise') { // Adicionado para clareza
-                                       $statusClass = 'bg-purple-100 text-purple-800';
-                                       $statusText = 'Em Análise';
-                                   }
-                               @endphp
-                               <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full {{ $statusClass }}">
-                                   {{ $statusText }}
-                               </span>
-                               <a href="{{ route('admin.candidatos.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300">
-                                   Voltar
-                               </a>
-                        </div>
-                    </div>
+                    {{-- CABEÇALHO COM STATUS --}}
+        <div class="flex flex-col sm:flex-row justify-between items-start mb-6 border-b pb-4">
+            <div>
+                <h2 class="text-2xl font-semibold text-gray-800">{{ $candidato->nome_completo ?? $candidato->user->name }}</h2>
+                <p class="text-sm text-gray-500">Inscrição recebida em: {{ $candidato->created_at->format('d/m/Y H:i') }}</p>
+            </div>
+            <div class="mt-4 sm:mt-0 flex flex-col sm:flex-row items-center gap-4">
+                @php
+                    $statusClass = 'bg-gray-100 text-gray-800'; // Default para status desconhecidos
+                    $statusText = $candidato->status; // Texto padrão é o próprio status do BD
+
+                    // ✅ Lógica corrigida para mapear cores e textos para CADA status no cabeçalho
+                    if ($candidato->status === 'Inscrição Incompleta') {
+                        $statusClass = 'bg-yellow-100 text-yellow-800'; // Amarelo para Incompleta
+                        $statusText = 'Inscrição Incompleta'; // Exibir exatamente "Inscrição Incompleta"
+                    } elseif ($candidato->status === 'Em Análise') {
+                        $statusClass = 'bg-blue-100 text-blue-800'; // Azul para "Em Análise"
+                        $statusText = 'Em Análise';
+                    } elseif ($candidato->status === 'Aprovado') {
+                        $statusClass = 'bg-green-100 text-green-800';
+                        $statusText = 'Aprovado';
+                    } elseif ($candidato->status === 'Homologado') {
+                        $statusClass = 'bg-purple-100 text-purple-800';
+                        $statusText = 'Homologado';
+                    } elseif ($candidato->status === 'Rejeitado') {
+                        $statusClass = 'bg-red-100 text-red-800';
+                        $statusText = 'Rejeitado';
+                    }
+                @endphp
+                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full {{ $statusClass }}">
+                    {{ $statusText }}
+                </span>
+                <a href="{{ route('admin.candidatos.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300">
+                    Voltar
+                </a>
+            </div>
+        </div>
 
                     {{-- PLACAR DE PONTUAÇÃO --}}
                     <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
