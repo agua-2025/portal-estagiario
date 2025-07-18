@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Candidato;
-use App\Models\Documento; // ✅ Adicionado para a nova função
+use App\Models\Candidato; // Modelo do Candidato
+use App\Models\Documento; // Para a função updateDocumentStatus
 use Illuminate\Http\Request;
-use App\Models\Curso; // Manter, pois candidato tem curso_id
-use App\Models\Instituicao; // Manter, pois candidato tem instituicao_id
+use App\Models\Curso; // Para listas de cursos em create/edit
+use App\Models\Instituicao; // Para listas de instituições em create/edit
+use Illuminate\Support\Facades\Log; // ✅ ADICIONADO: Para usar a funcionalidade de log
 
 class CandidatoController extends Controller
 {
@@ -18,8 +19,6 @@ class CandidatoController extends Controller
     {
         $search = $request->input('search');
 
-        // ✅ CORRIGIDO: Carrega 'curso' e 'instituicao' diretamente do Model Candidato.
-        // Removido 'curso.instituicao' pois Curso não tem mais instituicao_id.
         $query = Candidato::query()->with(['user', 'curso', 'instituicao']);
 
         if ($search) {
@@ -37,8 +36,6 @@ class CandidatoController extends Controller
      */
     public function create()
     {
-        // Se você tiver uma tela de criação de candidato no admin,
-        // e ela precisar de listas de cursos e instituições, você as buscaria aqui.
         $cursos = Curso::orderBy('nome')->get();
         $instituicoes = Instituicao::orderBy('nome')->get();
         return view('admin.candidatos.create', compact('cursos', 'instituicoes'));
@@ -46,14 +43,46 @@ class CandidatoController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     * ✅ AJUSTADO: Lógica para criar o candidato com status inicial 'Inscrição Incompleta'.
+     */
+/**
+     * Store a newly created resource in storage.
+     * ✅ AJUSTADO: Lógica para criar o candidato com status inicial 'Inscrição Incompleta'.
      */
     public function store(Request $request)
     {
-        // Lógica para armazenar um novo candidato
-        // Exemplo:
-        // $validatedData = $request->validate([...]);
-        // Candidato::create($validatedData);
-        // return redirect()->route('admin.candidatos.index')->with('success', 'Candidato criado com sucesso!');
+        // 1. Validação dos dados do formulário
+        $validatedData = $request->validate([
+            'user_id' => 'required|exists:users,id', // Assumindo que o user_id é passado pelo formulário ou outro método
+            'nome_completo' => 'required|string|max:255',
+            'cpf' => 'required|string|max:14|unique:candidatos,cpf',
+            // Adicione AQUI a validação para TODOS os outros campos que são passados pelo formulário de criação de candidato.
+            // Ex: 'curso_id' => 'nullable|exists:cursos,id',
+            // 'nome_pai' => 'nullable|string|max:255',
+            // 'data_nascimento' => 'nullable|date',
+            // ... (restante das suas validações) ...
+        ], [
+            'user_id.required' => 'O usuário associado é obrigatório.',
+            'user_id.exists' => 'O usuário associado não existe.',
+            'nome_completo.required' => 'O nome completo é obrigatório.',
+            'cpf.required' => 'O CPF é obrigatório.',
+            'cpf.unique' => 'Este CPF já está cadastrado.',
+        ]);
+
+        // 2. Definir o status inicial como 'Inscrição Incompleta'
+        // ESTE É O PASSO QUE RESOLVE O ERRO "Field 'status' doesn't have a default value"
+        $validatedData['status'] = 'Inscrição Incompleta'; 
+
+        try {
+            // 3. Criar o candidato no banco de dados
+            Candidato::create($validatedData);
+
+            return redirect()->route('admin.candidatos.index')->with('success', 'Candidato criado com sucesso e status inicial "Inscrição Incompleta"!');
+        } catch (\Exception $e) {
+            // 4. Logar e exibir erro em caso de falha
+            Log::error("Erro ao criar candidato: " . $e->getMessage() . " Dados da Requisição: " . json_encode($request->all()));
+            return redirect()->back()->with('error', 'Ocorreu um erro ao criar o candidato. Por favor, tente novamente. Detalhes: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**
@@ -61,21 +90,15 @@ class CandidatoController extends Controller
      */
     public function show(Candidato $candidato)
     {
-        // Carrega todas as relações necessárias para exibir o perfil completo
-        // ✅ CORRIGIDO: Carrega 'curso' e 'instituicao' diretamente do Candidato.
-        // Removido 'curso.instituicao' pois Curso não tem mais instituicao_id.
         $candidato->load([
             'user.documentos', 
             'user.candidatoAtividades.tipoDeAtividade', 
-            'curso', // Carrega o curso genérico
-            'instituicao' // Carrega a instituição diretamente do candidato
+            'curso',
+            'instituicao'
         ]);
 
-        // ✅ AJUSTE CIRÚRGICO AQUI:
-        // Chama o método com o nome correto e obtém os dados detalhados.
         $resultadoPontuacao = $candidato->calcularPontuacaoDetalhada();
 
-        // Envia os dados corretos para a view.
         return view('admin.candidatos.show', [
             'candidato' => $candidato,
             'pontuacaoTotal' => $resultadoPontuacao['total'],
@@ -88,7 +111,6 @@ class CandidatoController extends Controller
      */
     public function edit(Candidato $candidato)
     {
-        // Lógica para exibir o formulário de edição de candidato no admin
         $cursos = Curso::orderBy('nome')->get();
         $instituicoes = Instituicao::orderBy('nome')->get();
         return view('admin.candidatos.edit', compact('candidato', 'cursos', 'instituicoes'));
@@ -96,21 +118,26 @@ class CandidatoController extends Controller
 
     /**
      * Update the specified resource in storage.
+     * ✅ AJUSTADO: Validação do status para incluir 'Homologado'.
      */
     public function update(Request $request, Candidato $candidato)
     {
         $request->validate([
-            'status' => 'required|in:Aprovado,Rejeitado',
+            'status' => 'required|in:Em Análise,Aprovado,Rejeitado,Homologado', // ✅ ADICIONADO 'Homologado'
             'admin_observacao' => 'nullable|string',
+            // Adicione outras validações para os campos editáveis pelo admin aqui
         ]);
 
         $candidato->status = $request->input('status');
         $candidato->admin_observacao = $request->input('admin_observacao');
         
-        $candidato->save();
-
-        return redirect()->route('admin.candidatos.index')
-                         ->with('success', 'Status do candidato ' . $candidato->nome_completo . ' atualizado com sucesso!');
+        try {
+            $candidato->save();
+            return redirect()->route('admin.candidatos.index')->with('success', 'Status do candidato ' . $candidato->nome_completo . ' atualizado com sucesso!');
+        } catch (\Exception $e) {
+            Log::error("Erro ao atualizar candidato ID {$candidato->id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocorreu um erro ao atualizar o candidato. Por favor, tente novamente. Detalhes: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -118,28 +145,69 @@ class CandidatoController extends Controller
      */
     public function destroy(Candidato $candidato)
     {
-        // Lógica para apagar um candidato
-        // Exemplo:
-        // $candidato->delete();
-        // return redirect()->route('admin.candidatos.index')->with('success', 'Candidato apagado com sucesso!');
+        try {
+            $candidato->delete();
+            return redirect()->route('admin.candidatos.index')->with('success', 'Candidato apagado com sucesso!');
+        } catch (\Exception $e) {
+            Log::error("Erro ao apagar candidato ID {$candidato->id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocorreu um erro ao apagar o candidato. Por favor, tente novamente. Detalhes: ' . $e->getMessage());
+        }
     }
 
     /**
-     * ✅ SUA FUNÇÃO ORIGINAL MANTIDA INTACTA
      * Atualiza o status de um documento específico (Aprovado/Rejeitado).
      */
     public function updateDocumentStatus(Request $request, Documento $documento)
     {
-        // Valida se o status enviado é um dos valores permitidos.
         $request->validate([
             'status' => 'required|in:aprovado,rejeitado',
         ]);
 
-        // Atualiza o status do documento e salva no banco de dados.
         $documento->status = $request->input('status');
-        $documento->save();
+        
+        try {
+            $documento->save();
+            return back()->with('success', 'Status do documento atualizado com sucesso!');
+        } catch (\Exception $e) {
+            Log::error("Erro ao atualizar status do documento ID {$documento->id}: " . $e->getMessage());
+            return back()->with('error', 'Ocorreu um erro ao atualizar o status do documento. Por favor, tente novamente. Detalhes: ' . $e->getMessage());
+        }
+    }
 
-        // Redireciona de volta para a página anterior com uma mensagem de sucesso.
-        return back()->with('success', 'Status do documento atualizado com sucesso!');
+    /**
+     * Homologa um candidato específico.
+     * ✅ NOVO MÉTODO PARA HOMOLOGAÇÃO
+     */
+    public function homologar(Request $request, Candidato $candidato)
+    {
+        $request->validate([
+            'ato_homologacao' => 'required|string|max:255',
+            'homologacao_observacoes' => 'nullable|string',
+        ], [
+            'ato_homologacao.required' => 'O campo "Número/Referência do Ato de Homologação" é obrigatório.',
+        ]);
+
+        if ($candidato->status !== 'Aprovado') {
+            return redirect()->back()->with('error', 'Não é possível homologar um candidato que não esteja no status "Aprovado". O status atual é: ' . $candidato->status);
+        }
+
+        try {
+            $candidato->status = 'Homologado';
+            $candidato->ato_homologacao = $request->input('ato_homologacao');
+            $candidato->homologado_em = now(); // Define a data e hora atuais automaticamente
+            $candidato->homologacao_observacoes = $request->input('homologacao_observacoes');
+            $candidato->save();
+
+            Log::info("Candidato ID {$candidato->id} homologado por " . auth()->user()->name . " (ID: " . auth()->id() . ")", [
+                'ato_homologacao' => $candidato->ato_homologacao,
+                'homologacao_observacoes' => $candidato->homologacao_observacoes
+            ]);
+
+            return redirect()->back()->with('success', 'Candidato homologado com sucesso!');
+
+        } catch (\Exception | \Throwable $e) { // Captura exceções e erros fatais
+            Log::error("Erro ao homologar candidato ID {$candidato->id}: " . $e->getMessage(), ['exception' => $e]);
+            return redirect()->back()->with('error', 'Ocorreu um erro ao homologar o candidato. Por favor, tente novamente. Detalhes: ' . $e->getMessage());
+        }
     }
 }

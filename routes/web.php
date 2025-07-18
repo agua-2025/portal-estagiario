@@ -4,25 +4,25 @@ use Illuminate\Support\Facades\Route;
 use App\Models\Estado;
 use Illuminate\Support\Facades\Auth;
 
-// ✅ Importações de Controllers (corrigidas e com aliases claros para evitar conflitos)
+// ✅ Importações de Controllers
 use App\Http\Controllers\WelcomeController; // Controlador da página inicial pública
 use App\Http\Controllers\CursoController; // Controlador público para detalhes do curso
 
 // Controllers Genéricos e de Candidato
 use App\Http\Controllers\ProfileController;
-//use App\Http\Controllers\TesteController;
+//use App\Http\Controllers\TesteController; // Mantenha comentado ou remova se não for usar
 use App\Http\Controllers\Candidato\ProfileController as CandidatoProfileController;
 use App\Http\Controllers\Candidato\DocumentoController;
-use App\Http\Controllers\Candidato\AtividadeController; // Corrigido de App->Http para App\Http
-use App\Http\Controllers\ClassificacaoController;
+use App\Http\Controllers\Candidato\AtividadeController; 
+use App\Http\Controllers\ClassificacaoController; // Controlador da classificação pública
 
 // Controllers do Admin
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\InstituicaoController;
-use App\Http\Controllers\Admin\CursoController as AdminCursoController; // ✅ Alias CLARO para o CursoController do Admin
+use App\Http\Controllers\Admin\CursoController as AdminCursoController; 
 use App\Http\Controllers\Admin\TipoDeAtividadeController;
-use App\Http\Controllers\Admin\CandidatoController; // Corrigido de App->Http para App\Http
-use App\Http\Controllers\Admin\AtividadeAnaliseController; // Corrigido de App->Http para App\Http
+use App\Http\Controllers\Admin\CandidatoController; 
+use App\Http\Controllers\Admin\AtividadeAnaliseController; 
 
 
 /*
@@ -31,17 +31,16 @@ use App\Http\Controllers\Admin\AtividadeAnaliseController; // Corrigido de App->
 |--------------------------------------------------------------------------
 */
 
-// ✅ Rota da página inicial (WelcomeController::index) - ÚNICA E CORRETA
+// Rota da página inicial
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
-// ✅ Rota para exibir detalhes de um curso específico (usa o CursoController público)
-// Removidas as duplicações e o aninhamento incorreto dentro de closures.
+// Rota para exibir detalhes de um curso específico
 Route::get('/cursos/{curso}', [CursoController::class, 'show'])->name('cursos.show');
 
-// Rota de Classificação
+// Rota de Classificação pública completa
 Route::get('/classificacao', [ClassificacaoController::class, 'index'])->name('classificacao.index');
 
-// Rota de Teste
+// Rota de Teste (mantida comentada conforme seu arquivo)
 //Route::get('/teste', [TesteController::class, 'index']);
 
 /*
@@ -66,11 +65,11 @@ Route::middleware('auth')->group(function () {
         if (Auth::user()->role === 'admin') {
             return redirect()->route('admin.dashboard');
         }
-        // Aponta para o painel do candidato, não para o perfil
+        // Aponta para o painel do candidato
         return app(\App\Http\Controllers\Candidato\DashboardController::class)->index();
     })->name('dashboard');
     
-    // Rota de perfil padrão do Breeze (para mudar senha, etc.)
+    // Rota de perfil padrão do Breeze
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -107,7 +106,6 @@ Route::middleware(['auth', \App\Http\Middleware\CheckAdminRole::class])
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
         Route::resource('instituicoes', InstituicaoController::class);
-        // ✅ Usa o alias AdminCursoController para o controlador de recursos do Admin
         Route::resource('cursos', AdminCursoController::class); 
         Route::resource('tipos-de-atividade', TipoDeAtividadeController::class);
         Route::resource('candidatos', CandidatoController::class);
@@ -117,6 +115,9 @@ Route::middleware(['auth', \App\Http\Middleware\CheckAdminRole::class])
 
         // Rota de atualização de status de documentos (para o admin)
         Route::put('/documentos/{documento}/status', [CandidatoController::class, 'updateDocumentStatus'])->name('documentos.updateStatus');
+        
+        // ✅ NOVA ROTA PARA HOMOLOGAR O CANDIDATO - ADICIONADA AQUI
+        Route::post('candidatos/{candidato}/homologar', [CandidatoController::class, 'homologar'])->name('candidatos.homologar');
 });
 
 

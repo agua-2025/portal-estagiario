@@ -184,27 +184,83 @@
                         </div>
                     </div>
 
-                    {{-- Aba 3: Ações Finais --}}
-                    <div x-show="tab === 'acoes'" x-transition style="display: none;">
-                        <div class="mt-8 pt-6 border-t p-4 bg-gray-100 rounded-lg">
-                           <h3 class="text-lg font-semibold text-gray-800 mb-2">Painel de Ações do Administrador</h3>
-                            <p class="text-sm text-gray-600 mb-4">Após analisar todas as informações, use os botões abaixo para alterar o status da inscrição.</p>
-                            <form action="{{ route('admin.candidatos.update', $candidato->id) }}" method="POST" onsubmit="return confirm('Você tem certeza que deseja alterar o status desta inscrição?');">
-                                @csrf
-                                @method('PUT')
-                                <div class="space-y-4">
-                                    <div>
-                                        <label for="admin_observacao" class="block text-sm font-medium text-gray-700">Justificativa / Observação</label>
-                                        <textarea name="admin_observacao" id="admin_observacao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">{{ $candidato->admin_observacao }}</textarea>
-                                    </div>
-                                    <div class="flex items-center space-x-4">
-                                        <button type="submit" name="status" value="Aprovado" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">Aprovar Inscrição</button>
-                                        <button type="submit" name="status" value="Rejeitado" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Rejeitar Inscrição</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
+{{-- Conteúdo para a aba de Ações Finais --}}
+<div x-show="tab === 'acoes'" x-transition x-cloak>
+    <div class="mt-8 pt-6 border-t p-4 bg-gray-100 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">Painel de Ações do Administrador</h3>
+        <p class="text-sm text-gray-600 mb-4">Após analisar todas as informações, use os botões abaixo para alterar o status da inscrição.</p>
+
+        {{-- Formulários para Aprovar/Rejeitar Perfil - Visível apenas se o status permitir --}}
+        @if ($candidato->status === 'Em Análise')
+            <form action="{{ route('admin.candidatos.update', $candidato->id) }}" method="POST" onsubmit="return confirm('Você tem certeza que deseja alterar o status desta inscrição?');">
+                @csrf
+                @method('PUT')
+                <div class="space-y-4">
+                    <div>
+                        <label for="admin_observacao" class="block text-sm font-medium text-gray-700">Justificativa / Observação</label>
+                        <textarea name="admin_observacao" id="admin_observacao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">{{ $candidato->admin_observacao }}</textarea>
                     </div>
+                    <div class="flex items-center space-x-4">
+                        <button type="submit" name="status" value="Aprovado" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">Aprovar Inscrição</button>
+                        <button @click="showProfileRejectionModal = true" type="button" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Rejeitar Inscrição</button>
+                    </div>
+                </div>
+            </form>
+        @endif
+
+        {{-- ✅ FORMULÁRIO DE HOMOLOGAÇÃO - Visível apenas se o status for 'Aprovado' --}}
+        @if ($candidato->status === 'Aprovado')
+            <form action="{{ route('admin.candidatos.homologar', $candidato->id) }}" method="POST" class="w-full mt-4">
+                @csrf
+                <div class="bg-yellow-50 p-4 rounded-lg mt-4 mb-4">
+                    <p class="font-bold text-yellow-800 mb-2">Ação: Homologar Candidato</p>
+                    <div class="mb-3">
+                        <label for="ato_homologacao" class="block text-sm font-medium text-gray-700">Número/Referência do Ato de Homologação <span class="text-red-500">*</span></label>
+                        <input type="text" name="ato_homologacao" id="ato_homologacao" required 
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                               value="{{ old('ato_homologacao', $candidato->ato_homologacao) }}">
+                        @error('ato_homologacao')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div class="mb-3">
+                        <label for="homologacao_observacoes" class="block text-sm font-medium text-gray-700">Observações (Opcional)</label>
+                        <textarea name="homologacao_observacoes" id="homologacao_observacoes" rows="3" 
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">{{ old('homologacao_observacoes', $candidato->homologacao_observacoes) }}</textarea>
+                        @error('homologacao_observacoes')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <button type="submit" class="w-full px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-medium">Homologar Candidato</button>
+                </div>
+            </form>
+        @elseif ($candidato->status === 'Homologado')
+            <div class="bg-blue-50 p-4 rounded-lg mt-4 mb-4">
+                <p class="font-bold text-blue-800 mb-2">Candidato Homologado!</p>
+                <p class="text-sm text-blue-700">Ato de Homologação: <span class="font-medium">{{ $candidato->ato_homologacao ?? 'N/A' }}</span></p>
+                <p class="text-sm text-blue-700">Homologado em: <span class="font-medium">{{ $candidato->homologado_em ? $candidato->homologado_em->format('d/m/Y H:i') : 'N/A' }}</span></p>
+                @if ($candidato->homologacao_observacoes)
+                    <p class="text-sm text-blue-700 mt-2">Observações: <span class="font-medium">{{ $candidato->homologacao_observacoes }}</span></p>
+                @endif
+            </div>
+        @else {{-- Status como 'Rejeitado', 'Inscrição Incompleta' --}}
+            <div class="bg-gray-50 p-4 rounded-lg mt-4 mb-4">
+                <p class="font-bold text-gray-800 mb-2">Ações Atuais:</p>
+                <p class="text-sm text-gray-700">O status do candidato não permite homologação ou aprovação direta no momento.</p>
+                @if ($candidato->status === 'Rejeitado')
+                    <p class="text-sm text-red-600 mt-2">Candidato Rejeitado. Gerencie o recurso (futuramente).</p>
+                @elseif ($candidato->status === 'Inscrição Incompleta')
+                    <p class="text-sm text-yellow-600 mt-2">Candidato com inscrição incompleta. Verifique os documentos.</p>
+                @endif
+            </div>
+        @endif
+
+        {{-- Botão Voltar para a lista de candidatos (mantido) --}}
+        <div class="text-right mt-4">
+             <a href="{{ route('admin.candidatos.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Voltar para a Lista</a>
+        </div>
+    </div>
+</div> 
 
                 </div>
             </div>
