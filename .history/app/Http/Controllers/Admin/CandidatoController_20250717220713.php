@@ -45,42 +45,33 @@ class CandidatoController extends Controller
      * Store a newly created resource in storage.
      * ✅ AJUSTADO: Lógica para criar o candidato com status inicial 'Inscrição Incompleta'.
      */
-/**
-     * Store a newly created resource in storage.
-     * ✅ AJUSTADO: Lógica para criar o candidato com status inicial 'Inscrição Incompleta'.
-     */
     public function store(Request $request)
     {
-        // 1. Validação dos dados do formulário
         $validatedData = $request->validate([
-            'user_id' => 'required|exists:users,id', // Assumindo que o user_id é passado pelo formulário ou outro método
             'nome_completo' => 'required|string|max:255',
             'cpf' => 'required|string|max:14|unique:candidatos,cpf',
-            // Adicione AQUI a validação para TODOS os outros campos que são passados pelo formulário de criação de candidato.
-            // Ex: 'curso_id' => 'nullable|exists:cursos,id',
-            // 'nome_pai' => 'nullable|string|max:255',
-            // 'data_nascimento' => 'nullable|date',
-            // ... (restante das suas validações) ...
+            // ... adicione aqui outras regras de validação para os campos que podem ser preenchidos no 'create'
+            // Ex: 'data_nascimento' => 'required|date',
+            'user_id' => 'required|exists:users,id', // Assumindo que o user_id é passado ou associado
+            'curso_id' => 'nullable|exists:cursos,id',
         ], [
-            'user_id.required' => 'O usuário associado é obrigatório.',
-            'user_id.exists' => 'O usuário associado não existe.',
-            'nome_completo.required' => 'O nome completo é obrigatório.',
-            'cpf.required' => 'O CPF é obrigatório.',
             'cpf.unique' => 'Este CPF já está cadastrado.',
+            // ... outras mensagens customizadas ...
         ]);
 
-        // 2. Definir o status inicial como 'Inscrição Incompleta'
-        // ESTE É O PASSO QUE RESOLVE O ERRO "Field 'status' doesn't have a default value"
+        // Associa o user_id (se o candidato está sendo criado por um usuário logado)
+        // Se este store for apenas para o admin criar o candidato, user_id virá do formulário.
+        // Se for para o próprio candidato, seria auth()->id().
+        // $validatedData['user_id'] = auth()->id(); // Exemplo se o próprio candidato cria
+
+        // Define o status inicial como 'Inscrição Incompleta'
         $validatedData['status'] = 'Inscrição Incompleta'; 
 
         try {
-            // 3. Criar o candidato no banco de dados
             Candidato::create($validatedData);
-
             return redirect()->route('admin.candidatos.index')->with('success', 'Candidato criado com sucesso e status inicial "Inscrição Incompleta"!');
         } catch (\Exception $e) {
-            // 4. Logar e exibir erro em caso de falha
-            Log::error("Erro ao criar candidato: " . $e->getMessage() . " Dados da Requisição: " . json_encode($request->all()));
+            Log::error("Erro ao criar candidato: " . $e->getMessage() . " Dados: " . json_encode($request->all()));
             return redirect()->back()->with('error', 'Ocorreu um erro ao criar o candidato. Por favor, tente novamente. Detalhes: ' . $e->getMessage())->withInput();
         }
     }

@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Candidato;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Documento;
-use App\Models\Candidato; // Adicionado: Importar Candidato para atualizar o status
+use App\Models\Candidato; // ✅ Adicionado: Importar Candidato para atualizar o status
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Log; // Adicionado para logs
+use Illuminate\Support\Facades\Log; // ✅ Adicionado para logs
 
 
 class DocumentoController extends Controller
@@ -21,7 +21,7 @@ class DocumentoController extends Controller
         $user = Auth::user();
         $candidato = $user->candidato()->firstOrCreate([]); // Garante que o candidato exista
 
-        // Lógica para definir documentos necessários (baseada no perfil do candidato)
+        // ✅ Lógica para definir documentos necessários (baseada no perfil do candidato)
         $documentosNecessarios = [
             'HISTORICO_ESCOLAR' => 'Histórico Escolar (para comprovar média e semestres)',
             'DECLARACAO_MATRICULA' => 'Declaração de Matrícula',
@@ -43,6 +43,9 @@ class DocumentoController extends Controller
     /**
      * Armazena um novo documento enviado pelo candidato.
      */
+    /**
+     * Armazena um novo documento enviado pelo candidato.
+     */
     public function store(Request $request)
     {
         $user = Auth::user();
@@ -59,7 +62,7 @@ class DocumentoController extends Controller
         // 2. Verifica se já existe um documento do mesmo tipo e o apaga
         $documentoAntigo = $user->documentos()->where('tipo_documento', $tipoDocumento)->first();
         if ($documentoAntigo) {
-            Storage::disk('public')->delete($documentoAntigo->path); // ✅ CORRIGIDO: Usar $documentoAntigo->path
+            Storage::disk('public')->delete($documentoAntigo->path); // Usar $documentoAntigo->path
             Log::info("Documento antigo do tipo '{$tipoDocumento}' substituído para o usuário ID {$user->id}.");
         }
 
@@ -67,10 +70,11 @@ class DocumentoController extends Controller
         $filePath = $request->file('documento')->store('documentos/user_' . $user->id, 'public');
 
         // 4. Cria ou atualiza o registro do documento no banco de dados
+        // ✅ CORREÇÃO CRÍTICA AQUI: Mudei de volta para 'path'
         $documento = $user->documentos()->updateOrCreate(
             ['tipo_documento' => $tipoDocumento],
             [
-                'path' => $filePath, // ✅ CORRETO: 'path' é o nome da coluna no BD
+                'path' => $filePath, // ✅ Corrigido de volta para 'path'
                 'nome_original' => $request->file('documento')->getClientOriginalName(),
                 'status' => 'enviado', // Status inicial do documento individual
             ]
@@ -95,6 +99,7 @@ class DocumentoController extends Controller
         }
 
         // Segundo, pegamos todos os tipos de documentos que o candidato JÁ ENVIOU (após o upload atual)
+        // Certifique-se que o relacionamento 'documentos' no User model está configurado
         $tiposDocumentosEnviados = $user->documentos->pluck('tipo_documento')->unique()->toArray();
         
         // Terceiro, verificamos se TODOS os documentos obrigatórios estão entre os enviados
@@ -122,30 +127,21 @@ class DocumentoController extends Controller
      */
     public function show(Documento $documento)
     {
-        // Garante que apenas o dono do documento ou um admin possa visualizá-lo
-        $this->authorize('view', $documento); 
+        $this->authorize('view', $documento); // Garante que apenas o dono veja
 
-        $pathFromDb = $documento->path; // ✅ CORRIGIDO: Usar $documento->path
+        $pathFromDb = $documento->caminho_arquivo; // Corrigido 'path' para 'caminho_arquivo'
 
-        // Verifica se o caminho do arquivo é nulo ou vazio antes de tentar usá-lo.
-        if (empty($pathFromDb)) {
-            Log::warning("Documento ID {$documento->id} tem caminho nulo ou vazio no banco de dados.");
-            abort(404, 'Arquivo não encontrado ou caminho inválido.');
-        }
-
-        // Tenta retornar o arquivo diretamente do disco 'public'
         if (Storage::disk('public')->exists($pathFromDb)) {
             return Storage::disk('public')->response($pathFromDb);
         }
 
-        // Tenta um caminho alternativo (se o caminho salvo no DB já incluir 'public/' ou não)
+        // Se o path no DB estiver como 'public/documentos/user_X/nome.pdf'
         $cleanedPath = str_replace('public/', '', $pathFromDb); 
         if (Storage::disk('public')->exists($cleanedPath)) {
             return Storage::disk('public')->response($cleanedPath);
         }
         
-        // Se o arquivo não foi encontrado após todas as tentativas
-        Log::warning("Documento físico não encontrado para o caminho: {$pathFromDb} (ID: {$documento->id})");
+        Log::warning("Documento não encontrado para o caminho: {$pathFromDb}");
         abort(404, 'Arquivo não encontrado.');
     }
 
@@ -157,7 +153,7 @@ class DocumentoController extends Controller
         $this->authorize('delete', $documento); // Garante permissão para apagar
 
         try {
-            Storage::disk('public')->delete($documento->path); // ✅ CORRIGIDO: Usar $documento->path
+            Storage::disk('public')->delete($documento->caminho_arquivo); // Apaga o arquivo físico
             $documento->delete(); // Apaga o registro do banco
             Log::info("Documento ID {$documento->id} apagado. Tipo: {$documento->tipo_documento}.");
 
