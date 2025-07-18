@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Painel do Candidato
+            {{ __('Painel do Candidato') }}
         </h2>
     </x-slot>
 
@@ -16,7 +16,8 @@
                         <p class="text-gray-600 mt-2">Este é o seu Centro de Controle. Siga os passos abaixo para completar a sua inscrição.</p>
                     </div>
 
-                    @if($itensRejeitadosCount > 0)
+                    {{-- ✅ ALERTA AJUSTADO PARA O CANDIDATO --}}
+                    @if(auth()->user()->candidato && auth()->user()->candidato->status === 'Inscrição Incompleta')
                         <div class="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-lg shadow-sm">
                             <div class="flex items-start">
                                 <div class="flex-shrink-0">
@@ -26,11 +27,9 @@
                                 </div>
                                 <div class="ml-3">
                                     <p class="text-sm text-yellow-800">
-                                        <span class="font-semibold">Atenção!</span> Você tem 
-                                        <strong class="font-bold text-yellow-900">{{ $itensRejeitadosCount }} {{ Str::plural('item', $itensRejeitadosCount) }}</strong> 
-                                        que {{ $itensRejeitadosCount > 1 ? 'precisam' : 'precisa' }} da sua correção.
-                                        <a href="{{ route('candidato.atividades.index') }}" class="inline-flex items-center font-semibold text-yellow-700 hover:text-yellow-600 underline decoration-2 underline-offset-2">
-                                            Clique aqui para ver e corrigir
+                                        <span class="font-semibold">Atenção!</span> Sua inscrição está aguardando documentos obrigatórios!
+                                        <a href="{{ route('candidato.documentos.index') }}" class="inline-flex items-center font-semibold text-yellow-700 hover:text-yellow-600 underline decoration-2 underline-offset-2">
+                                            Acesse a seção "Meus Documentos" para completar.
                                             <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                                             </svg>
@@ -51,11 +50,16 @@
                                     <p class="text-sm text-blue-700">Preencha seus dados</p>
                                 </div>
                             </div>
-                            @if($candidato)
+                            @if(auth()->user()->candidato)
+                                {{-- ✅ EXIBIÇÃO DA PORCENTAGEM DE CONCLUSÃO DO PERFIL NO DASHBOARD --}}
+                                @php
+                                    // Certifique-se que getCompletionPercentageAttribute existe no seu Candidato Model
+                                    $completionPercentage = auth()->user()->candidato->completion_percentage;
+                                @endphp
                                 <div class="w-full bg-blue-200 rounded-full h-2 mt-4">
-                                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {{ $candidato->completion_percentage }}%"></div>
+                                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {{ $completionPercentage }}%"></div>
                                 </div>
-                                <p class="text-xs text-right text-blue-600 mt-2 font-medium">{{ $candidato->completion_percentage }}% completo</p>
+                                <p class="text-xs text-right text-blue-600 mt-2 font-medium">{{ $completionPercentage }}% completo</p>
                             @endif
                         </a>
                         
@@ -69,7 +73,7 @@
                             </div>
                             <div class="mt-4 text-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto text-green-400 group-hover:text-green-500 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                             </div>
                         </a>
@@ -84,7 +88,7 @@
                             </div>
                             <div class="mt-4 text-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto text-purple-400 group-hover:text-purple-500 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                                 </svg>
                             </div>
                         </a>
@@ -97,9 +101,45 @@
                             <p class="text-gray-600">Veja a sua posição na lista de aprovados para o seu curso.</p>
                         </div>
 
+                        @php
+                            // O CandidatoController@index não passa $classificacaoDoCurso e $regrasDePontuacao
+                            // Precisamos buscá-los aqui se o dashboard for exibir essa tabela
+                            // E certificar-se que Candidato model tem 'calcularPontuacaoDetalhada()'
+                            $candidatoLogado = auth()->user()->candidato;
+                            $classificacaoDoCurso = collect(); // Inicia como coleção vazia
+                            $regrasDePontuacao = collect(); // Inicia como coleção vazia
+
+                            if ($candidatoLogado && $candidatoLogado->curso) {
+                                // Replicar a lógica do ClassificacaoController para o curso específico do candidato logado
+                                // OU, se a pontuacao_final e pontuacao_detalhes já estão no BD, usar diretamente
+                                // Para simplicidade, vamos calcular aqui se necessário, mas o ideal é que seja eficiente.
+
+                                // Pega todos os candidatos que estão Homologados para ver a classificação
+                                $todosCandidatosClassificacao = \App\Models\Candidato::where('status', 'Homologado')
+                                    ->with(['user', 'curso', 'instituicao'])
+                                    ->get()
+                                    ->map(function($cand) {
+                                        $resultado = $cand->calcularPontuacaoDetalhada();
+                                        $cand->pontuacao_final = $resultado['total'];
+                                        $cand->pontuacao_detalhes = $resultado['detalhes'];
+                                        return $cand;
+                                    })
+                                    ->sortByDesc('pontuacao_final')
+                                    ->sortBy(function($cand) { return strtotime($cand->data_nascimento); });
+                                
+                                // Filtra para pegar apenas os do curso do candidato logado
+                                $classificacaoDoCurso = $todosCandidatosClassificacao->filter(function($cand) use ($candidatoLogado) {
+                                    return $cand->curso_id === $candidatoLogado->curso_id;
+                                })->values();
+
+                                // Regras de pontuação para o cabeçalho da tabela (você precisaria buscar isso do seu TipoDeAtividade model)
+                                $regrasDePontuacao = \App\Models\TipoDeAtividade::orderBy('nome')->get();
+                            }
+                        @endphp
+
                         <div class="bg-white overflow-hidden shadow-lg sm:rounded-xl border border-gray-200">
                             <div class="p-6">
-                                @if($candidato && $candidato->curso)
+                                @if($candidatoLogado && $candidatoLogado->curso)
                                     <div class="mb-6">
                                         <div class="flex items-center space-x-3">
                                             <div class="flex-shrink-0">
@@ -107,7 +147,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                                 </svg>
                                             </div>
-                                            <h4 class="text-lg font-semibold text-gray-800">{{ $candidato->curso->nome }}</h4>
+                                            <h4 class="text-lg font-semibold text-gray-800">{{ $candidatoLogado->curso->nome }}</h4>
                                         </div>
                                     </div>
 
@@ -116,7 +156,7 @@
                                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                             </svg>
-                                            <p class="mt-4 text-gray-500">A classificação para este curso ainda não foi divulgada ou não há candidatos aprovados.</p>
+                                            <p class="mt-4 text-gray-500">A classificação para o seu curso ainda não foi divulgada ou você não está homologado.</p>
                                         </div>
                                     @else
                                         <div class="overflow-x-auto">
@@ -169,7 +209,7 @@
                                             </table>
                                         </div>
 
-                                        @if($classificacaoDoCurso->count() > 10)
+                                        @if($classificacaoDoCurso->count() > 10) {{-- Condição para paginação ou mais conteúdo --}}
                                             <div class="mt-4 text-center">
                                                 <p class="text-xs text-gray-500">Mostrando {{ $classificacaoDoCurso->count() }} candidatos classificados</p>
                                             </div>
@@ -193,5 +233,4 @@
                 </div>
             </div>
         </div>
-    </div>
-</x-app-layout>
+    </x-app-layout>

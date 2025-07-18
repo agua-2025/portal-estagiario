@@ -4,14 +4,14 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
 
-                    {{-- ✅ LÓGICA JAVASCRIPT CORRIGIDA --}}
+                    {{-- ✅ LÓGICA JAVASCRIPT CORRIGIDA E VARIÁVEIS DE STATUS --}}
                     <script>
-                        function profileFormComponent(initialFields, estados, todasCidades, instituicoes, todosCursos, totalProfileFields, completableFields) {
+                        function profileFormComponent(initialFields, estados, todasCidades, instituicoes, todosCursos, totalProfileFields, completableFields, candidatoStatus) {
                             return {
                                 step: 1,
                                 fields: initialFields,
                                 percentage: 0,
-                                validationAttempted: { step1: false, step2: false, step3: false }, // ✅ ADICIONADO: step3 para validação
+                                validationAttempted: { step1: false, step2: false, step3: false },
                                 
                                 estados: estados,
                                 todasCidades: todasCidades,
@@ -20,8 +20,13 @@
 
                                 cidadesNaturalidadeFiltradas: [],
                                 cidadesEnderecoFiltradas: [],
-                                cursosFiltrados: todosCursos, // ✅ CORRIGIDO: Inicialmente, todos os cursos
-                                // Não há mais 'cursosFiltrados' por instituição, pois cursos são genéricos.
+                                cursosFiltrados: todosCursos,
+
+                                candidatoStatus: candidatoStatus, // ✅ ADICIONADO: Status do candidato
+                                
+                                get isAguardandoHomologacao() { // ✅ ADICIONADO: Propriedade computada para status
+                                    return this.candidatoStatus === 'Aprovado';
+                                },
 
                                 init() {
                                     this.updateAllFilteredLists();
@@ -49,30 +54,22 @@
                                         this.updateAllFilteredLists(); 
                                     });
 
-                                    // ✅ REMOVIDO: O watch para instituicao_id que filtrava cursos.
-                                    // Este filtro não é mais necessário, pois cursos são genéricos.
-                                    // this.$watch('fields.instituicao_id', () => { ... });
-
                                     this.$watch('fields', () => this.calculatePercentage(), { deep: true });
                                 },
 
                                 updateAllFilteredLists() {
-                                    // Atualiza cidades de naturalidade
                                     if (this.fields.naturalidade_estado) {
                                         this.cidadesNaturalidadeFiltradas = this.todasCidades.filter(c => c.estado_id == this.fields.naturalidade_estado);
                                     } else {
                                         this.cidadesNaturalidadeFiltradas = [];
                                     }
 
-                                    // Atualiza cidades de endereço
                                     if (this.fields.estado) {
                                         this.cidadesEnderecoFiltradas = this.todasCidades.filter(c => c.estado_id == this.fields.estado);
                                     } else {
                                         this.cidadesEnderecoFiltradas = [];
                                     }
 
-                                    // ✅ CORRIGIDO: cursosFiltrados agora são TODOS os cursos, não filtrados por instituição.
-                                    // A variável 'cursosFiltrados' agora é apenas uma cópia de 'todosCursos'.
                                     this.cursosFiltrados = this.todosCursos; 
                                 },
                                 
@@ -97,10 +94,9 @@
                                             !!this.fields.cidade; 
                                 },
 
-                                // ✅ NOVO: Validação para a Etapa 3
                                 isStep3Valid() {
-                                    return !!this.fields.instituicao_id && // Instituição de Ensino
-                                           !!this.fields.curso_id &&      // Curso de Graduação
+                                    return !!this.fields.instituicao_id && 
+                                           !!this.fields.curso_id && 
                                            !!this.fields.curso_data_inicio &&
                                            !!this.fields.curso_previsao_conclusao &&
                                            !!this.fields.semestres_completos &&
@@ -108,25 +104,23 @@
                                 },
 
                                 attemptNextStep(currentStep) {
+                                    if (this.isAguardandoHomologacao) return; // ✅ Impede avançar se aguardando homologação
+
                                     if (currentStep === 1) {
                                         this.validationAttempted.step1 = true;
                                         if (this.isStep1Valid()) { this.step++; }
                                     } else if (currentStep === 2) {
                                         this.validationAttempted.step2 = true;
                                         if (this.isStep2Valid()) { this.step++; }
-                                    }
-                                    // ✅ ADICIONADO: Lógica para validar e avançar da etapa 3 (se houver um próximo passo ou antes de submeter)
-                                    // Não há um próximo passo visual, mas é bom ter a validação aqui para consistência.
-                                    else if (currentStep === 3) {
+                                    } else if (currentStep === 3) {
                                         this.validationAttempted.step3 = true;
-                                        // Se for válido, o formulário será submetido pelo botão "Salvar Perfil"
                                     }
                                 },
 
                                 isInvalid(field, step) {
                                     if (step === 1 && !this.validationAttempted.step1) return false;
                                     if (step === 2 && !this.validationAttempted.step2) return false;
-                                    if (step === 3 && !this.validationAttempted.step3) return false; // ✅ ADICIONADO: Validação para step 3
+                                    if (step === 3 && !this.validationAttempted.step3) return false;
                                     
                                     const value = this.fields[field];
                                     if (field === 'possui_deficiencia') {
@@ -163,13 +157,13 @@
                         
                         $initialData['possui_deficiencia'] = old('possui_deficiencia', ($candidato->possui_deficiencia == 1) ? '1' : '0');
                         
-                        // ✅ CORRIGIDO: Garante que os IDs sejam strings para o Alpine.js
+                        // Garante que os IDs sejam strings para o Alpine.js
                         $initialData['naturalidade_estado'] = old('naturalidade_estado', (string) $candidato->naturalidade_estado);
                         $initialData['estado'] = old('estado', (string) $candidato->estado);
-                        $initialData['instituicao_id'] = old('instituicao_id', $candidato->instituicao_id ? (string) $candidato->instituicao_id : ''); // ✅ CORREÇÃO: Converter para string
-                        $initialData['curso_id'] = old('curso_id', $candidato->curso_id ? (string) $candidato->curso_id : ''); // ✅ CORREÇÃO: Converter para string
+                        $initialData['instituicao_id'] = old('instituicao_id', $candidato->instituicao_id ? (string) $candidato->instituicao_id : '');
+                        $initialData['curso_id'] = old('curso_id', $candidato->curso_id ? (string) $candidato->curso_id : '');
                         
-                        // ✅ CORREÇÃO: Garante que as cidades sejam strings também
+                        // Garante que as cidades sejam strings também
                         $initialData['naturalidade_cidade'] = old('naturalidade_cidade', $candidato->naturalidade_cidade ?? '');
                         $initialData['cidade'] = old('cidade', $candidato->cidade ?? '');
                     @endphp
@@ -179,9 +173,10 @@
                         @js($estados),
                         @js($cidades),
                         @js($instituicoes),
-                        @js($cursos), {{-- ✅ Passando todos os cursos --}}
+                        @js($cursos),
                         {{ $totalProfileFieldsCount }},
-                        @js(\App\Models\Candidato::getCompletableFields())
+                        @js(\App\Models\Candidato::getCompletableFields()),
+                        @js($candidato->status) {{-- ✅ PASSANDO O STATUS DO CANDIDATO PARA O JS --}}
                     )" x-init="init()">
                         
                         {{-- BARRA DE PROGRESSO E PASSOS --}}
@@ -239,27 +234,27 @@
                                 <div class="grid grid-cols-12 gap-6">
                                     <div class="col-span-12">
                                         <label for="nome_completo" class="block font-medium text-sm text-gray-700">Nome Completo <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('nome_completo', 1) }" x-model="fields.nome_completo" id="nome_completo" name="nome_completo" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('nome_completo', 1) }" x-model="fields.nome_completo" id="nome_completo" name="nome_completo" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12">
                                         <label for="nome_mae" class="block font-medium text-sm text-gray-700">Nome da Mãe <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('nome_mae', 1) }" x-model="fields.nome_mae" id="nome_mae" name="nome_mae" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('nome_mae', 1) }" x-model="fields.nome_mae" id="nome_mae" name="nome_mae" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12">
                                         <label for="nome_pai" class="block font-medium text-sm text-gray-700">Nome do Pai</label>
-                                        <input x-model="fields.nome_pai" id="nome_pai" name="nome_pai" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                                        <input x-model="fields.nome_pai" id="nome_pai" name="nome_pai" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="data_nascimento" class="block font-medium text-sm text-gray-700">Data de Nascimento <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('data_nascimento', 1) }" x-model="fields.data_nascimento" id="data_nascimento" name="data_nascimento" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('data_nascimento', 1) }" x-model="fields.data_nascimento" id="data_nascimento" name="data_nascimento" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="sexo" class="block font-medium text-sm text-gray-700">Sexo <span class="text-red-500">*</span></label>
-                                        <select :class="{ 'border-red-500': isInvalid('sexo', 1) }" x-model="fields.sexo" id="sexo" name="sexo" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <select :class="{ 'border-red-500': isInvalid('sexo', 1) }" x-model="fields.sexo" id="sexo" name="sexo" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                             <option value="">Selecione...</option>
                                             <option value="Feminino">Feminino</option>
                                             <option value="Masculino">Masculino</option>
@@ -269,23 +264,23 @@
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="cpf" class="block font-medium text-sm text-gray-700">CPF <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('cpf', 1) }" x-mask="999.999.999-99" x-model="fields.cpf" id="cpf" name="cpf" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('cpf', 1) }" x-mask="999.999.999-99" x-model="fields.cpf" id="cpf" name="cpf" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="rg" class="block font-medium text-sm text-gray-700">RG</label>
-                                        <input x-model="fields.rg" id="rg" name="rg" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                                        <input x-model="fields.rg" id="rg" name="rg" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="rg_orgao_expedidor" class="block font-medium text-sm text-gray-700">Órgão Expedidor</label>
-                                        <input x-model="fields.rg_orgao_expedidor" id="rg_orgao_expedidor" name="rg_orgao_expedidor" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                                        <input x-model="fields.rg_orgao_expedidor" id="rg_orgao_expedidor" name="rg_orgao_expedidor" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
-                                    {{-- ✅ CORREÇÃO: Campo possui_deficiencia --}}
+                                    {{-- Campo possui_deficiencia --}}
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="possui_deficiencia" class="block font-medium text-sm text-gray-700">Possui Deficiência? <span class="text-red-500">*</span></label>
-                                        <select :class="{ 'border-red-500': isInvalid('possui_deficiencia', 1) }" x-model="fields.possui_deficiencia" id="possui_deficiencia" name="possui_deficiencia" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <select :class="{ 'border-red-500': isInvalid('possui_deficiencia', 1) }" x-model="fields.possui_deficiencia" id="possui_deficiencia" name="possui_deficiencia" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                             <option value="">Selecione...</option>
                                             <option value="0">Não</option>
                                             <option value="1">Sim</option>
@@ -294,7 +289,7 @@
                                     
                                     <div class="col-span-12 sm:col-span-4">
                                         <label for="naturalidade_estado" class="block font-medium text-sm text-gray-700">UF de Nascimento <span class="text-red-500">*</span></label>
-                                        <select :class="{ 'border-red-500': isInvalid('naturalidade_estado', 1) }" x-model="fields.naturalidade_estado" name="naturalidade_estado" id="naturalidade_estado" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <select :class="{ 'border-red-500': isInvalid('naturalidade_estado', 1) }" x-model="fields.naturalidade_estado" name="naturalidade_estado" id="naturalidade_estado" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                             <option value="">Selecione</option>
                                             @foreach($estados as $estado)
                                                 <option value="{{ $estado->id }}">{{ $estado->uf }}</option>
@@ -302,10 +297,10 @@
                                         </select>
                                     </div>
                                     
-                                    {{-- ✅ CORREÇÃO: Campo naturalidade_cidade --}}
+                                    {{-- Campo naturalidade_cidade --}}
                                     <div class="col-span-12 sm:col-span-8">
                                         <label for="naturalidade_cidade" class="block font-medium text-sm text-gray-700">Cidade de Nascimento <span class="text-red-500">*</span></label>
-                                        <select :class="{ 'border-red-500': isInvalid('naturalidade_cidade', 1) }" x-model="fields.naturalidade_cidade" name="naturalidade_cidade" id="naturalidade_cidade" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <select :class="{ 'border-red-500': isInvalid('naturalidade_cidade', 1) }" x-model="fields.naturalidade_cidade" name="naturalidade_cidade" id="naturalidade_cidade" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                             <option value="">Selecione a Cidade</option>
                                             <template x-for="cidade_item in cidadesNaturalidadeFiltradas" :key="cidade_item.id">
                                                 <option :value="cidade_item.nome" x-text="cidade_item.nome" :selected="cidade_item.nome === fields.naturalidade_cidade"></option>
@@ -321,32 +316,32 @@
                                 <div class="grid grid-cols-12 gap-6">
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="telefone" class="block font-medium text-sm text-gray-700">Telefone <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('telefone', 2) }" x-mask="(99) 99999-9999" x-model="fields.telefone" id="telefone" name="telefone" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('telefone', 2) }" x-mask="(99) 99999-9999" x-model="fields.telefone" id="telefone" name="telefone" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="cep" class="block font-medium text-sm text-gray-700">CEP <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('cep', 2) }" x-mask="99999-999" x-model="fields.cep" id="cep" name="cep" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('cep', 2) }" x-mask="99999-999" x-model="fields.cep" id="cep" name="cep" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-9">
                                         <label for="logradouro" class="block font-medium text-sm text-gray-700">Endereço (Rua, Av.) <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('logradouro', 2) }" x-model="fields.logradouro" id="logradouro" name="logradouro" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('logradouro', 2) }" x-model="fields.logradouro" id="logradouro" name="logradouro" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-3">
                                         <label for="numero" class="block font-medium text-sm text-gray-700">Número <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('numero', 2) }" x-model="fields.numero" id="numero" name="numero" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('numero', 2) }" x-model="fields.numero" id="numero" name="numero" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12">
                                         <label for="bairro" class="block font-medium text-sm text-gray-700">Bairro <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('bairro', 2) }" x-model="fields.bairro" id="bairro" name="bairro" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('bairro', 2) }" x-model="fields.bairro" id="bairro" name="bairro" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-4">
                                         <label for="estado" class="block font-medium text-sm text-gray-700">Estado <span class="text-red-500">*</span></label>
-                                        <select :class="{ 'border-red-500': isInvalid('estado', 2) }" x-model="fields.estado" name="estado" id="estado" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <select :class="{ 'border-red-500': isInvalid('estado', 2) }" x-model="fields.estado" name="estado" id="estado" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                             <option value="">Selecione</option>
                                             @foreach($estados as $estado)
                                                 <option value="{{ $estado->id }}">{{ $estado->uf }}</option>
@@ -354,10 +349,10 @@
                                         </select>
                                     </div>
                                     
-                                    {{-- ✅ CORREÇÃO: Campo cidade --}}
+                                    {{-- Campo cidade --}}
                                     <div class="col-span-12 sm:col-span-8">
                                         <label for="cidade" class="block font-medium text-sm text-gray-700">Cidade <span class="text-red-500">*</span></label>
-                                        <select :class="{ 'border-red-500': isInvalid('cidade', 2) }" x-model="fields.cidade" name="cidade" id="cidade" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <select :class="{ 'border-red-500': isInvalid('cidade', 2) }" x-model="fields.cidade" name="cidade" id="cidade" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                             <option value="">Selecione a Cidade</option>
                                             <template x-for="cidade_item in cidadesEnderecoFiltradas" :key="cidade_item.id">
                                                 <option :value="cidade_item.nome" x-text="cidade_item.nome" :selected="cidade_item.nome === fields.cidade"></option>
@@ -373,7 +368,7 @@
                                 <div class="grid grid-cols-12 gap-6">
                                     <div class="col-span-12">
                                         <label for="instituicao_id" class="block font-medium text-sm text-gray-700">Instituição de Ensino <span class="text-red-500">*</span></label>
-                                        <select :class="{ 'border-red-500': isInvalid('instituicao_id', 3) }" x-model="fields.instituicao_id" name="instituicao_id" id="instituicao_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <select :class="{ 'border-red-500': isInvalid('instituicao_id', 3) }" x-model="fields.instituicao_id" name="instituicao_id" id="instituicao_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                             <option value="">Selecione...</option>
                                             @foreach ($instituicoes as $instituicao)
                                                 <option value="{{ $instituicao->id }}">{{ $instituicao->nome }}</option>
@@ -381,35 +376,35 @@
                                         </select>
                                     </div>
                                     
-                                    {{-- ✅ CORREÇÃO: Campo curso_id --}}
+                                    {{-- Campo curso_id --}}
                                     <div class="col-span-12">
                                         <label for="curso_id" class="block font-medium text-sm text-gray-700">Curso de Graduação <span class="text-red-500">*</span></label>
-                                        <select :class="{ 'border-red-500': isInvalid('curso_id', 3) }" x-model="fields.curso_id" name="curso_id" id="curso_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <select :class="{ 'border-red-500': isInvalid('curso_id', 3) }" x-model="fields.curso_id" name="curso_id" id="curso_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                             <option value="">Selecione o Curso</option>
-                                            <template x-for="curso_item in todosCursos" :key="curso_item.id"> {{-- Agora itera sobre todosCursos diretamente --}}
-                                                <option :value="curso_item.id" x-text="curso_item.nome" :selected="curso_item.id === parseInt(fields.curso_id)"></option> {{-- ✅ CORRIGIDO: Comparação com parseInt --}}
+                                            <template x-for="curso_item in todosCursos" :key="curso_item.id">
+                                                <option :value="curso_item.id" x-text="curso_item.nome" :selected="curso_item.id === parseInt(fields.curso_id)"></option>
                                             </template>
                                         </select>
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="curso_data_inicio" class="block font-medium text-sm text-gray-700">Data de Início do Curso <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('curso_data_inicio', 3) }" x-model="fields.curso_data_inicio" id="curso_data_inicio" name="curso_data_inicio" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('curso_data_inicio', 3) }" x-model="fields.curso_data_inicio" id="curso_data_inicio" name="curso_data_inicio" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="curso_previsao_conclusao" class="block font-medium text-sm text-gray-700">Previsão de Conclusão <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('curso_previsao_conclusao', 3) }" x-model="fields.curso_previsao_conclusao" name="curso_previsao_conclusao" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('curso_previsao_conclusao', 3) }" x-model="fields.curso_previsao_conclusao" name="curso_previsao_conclusao" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="semestres_completos" class="block font-medium text-sm text-gray-700">Semestres Concluídos <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('semestres_completos', 3) }" x-model="fields.semestres_completos" name="semestres_completos" type="number" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('semestres_completos', 3) }" x-model="fields.semestres_completos" name="semestres_completos" type="number" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="media_aproveitamento" class="block font-medium text-sm text-gray-700">Média de Aproveitamento <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('media_aproveitamento', 3) }" x-model="fields.media_aproveitamento" name="media_aproveitamento" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required>
+                                        <input :class="{ 'border-red-500': isInvalid('media_aproveitamento', 3) }" x-model="fields.media_aproveitamento" name="media_aproveitamento" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
                                     </div>
                                 </div>
                             </div>
@@ -419,15 +414,14 @@
                                 <button type="button" x-show="step > 1" @click.prevent="step--" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400">Anterior</button>
                                 <div x-show="step === 1"></div> {{-- Espaçador --}}
                                 
-                                <button type="button" x-show="step === 1" @click.prevent="attemptNextStep(1)" class="px-4 py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700">Próximo</button>
-                                <button type="button" x-show="step === 2" @click.prevent="attemptNextStep(2)" class="px-4 py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700">Próximo</button>
+                                <button type="button" x-show="step === 1" @click.prevent="attemptNextStep(1)" :disabled="isAguardandoHomologacao" class="px-4 py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700">Próximo</button> {{-- ✅ DESABILITADO --}}
+                                <button type="button" x-show="step === 2" @click.prevent="attemptNextStep(2)" :disabled="isAguardandoHomologacao" class="px-4 py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700">Próximo</button> {{-- ✅ DESABILITADO --}}
                                 
-                                <button type="submit" x-show="step === 3" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Salvar Perfil</button>
+                                <button type="submit" x-show="step === 3" :disabled="isAguardandoHomologacao" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Salvar Perfil</button> {{-- ✅ DESABILITADO --}}
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</x-app-layout>
+    </x-app-layout>
