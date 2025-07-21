@@ -8,7 +8,9 @@ use App\Models\Documento; // Para a função updateDocumentStatus
 use Illuminate\Http\Request;
 use App\Models\Curso; // Para listas de cursos em create/edit
 use App\Models\Instituicao; // Para listas de instituições em create/edit
-use Illuminate\Support\Facades\Log; // ✅ ADICIONADO: Para usar a funcionalidade de log
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB; // Essencial para a transação
+use Carbon\Carbon; // ✅ ADICIONADO: Necessário para manipulação de datas
 
 class CandidatoController extends Controller
 {
@@ -43,24 +45,13 @@ class CandidatoController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * ✅ AJUSTADO: Lógica para criar o candidato com status inicial 'Inscrição Incompleta'.
-     */
-/**
-     * Store a newly created resource in storage.
-     * ✅ AJUSTADO: Lógica para criar o candidato com status inicial 'Inscrição Incompleta'.
      */
     public function store(Request $request)
     {
-        // 1. Validação dos dados do formulário
         $validatedData = $request->validate([
-            'user_id' => 'required|exists:users,id', // Assumindo que o user_id é passado pelo formulário ou outro método
+            'user_id' => 'required|exists:users,id',
             'nome_completo' => 'required|string|max:255',
             'cpf' => 'required|string|max:14|unique:candidatos,cpf',
-            // Adicione AQUI a validação para TODOS os outros campos que são passados pelo formulário de criação de candidato.
-            // Ex: 'curso_id' => 'nullable|exists:cursos,id',
-            // 'nome_pai' => 'nullable|string|max:255',
-            // 'data_nascimento' => 'nullable|date',
-            // ... (restante das suas validações) ...
         ], [
             'user_id.required' => 'O usuário associado é obrigatório.',
             'user_id.exists' => 'O usuário associado não existe.',
@@ -69,19 +60,14 @@ class CandidatoController extends Controller
             'cpf.unique' => 'Este CPF já está cadastrado.',
         ]);
 
-        // 2. Definir o status inicial como 'Inscrição Incompleta'
-        // ESTE É O PASSO QUE RESOLVE O ERRO "Field 'status' doesn't have a default value"
         $validatedData['status'] = 'Inscrição Incompleta'; 
 
         try {
-            // 3. Criar o candidato no banco de dados
             Candidato::create($validatedData);
-
-            return redirect()->route('admin.candidatos.index')->with('success', 'Candidato criado com sucesso e status inicial "Inscrição Incompleta"!');
+            return redirect()->route('admin.candidatos.index')->with('success', 'Candidato criado com sucesso!');
         } catch (\Exception $e) {
-            // 4. Logar e exibir erro em caso de falha
-            Log::error("Erro ao criar candidato: " . $e->getMessage() . " Dados da Requisição: " . json_encode($request->all()));
-            return redirect()->back()->with('error', 'Ocorreu um erro ao criar o candidato. Por favor, tente novamente. Detalhes: ' . $e->getMessage())->withInput();
+            Log::error("Erro ao criar candidato: " . $e->getMessage(), ['request_data' => $request->all()]);
+            return redirect()->back()->with('error', 'Ocorreu um erro ao criar o candidato.')->withInput();
         }
     }
 
@@ -97,12 +83,31 @@ class CandidatoController extends Controller
             'instituicao'
         ]);
 
-        $resultadoPontuacao = $candidato->calcularPontuacaoDetalhada();
+        $documentosNecessarios = [
+            'HISTORICO_ESCOLAR' => 'Histórico Escolar',
+            'DECLARACAO_MATRICULA' => 'Declaração de Matrícula',
+            'DECLARACAO_ELEITORAL' => 'Declaração de Quitação Eleitoral',
+        ];
+
+        if ($candidato->sexo === 'Masculino') {
+            $documentosNecessarios['RESERVISTA'] = 'Comprovante de Reservista';
+        }
+        if ($candidato->possui_deficiencia) {
+            $documentosNecessarios['LAUDO_MEDICO'] = 'Laudo Médico (PCD)';
+        }
+
+        $documentosEnviados = $candidato->user->documentos->keyBy('tipo_documento');
+
+        $pontuacaoDetalhada = method_exists($candidato, 'calcularPontuacaoDetalhada') 
+            ? $candidato->calcularPontuacaoDetalhada() 
+            : ['total' => 0, 'detalhes' => []];
 
         return view('admin.candidatos.show', [
             'candidato' => $candidato,
-            'pontuacaoTotal' => $resultadoPontuacao['total'],
-            'detalhesPontuacao' => $resultadoPontuacao['detalhes'],
+            'pontuacaoTotal' => $pontuacaoDetalhada['total'],
+            'detalhesPontuacao' => $pontuacaoDetalhada['detalhes'],
+            'documentosNecessarios' => $documentosNecessarios,
+            'documentosEnviados' => $documentosEnviados,
         ]);
     }
 
@@ -118,25 +123,58 @@ class CandidatoController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * ✅ AJUSTADO: Validação do status para incluir 'Homologado'.
      */
     public function update(Request $request, Candidato $candidato)
     {
-        $request->validate([
-            'status' => 'required|in:Em Análise,Aprovado,Rejeitado,Homologado', // ✅ ADICIONADO 'Homologado'
+        if ($request->input('status') === 'Aprovado') {
+            $prazosAtivos = $candidato->user->candidatoAtividades()
+                                ->where('status', 'Rejeitada')
+                                ->where('prazo_recurso_ate', '>', now())
+                                ->exists();
+
+            if ($prazosAtivos) {
+                return redirect()->back()->with('error', 'Não é possível aprovar. O candidato possui atividades com prazo de recurso em andamento.');
+            }
+        }
+        
+        $validatedData = $request->validate([
+            'status' => 'required|in:Em Análise,Aprovado,Rejeitado,Inscrição Incompleta',
             'admin_observacao' => 'nullable|string',
-            // Adicione outras validações para os campos editáveis pelo admin aqui
         ]);
 
-        $candidato->status = $request->input('status');
-        $candidato->admin_observacao = $request->input('admin_observacao');
+        $novoStatus = $validatedData['status'];
+
+        // ✅ INÍCIO DO AJUSTE CIRÚRGICO
+        if ($novoStatus === 'Rejeitado') {
+            $candidato->status = 'Rejeitado';
+            $candidato->admin_observacao = $validatedData['admin_observacao'];
+            
+            // Só concede prazo de recurso se um recurso ainda não foi deferido (aceito) antes.
+            if ($candidato->recurso_status !== 'deferido') {
+                $candidato->recurso_prazo_ate = $this->calcularDiasUteis(2);
+                $candidato->recurso_status = 'pendente';
+                $candidato->recurso_tipo = 'rejeicao';
+                Log::info("Admin rejeitou a inscrição do candidato ID {$candidato->id}. Prazo de recurso de rejeição definido.");
+            } else {
+                Log::info("Admin rejeitou a inscrição do candidato ID {$candidato->id} após um recurso. Esta é uma decisão final.");
+            }
+
+        } else { // Para outros status como 'Aprovado' ou 'Inscrição Incompleta'
+            $candidato->status = $novoStatus;
+            $candidato->admin_observacao = $validatedData['admin_observacao'];
+        }
+        // ✅ FIM DO AJUSTE
+        
+        if ($candidato->status === 'Aprovado') {
+            $candidato->revert_reason = null;
+        }
         
         try {
             $candidato->save();
-            return redirect()->route('admin.candidatos.index')->with('success', 'Status do candidato ' . $candidato->nome_completo . ' atualizado com sucesso!');
+            return redirect()->route('admin.candidatos.show', $candidato)->with('success', 'Status do candidato atualizado com sucesso!');
         } catch (\Exception $e) {
             Log::error("Erro ao atualizar candidato ID {$candidato->id}: " . $e->getMessage());
-            return redirect()->back()->with('error', 'Ocorreu um erro ao atualizar o candidato. Por favor, tente novamente. Detalhes: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocorreu um erro ao atualizar o candidato.');
         }
     }
 
@@ -150,7 +188,7 @@ class CandidatoController extends Controller
             return redirect()->route('admin.candidatos.index')->with('success', 'Candidato apagado com sucesso!');
         } catch (\Exception $e) {
             Log::error("Erro ao apagar candidato ID {$candidato->id}: " . $e->getMessage());
-            return redirect()->back()->with('error', 'Ocorreu um erro ao apagar o candidato. Por favor, tente novamente. Detalhes: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocorreu um erro ao apagar o candidato.');
         }
     }
 
@@ -159,27 +197,61 @@ class CandidatoController extends Controller
      */
     public function updateDocumentStatus(Request $request, Documento $documento)
     {
-        $request->validate([
+        $validated = $request->validate([
             'status' => 'required|in:aprovado,rejeitado',
+            'motivo_rejeicao' => 'required_if:status,rejeitado|nullable|string|min:10',
         ]);
 
-        $documento->status = $request->input('status');
-        
+        DB::beginTransaction();
         try {
+            $documento->status = $validated['status'];
+
+            if ($documento->status === 'rejeitado') {
+                $documento->motivo_rejeicao = $validated['motivo_rejeicao'];
+                
+                $candidato = $documento->user->candidato;
+                if ($candidato) {
+                    $candidato->status = 'Inscrição Incompleta';
+                    
+                    $mensagemGenerica = "A Comissão Organizadora do Processo de Seleção solicitou uma correção. Verifique os detalhes abaixo e faça os ajustes necessários.";
+                    Log::info("Admin/CandidatoController: Definindo admin_observacao para: '{$mensagemGenerica}' para o candidato ID {$candidato->id}");
+                    
+                    $candidato->admin_observacao = $mensagemGenerica;
+                    $candidato->save();
+
+                    Log::info("Admin/CandidatoController: Salvo com sucesso. Verifique o valor no banco de dados.");
+                }
+
+            } else { // Se for 'aprovado'
+                $documento->motivo_rejeicao = null;
+            }
+            
             $documento->save();
+            DB::commit();
+
             return back()->with('success', 'Status do documento atualizado com sucesso!');
+
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error("Erro ao atualizar status do documento ID {$documento->id}: " . $e->getMessage());
-            return back()->with('error', 'Ocorreu um erro ao atualizar o status do documento. Por favor, tente novamente. Detalhes: ' . $e->getMessage());
+            return back()->with('error', 'Ocorreu um erro ao atualizar o status do documento.');
         }
     }
 
     /**
      * Homologa um candidato específico.
-     * ✅ NOVO MÉTODO PARA HOMOLOGAÇÃO
      */
     public function homologar(Request $request, Candidato $candidato)
     {
+        $prazosAtivos = $candidato->user->candidatoAtividades()
+                            ->where('status', 'Rejeitada')
+                            ->where('prazo_recurso_ate', '>', now())
+                            ->exists();
+
+        if ($prazosAtivos) {
+            return redirect()->back()->with('error', 'Não é possível homologar. O candidato possui atividades com prazo de recurso em andamento.');
+        }
+
         $request->validate([
             'ato_homologacao' => 'required|string|max:255',
             'homologacao_observacoes' => 'nullable|string',
@@ -188,26 +260,79 @@ class CandidatoController extends Controller
         ]);
 
         if ($candidato->status !== 'Aprovado') {
-            return redirect()->back()->with('error', 'Não é possível homologar um candidato que não esteja no status "Aprovado". O status atual é: ' . $candidato->status);
+            return redirect()->back()->with('error', 'Não é possível homologar um candidato que não esteja no status "Aprovado".');
         }
 
         try {
             $candidato->status = 'Homologado';
             $candidato->ato_homologacao = $request->input('ato_homologacao');
-            $candidato->homologado_em = now(); // Define a data e hora atuais automaticamente
+            $candidato->homologado_em = now();
             $candidato->homologacao_observacoes = $request->input('homologacao_observacoes');
             $candidato->save();
 
-            Log::info("Candidato ID {$candidato->id} homologado por " . auth()->user()->name . " (ID: " . auth()->id() . ")", [
+            Log::info("Candidato ID {$candidato->id} homologado por " . auth()->user()->name, [
                 'ato_homologacao' => $candidato->ato_homologacao,
                 'homologacao_observacoes' => $candidato->homologacao_observacoes
             ]);
 
             return redirect()->back()->with('success', 'Candidato homologado com sucesso!');
 
-        } catch (\Exception | \Throwable $e) { // Captura exceções e erros fatais
+        } catch (\Exception | \Throwable $e) {
             Log::error("Erro ao homologar candidato ID {$candidato->id}: " . $e->getMessage(), ['exception' => $e]);
-            return redirect()->back()->with('error', 'Ocorreu um erro ao homologar o candidato. Por favor, tente novamente. Detalhes: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocorreu um erro ao homologar o candidato.');
         }
+    }
+
+    // ✅ INÍCIO DOS NOVOS MÉTODOS PARA DECISÃO DE RECURSO
+    /**
+     * Deferir (aceitar) o recurso de um candidato.
+     */
+    public function deferirRecurso(Candidato $candidato)
+    {
+        if ($candidato->recurso_status !== 'em_analise') {
+            return redirect()->back()->with('error', 'Este recurso não está aguardando análise.');
+        }
+        $candidato->status = 'Em Análise';
+        $candidato->admin_observacao = 'Recurso DEFERIDO. A inscrição retornou para uma nova análise completa pela comissão.';
+        $candidato->recurso_texto = null;
+        $candidato->recurso_prazo_ate = null;
+        $candidato->recurso_status = 'deferido';
+        $candidato->recurso_tipo = null;
+        $candidato->save();
+        return redirect()->route('admin.candidatos.show', $candidato)->with('success', 'Recurso deferido com sucesso! A inscrição voltou para o status "Em Análise".');
+    }
+
+    /**
+     * Indeferir (negar) o recurso de um candidato.
+     */
+    public function indeferirRecurso(Request $request, Candidato $candidato)
+    {
+        $request->validate(['admin_observacao' => 'required|string|min:10']);
+        if ($candidato->recurso_status !== 'em_analise') {
+            return redirect()->back()->with('error', 'Este recurso não está aguardando análise.');
+        }
+        $candidato->status = 'Rejeitado';
+        $candidato->admin_observacao = $request->input('admin_observacao');
+        $candidato->recurso_prazo_ate = null;
+        $candidato->recurso_status = 'indeferido';
+        $candidato->save();
+        return redirect()->route('admin.candidatos.show', $candidato)->with('success', 'Recurso indeferido com sucesso! A inscrição permanece como "Rejeitada".');
+    }
+    // ✅ FIM DOS NOVOS MÉTODOS
+
+    /**
+     * Método auxiliar para calcular dias úteis.
+     */
+    private function calcularDiasUteis(int $diasUteisParaAdicionar): Carbon
+    {
+        $data = Carbon::now();
+        $diasAdicionados = 0;
+        while ($diasAdicionados < $diasUteisParaAdicionar) {
+            $data->addDay();
+            if ($data->isWeekday()) {
+                $diasAdicionados++;
+            }
+        }
+        return $data->endOfDay(); 
     }
 }

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Painel do Candidato') }}
+            {{ __('Dashboard') }}
         </h2>
     </x-slot>
 
@@ -16,7 +16,7 @@
                         <p class="text-gray-600 mt-2">Este é o seu Centro de Controle. Siga os passos abaixo para completar a sua inscrição.</p>
                     </div>
 
-                    {{-- ✅ ALERTA AJUSTADO PARA O CANDIDATO --}}
+                    {{-- Alerta de Status para o Candidato --}}
                     @if(auth()->user()->candidato && auth()->user()->candidato->status === 'Inscrição Incompleta')
                         <div class="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-lg shadow-sm">
                             <div class="flex items-start">
@@ -38,6 +38,25 @@
                                 </div>
                             </div>
                         </div>
+                    @elseif(auth()->user()->candidato && auth()->user()->candidato->status === 'Homologado')
+                        <div class="p-4 bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg shadow-sm">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-purple-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.857a.75.75 000-1.06l-3.25-3.25a.75.75 000-1.06.75.75 01-1.06 0l-3.25 3.25a.75.75 000 1.06.75.75 011.06 0L8.75 8.75l3.25 3.25a.75.75 000 1.06.75.75 011.06 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-purple-800">
+                                        <span class="font-semibold">Parabéns!</span> Sua inscrição foi oficialmente **Homologada** pela Prefeitura!
+                                        <br>Você está apto(a) para a próxima etapa do processo de contratação.
+                                        @if(auth()->user()->candidato->ato_homologacao)
+                                            <span class="block mt-1 text-xs text-purple-700">Ato de Homologação: {{ auth()->user()->candidato->ato_homologacao }}</span>
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     @endif
 
                     {{-- Atalhos Rápidos --}}
@@ -51,9 +70,7 @@
                                 </div>
                             </div>
                             @if(auth()->user()->candidato)
-                                {{-- ✅ EXIBIÇÃO DA PORCENTAGEM DE CONCLUSÃO DO PERFIL NO DASHBOARD --}}
                                 @php
-                                    // Certifique-se que getCompletionPercentageAttribute existe no seu Candidato Model
                                     $completionPercentage = auth()->user()->candidato->completion_percentage;
                                 @endphp
                                 <div class="w-full bg-blue-200 rounded-full h-2 mt-4">
@@ -101,41 +118,48 @@
                             <p class="text-gray-600">Veja a sua posição na lista de aprovados para o seu curso.</p>
                         </div>
 
+                        {{-- ✅ INÍCIO DO AJUSTE: Lógica de cálculo de pontos corrigida --}}
                         @php
-                            // O CandidatoController@index não passa $classificacaoDoCurso e $regrasDePontuacao
-                            // Precisamos buscá-los aqui se o dashboard for exibir essa tabela
-                            // E certificar-se que Candidato model tem 'calcularPontuacaoDetalhada()'
                             $candidatoLogado = auth()->user()->candidato;
-                            $classificacaoDoCurso = collect(); // Inicia como coleção vazia
-                            $regrasDePontuacao = collect(); // Inicia como coleção vazia
+                            $classificacaoDoCurso = collect(); 
+                            $regrasDePontuacao = collect(); 
 
                             if ($candidatoLogado && $candidatoLogado->curso) {
-                                // Replicar a lógica do ClassificacaoController para o curso específico do candidato logado
-                                // OU, se a pontuacao_final e pontuacao_detalhes já estão no BD, usar diretamente
-                                // Para simplicidade, vamos calcular aqui se necessário, mas o ideal é que seja eficiente.
+                                // Pega as regras de pontuação UMA VEZ antes do loop para otimização
+                                $regrasDePontuacao = \App\Models\TipoDeAtividade::orderBy('nome')->get();
 
-                                // Pega todos os candidatos que estão Homologados para ver a classificação
                                 $todosCandidatosClassificacao = \App\Models\Candidato::where('status', 'Homologado')
-                                    ->with(['user', 'curso', 'instituicao'])
+                                    ->with(['user.candidatoAtividades.tipoDeAtividade', 'curso', 'instituicao'])
                                     ->get()
-                                    ->map(function($cand) {
+                                    ->map(function($cand) use ($regrasDePontuacao) {
                                         $resultado = $cand->calcularPontuacaoDetalhada();
                                         $cand->pontuacao_final = $resultado['total'];
-                                        $cand->pontuacao_detalhes = $resultado['detalhes'];
+                                        
+                                        // Inicializa o boletim com todas as regras zeradas
+                                        $boletim = [];
+                                        foreach($regrasDePontuacao as $regra) {
+                                            $boletim[$regra->nome] = 0;
+                                        }
+
+                                        // Preenche o boletim com os pontos de cada atividade
+                                        foreach($resultado['detalhes'] as $detalhe) {
+                                            if (isset($boletim[$detalhe['nome']])) {
+                                                $boletim[$detalhe['nome']] += $detalhe['pontos'];
+                                            }
+                                        }
+                                        $cand->boletim_pontos = $boletim; // Adiciona o boletim ao objeto do candidato
+                                        
                                         return $cand;
                                     })
                                     ->sortByDesc('pontuacao_final')
                                     ->sortBy(function($cand) { return strtotime($cand->data_nascimento); });
                                 
-                                // Filtra para pegar apenas os do curso do candidato logado
                                 $classificacaoDoCurso = $todosCandidatosClassificacao->filter(function($cand) use ($candidatoLogado) {
                                     return $cand->curso_id === $candidatoLogado->curso_id;
                                 })->values();
-
-                                // Regras de pontuação para o cabeçalho da tabela (você precisaria buscar isso do seu TipoDeAtividade model)
-                                $regrasDePontuacao = \App\Models\TipoDeAtividade::orderBy('nome')->get();
                             }
                         @endphp
+                        {{-- ✅ FIM DO AJUSTE --}}
 
                         <div class="bg-white overflow-hidden shadow-lg sm:rounded-xl border border-gray-200">
                             <div class="p-6">
@@ -147,7 +171,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                                 </svg>
                                             </div>
-                                            <h4 class="text-lg font-semibold text-gray-800">{{ $candidatoLogado->curso->nome }}</h4>
+                                            <h4 class="text-lg font-semibold text-gray-800">{{ $candidato->curso->nome }}</h4>
                                         </div>
                                     </div>
 
@@ -194,6 +218,7 @@
                                                             @foreach($regrasDePontuacao as $regra)
                                                                 <td class="px-3 py-3 text-center text-xs {{ $classificado->user_id === Auth::id() ? 'text-blue-900' : 'text-gray-700' }}">
                                                                     <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                                                                        {{-- ✅ AJUSTE: Usa a nova variável 'boletim_pontos' para exibir a nota correta --}}
                                                                         {{ number_format($classificado->boletim_pontos[$regra->nome] ?? 0, 2, ',', '.') }}
                                                                     </span>
                                                                 </td>
@@ -209,7 +234,7 @@
                                             </table>
                                         </div>
 
-                                        @if($classificacaoDoCurso->count() > 10) {{-- Condição para paginação ou mais conteúdo --}}
+                                        @if($classificacaoDoCurso->count() > 10)
                                             <div class="mt-4 text-center">
                                                 <p class="text-xs text-gray-500">Mostrando {{ $classificacaoDoCurso->count() }} candidatos classificados</p>
                                             </div>
@@ -233,4 +258,5 @@
                 </div>
             </div>
         </div>
-    </x-app-layout>
+    </div>
+</x-app-layout>

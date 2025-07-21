@@ -14,12 +14,13 @@ class WelcomeController extends Controller
      */
     public function index()
     {
-        // 1. Busca TODOS os candidatos do banco de dados (sem ordenação por pontuação ainda)
+        // 1. Busca APENAS os candidatos com status 'Homologado'
         // Carrega as relações 'user', 'curso' e 'instituicao' antecipadamente.
-        $todosCandidatos = Candidato::with(['user', 'curso', 'instituicao'])->get();
+        $todosCandidatos = Candidato::where('status', 'Homologado') // ✅ ADICIONADO: Filtra apenas por 'Homologado'
+                                     ->with(['user', 'curso', 'instituicao'])
+                                     ->get();
 
         // 2. Mapeia os candidatos para CALCULAR a pontuação final e os detalhes
-        // ESTE É O PASSO CRÍTICO PARA RESOLVER O PROBLEMA DO "0.0"
         $candidatosClassificacao = $todosCandidatos->map(function ($candidato) {
             // Assume que calcularPontuacaoDetalhada() existe no Model Candidato
             // e retorna um array com 'total' e 'detalhes'.
@@ -36,7 +37,7 @@ class WelcomeController extends Controller
             // Critério de desempate: data de nascimento (mais velho primeiro)
             return strtotime($candidato->data_nascimento);
         })
-        ->take(5) // 4. Pega os 5 primeiros
+        ->take(5) // 4. Pega os 5 primeiros para a página inicial
         ->values(); // 5. Reseta os índices da coleção
 
         // 6. Busca todos os cursos para a seção de 'Áreas de Atuação'

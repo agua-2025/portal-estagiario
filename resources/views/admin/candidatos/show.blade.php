@@ -1,47 +1,83 @@
 <x-app-layout>
-    {{-- O x-data agora controla o modal E a aba ativa --}}
-    <div class="py-12" x-data="{ tab: 'analise', showRejectionModal: false, rejectionAction: '', showScoreDetails: false, showProfileRejectionModal: false }"> {{-- ✅ showProfileRejectionModal mantido para o modal --}}
+    {{-- ✅ AJUSTE: Adiciona variáveis para os novos modais de recurso --}}
+    <div class="py-12" x-data="{ tab: 'analise', showRejectionModal: false, rejectionAction: '', showScoreDetails: false, showProfileRejectionModal: false, showDocRejectionModal: false, docRejectionAction: '', showResourceDenialModal: false, resourceDenialAction: '' }">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 md:p-8 text-gray-900">
 
                     {{-- CABEÇALHO COM STATUS --}}
-        <div class="flex flex-col sm:flex-row justify-between items-start mb-6 border-b pb-4">
-            <div>
-                <h2 class="text-2xl font-semibold text-gray-800">{{ $candidato->nome_completo ?? $candidato->user->name }}</h2>
-                <p class="text-sm text-gray-500">Inscrição recebida em: {{ $candidato->created_at->format('d/m/Y H:i') }}</p>
-            </div>
-            <div class="mt-4 sm:mt-0 flex flex-col sm:flex-row items-center gap-4">
-                @php
-                    $statusClass = 'bg-gray-100 text-gray-800'; // Default para status desconhecidos
-                    $statusText = $candidato->status; // Texto padrão é o próprio status do BD
+                    <div class="flex flex-col sm:flex-row justify-between items-start mb-6 border-b pb-4">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-800">{{ $candidato->nome_completo ?? $candidato->user->name }}</h2>
+                            <p class="text-sm text-gray-500">Inscrição recebida em: {{ $candidato->created_at->format('d/m/Y H:i') }}</p>
+                        </div>
+                        <div class="mt-4 sm:mt-0 flex flex-col sm:flex-row items-center gap-4">
+                            @php
+                                $statusClass = 'bg-gray-100 text-gray-800'; // Default
+                                $statusText = $candidato->status;
 
-                    // ✅ Lógica corrigida para mapear cores e textos para CADA status no cabeçalho
-                    if ($candidato->status === 'Inscrição Incompleta') {
-                        $statusClass = 'bg-yellow-100 text-yellow-800'; // Amarelo para Incompleta
-                        $statusText = 'Inscrição Incompleta'; // Exibir exatamente "Inscrição Incompleta"
-                    } elseif ($candidato->status === 'Em Análise') {
-                        $statusClass = 'bg-blue-100 text-blue-800'; // Azul para "Em Análise"
-                        $statusText = 'Em Análise';
-                    } elseif ($candidato->status === 'Aprovado') {
-                        $statusClass = 'bg-green-100 text-green-800';
-                        $statusText = 'Aprovado';
-                    } elseif ($candidato->status === 'Homologado') {
-                        $statusClass = 'bg-purple-100 text-purple-800';
-                        $statusText = 'Homologado';
-                    } elseif ($candidato->status === 'Rejeitado') {
-                        $statusClass = 'bg-red-100 text-red-800';
-                        $statusText = 'Rejeitado';
-                    }
-                @endphp
-                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full {{ $statusClass }}">
-                    {{ $statusText }}
-                </span>
-                <a href="{{ route('admin.candidatos.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300">
-                    Voltar
-                </a>
-            </div>
-        </div>
+                                if ($candidato->status === 'Inscrição Incompleta') {
+                                    $statusClass = 'bg-yellow-100 text-yellow-800';
+                                } elseif ($candidato->status === 'Em Análise') {
+                                    $statusClass = 'bg-blue-100 text-blue-800';
+                                } elseif ($candidato->status === 'Aprovado') {
+                                    $statusClass = 'bg-green-100 text-green-800';
+                                } elseif ($candidato->status === 'Homologado') {
+                                    $statusClass = 'bg-purple-100 text-purple-800';
+                                } elseif ($candidato->status === 'Rejeitado') {
+                                    $statusClass = 'bg-red-100 text-red-800';
+                                }
+                            @endphp
+                            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full {{ $statusClass }}">
+                                {{ $statusText }}
+                            </span>
+                            <a href="{{ route('admin.candidatos.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300">
+                                Voltar
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- LÓGICA DE VERIFICAÇÃO DE ALTERAÇÕES E PRAZOS --}}
+                    @php
+                        $profile_was_updated = false;
+                        $changed_document_types = [];
+
+                        if($candidato->revert_reason && is_array($candidato->revert_reason) && !empty($candidato->revert_reason)) {
+                            $history = $candidato->revert_reason;
+                            $changes_to_review = [];
+                            $reversed_history = array_reverse($history);
+                            foreach ($reversed_history as $event) {
+                                $changes_to_review[] = $event;
+                                if (in_array($event['previous_status'], ['Homologado', 'Aprovado'])) {
+                                    break;
+                                }
+                            }
+                            
+                            foreach ($changes_to_review as $change) {
+                                if ($change['action'] === 'profile_update') {
+                                    $profile_was_updated = true;
+                                }
+                                if (in_array($change['action'], ['document_update', 'document_delete'])) {
+                                    if (!in_array($change['document_type'], $changed_document_types)) {
+                                        $changed_document_types[] = $change['document_type'];
+                                    }
+                                }
+                            }
+                        }
+
+                        $prazosAtivos = $candidato->user->candidatoAtividades()
+                                            ->where('status', 'Rejeitada')
+                                            ->where('prazo_recurso_ate', '>', now())
+                                            ->exists();
+                    @endphp
+
+                    {{-- Alerta GLOBAL se o perfil foi alterado --}}
+                    @if($profile_was_updated)
+                        <div class="mb-6 p-4 border-l-4 border-yellow-500 bg-yellow-100 text-yellow-800 rounded-lg text-sm" role="alert">
+                            <p><span class="font-bold">Atenção:</span> As informações do perfil do candidato foram alteradas recentemente e precisam de reanálise.</p>
+                        </div>
+                    @endif
+
 
                     {{-- PLACAR DE PONTUAÇÃO --}}
                     <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -117,7 +153,7 @@
                         <div class="mt-6 pt-6 border-t">
                             <h3 class="text-lg font-semibold text-gray-800 mb-4">Dados Acadêmicos</h3>
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6">
-                               {{ renderDetail('Instituição de Ensino', $candidato->curso->instituicao->nome ?? 'N/A') }}
+                               {{ renderDetail('Instituição de Ensino', $candidato->instituicao->nome ?? 'N/A') }}
                                 {{ renderDetail('Curso', $candidato->curso->nome ?? 'N/A') }}
                                 {{ renderDetail('Início do Curso', optional($candidato->curso_data_inicio)->format('d/m/Y')) }}
                                 {{ renderDetail('Previsão de Conclusão', optional($candidato->curso_previsao_conclusao)->format('d/m/Y')) }}
@@ -129,34 +165,76 @@
 
                     {{-- Aba 2: Análise de Documentos --}}
                     <div x-show="tab === 'analise'" x-transition style="display: none;">
-                        {{-- ✅ REMOVIDO: BOTÕES DE APROVAÇÃO/REJEIÇÃO DO PERFIL GERAL (Conforme sua solicitação) --}}
-                        {{-- Eles pertencem à aba "Ações Finais" --}}
-                        
                         <div class="space-y-3">
                             <h3 class="text-lg font-semibold text-gray-800 mb-4">Documentos e Atividades Enviadas</h3>
-                            @foreach($candidato->user->documentos as $documento)
-                                <div class="p-3 border rounded-lg flex justify-between items-center text-sm bg-gray-50">
-                                    <span>{{ str_replace('_', ' ', $documento->tipo_documento) }}</span>
-                                    <a href="{{ route('candidato.documentos.show', $documento) }}" target="_blank" class="px-4 py-1.5 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700">Visualizar</a>
+                            
+                            @foreach($documentosNecessarios as $tipoDocumento => $nomeDocumento)
+                                @php
+                                    $documentoEnviado = $documentosEnviados->get($tipoDocumento);
+                                @endphp
+                                <div class="p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start gap-4 text-sm bg-gray-50">
+                                    <div class="flex-grow">
+                                        <div class="flex items-center">
+                                            <p class="font-semibold">{{ $nomeDocumento }}</p>
+                                            @if(in_array($tipoDocumento, $changed_document_types) && $documentoEnviado && $documentoEnviado->status !== 'aprovado')
+                                                <span class="ml-3 px-2 py-0.5 bg-yellow-200 text-yellow-800 rounded-full text-xs font-bold">ALTERADO</span>
+                                            @endif
+                                        </div>
+                                        @if($documentoEnviado)
+                                            <span class="text-xs font-medium capitalize px-2 py-0.5 rounded-full
+                                                @if($documentoEnviado->status == 'aprovado') bg-green-100 text-green-800 @endif
+                                                @if($documentoEnviado->status == 'enviado') bg-blue-100 text-blue-800 @endif
+                                                @if($documentoEnviado->status == 'rejeitado') bg-red-100 text-red-800 @endif
+                                            ">
+                                                Status: {{ $documentoEnviado->status }}
+                                            </span>
+                                            @if($documentoEnviado->status == 'rejeitado' && $documentoEnviado->motivo_rejeicao)
+                                                <p class="text-xs text-red-700 mt-1">Motivo: {{ $documentoEnviado->motivo_rejeicao }}</p>
+                                            @endif
+                                        @else
+                                            <span class="text-xs font-medium capitalize px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">Status: Pendente</span>
+                                        @endif
+                                    </div>
+                                    
+                                    <div class="flex items-center space-x-2 flex-shrink-0">
+                                        @if($documentoEnviado)
+                                            <a href="{{ route('candidato.documentos.show', $documentoEnviado) }}" target="_blank" class="px-3 py-1.5 bg-gray-600 text-white rounded-md text-xs hover:bg-gray-700">Visualizar</a>
+                                            
+                                            @if($documentoEnviado->status !== 'aprovado')
+                                                <form action="{{ route('admin.documentos.updateStatus', $documentoEnviado) }}" method="POST" onsubmit="return confirm('Aprovar este documento?');">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="hidden" name="status" value="aprovado">
+                                                    <button type="submit" class="px-3 py-1.5 bg-green-600 text-white rounded-md text-xs hover:bg-green-700">Aprovar</button>
+                                                </form>
+                                            @endif
+
+                                            @if($documentoEnviado->status !== 'rejeitado')
+                                                <button @click="showDocRejectionModal = true; docRejectionAction = '{{ route('admin.documentos.updateStatus', $documentoEnviado) }}'" type="button" class="px-3 py-1.5 bg-red-600 text-white rounded-md text-xs hover:bg-red-700">Rejeitar</button>
+                                            @endif
+                                        @else
+                                            <span class="text-xs text-gray-500">Aguardando envio do candidato.</span>
+                                        @endif
+                                    </div>
                                 </div>
                             @endforeach
+
                             @foreach($candidato->user->candidatoAtividades as $atividade)
                                 <div class="p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm bg-gray-50">
                                     <div class="flex-grow mb-3 sm:mb-0">
                                         <div class="flex items-center">
                                             @php
-                                                $statusClass = 'bg-yellow-100 text-yellow-800';
-                                                if ($atividade->status === 'Aprovada') $statusClass = 'bg-green-100 text-green-800';
-                                                elseif ($atividade->status === 'Rejeitada') $statusClass = 'bg-red-100 text-red-800';
-                                                elseif ($atividade->status === 'enviado') $statusClass = 'bg-blue-100 text-blue-800';
-                                                elseif ($atividade->status === 'Em Análise') $statusClass = 'bg-purple-100 text-purple-800';
+                                                $statusClassAtividade = 'bg-yellow-100 text-yellow-800';
+                                                if ($atividade->status === 'Aprovada') $statusClassAtividade = 'bg-green-100 text-green-800';
+                                                elseif ($atividade->status === 'Rejeitada') $statusClassAtividade = 'bg-red-100 text-red-800';
+                                                elseif ($atividade->status === 'enviado') $statusClassAtividade = 'bg-blue-100 text-blue-800';
+                                                elseif ($atividade->status === 'Em Análise') $statusClassAtividade = 'bg-purple-100 text-purple-800';
                                             @endphp
-                                            <span class="font-medium capitalize px-2 py-1 rounded-full text-xs mr-3 {{ $statusClass }}">{{ $atividade->status }}</span>
+                                            <span class="font-medium capitalize px-2 py-1 rounded-full text-xs mr-3 {{ $statusClassAtividade }}">{{ $atividade->status }}</span>
                                             <p class="font-semibold">{{ $atividade->tipoDeAtividade->nome ?? 'Regra não encontrada' }}</p>
                                         </div>
                                         <p class="text-xs text-gray-600 mt-1 ml-4">{{ $atividade->descricao_customizada }}</p>
                                         
-                                        {{-- ✅ LÓGICA ATUALIZADA PARA MOSTRAR TODOS OS DADOS RELEVANTES --}}
                                         <div class="mt-2 ml-4 pl-3 border-l-2 border-gray-200 text-xs text-gray-800">
                                             @if (str_contains(strtolower($atividade->tipoDeAtividade->nome), 'aproveitamento acadêmico'))
                                                 <p><strong>Média Declarada no Perfil:</strong> {{ $candidato->media_aproveitamento ?? 'N/A' }}</p>
@@ -165,12 +243,23 @@
                                             @elseif($atividade->tipoDeAtividade->unidade_medida === 'meses')
                                                 <p><strong>Período Declarado:</strong> de {{ optional($atividade->data_inicio)->format('d/m/Y') ?? 'N/A' }} a {{ optional($atividade->data_fim)->format('d/m/Y') ?? 'N/A' }}</p>
                                             @elseif(str_contains(strtolower($atividade->tipoDeAtividade->nome), 'semestres cursados') || $atividade->tipoDeAtividade->unidade_medida === 'semestre')
-                                                <p><strong>Semestres Declarados na Atividade:</strong> {{ $atividade->semestres_declarados ?? 'N/A' }}</p> {{-- ✅ AJUSTE AQUI --}}
+                                                <p><strong>Semestres Declarados na Atividade:</strong> {{ $atividade->semestres_declarados ?? 'N/A' }}</p>
                                             @endif
                                         </div>
 
                                         @if($atividade->status === 'Rejeitada' && $atividade->motivo_rejeicao)
-                                            <p class="text-xs text-red-700 mt-2 p-2 bg-red-50 rounded-md"><strong>Motivo:</strong> {{ $atividade->motivo_rejeicao }}</p>
+                                            <div class="text-xs text-red-700 mt-2 p-2 bg-red-50 rounded-md">
+                                                <p><strong>Motivo:</strong> {{ $atividade->motivo_rejeicao }}</p>
+                                                @if($atividade->prazo_recurso_ate)
+                                                    @if(\Carbon\Carbon::now()->lt($atividade->prazo_recurso_ate))
+                                                        <p class="mt-1 text-blue-700">
+                                                            <strong>Prazo para Recurso:</strong> {{ \Carbon\Carbon::parse($atividade->prazo_recurso_ate)->format('d/m/Y H:i') }}
+                                                        </p>
+                                                    @else
+                                                        <p class="mt-1 text-gray-600"><strong>Prazo para Recurso Encerrado.</strong></p>
+                                                    @endif
+                                                @endif
+                                            </div>
                                         @endif
                                     </div>
                                     <div class="flex items-center space-x-2 flex-shrink-0">
@@ -192,89 +281,116 @@
                         </div>
                     </div>
 
-{{-- Conteúdo para a aba de Ações Finais --}}
-<div x-show="tab === 'acoes'" x-transition x-cloak>
-    <div class="mt-8 pt-6 border-t p-4 bg-gray-100 rounded-lg">
-        <h3 class="text-lg font-semibold text-gray-800 mb-2">Painel de Ações do Administrador</h3>
-        <p class="text-sm text-gray-600 mb-4">Após analisar todas as informações, use os botões abaixo para alterar o status da inscrição.</p>
+                    {{-- Aba 3: Ações Finais --}}
+                    <div x-show="tab === 'acoes'" x-transition x-cloak>
+                        <div class="mt-8 pt-6 border-t p-4 bg-gray-100 rounded-lg">
+                           <h3 class="text-lg font-semibold text-gray-800 mb-2">Painel de Ações do Administrador</h3>
+                            
+                            {{-- ✅ INÍCIO DO AJUSTE: Secção de Análise de Recurso --}}
+                            @if($candidato->recurso_status === 'em_analise' && $candidato->recurso_texto)
+                                <div class="mb-6 p-4 border-l-4 border-purple-500 bg-purple-50 text-purple-900 rounded-r-lg">
+                                    <h4 class="font-bold text-lg">Análise de Recurso</h4>
+                                    <p class="text-sm mt-1">O candidato interpôs um recurso contra a rejeição da sua inscrição. Por favor, analise os argumentos e tome uma decisão.</p>
 
-        {{-- Formulários para Aprovar/Rejeitar Perfil - Visível apenas se o status permitir --}}
-        @if ($candidato->status === 'Em Análise')
-            <form action="{{ route('admin.candidatos.update', $candidato->id) }}" method="POST" onsubmit="return confirm('Você tem certeza que deseja alterar o status desta inscrição?');">
-                @csrf
-                @method('PUT')
-                <div class="space-y-4">
-                    <div>
-                        <label for="admin_observacao" class="block text-sm font-medium text-gray-700">Justificativa / Observação</label>
-                        <textarea name="admin_observacao" id="admin_observacao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">{{ $candidato->admin_observacao }}</textarea>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <button type="submit" name="status" value="Aprovado" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">Aprovar Inscrição</button>
-                        <button @click="showProfileRejectionModal = true" type="button" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Rejeitar Inscrição</button>
+                                    <div class="mt-4 p-3 bg-white border border-gray-200 rounded-md text-sm space-y-3">
+                                        <div>
+                                            <p class="font-semibold text-gray-600">Motivo Original da Rejeição:</p>
+                                            <p class="text-gray-800">{{ $candidato->admin_observacao }}</p>
+                                        </div>
+                                        <div class="border-t pt-3">
+                                            <p class="font-semibold text-gray-600">Argumento do Recurso do Candidato:</p>
+                                            <p class="text-gray-800 whitespace-pre-wrap">{{ $candidato->recurso_texto }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-4 flex items-center space-x-4">
+                                        <form action="{{ route('admin.recursos.deferir', $candidato) }}" method="POST" onsubmit="return confirm('Tem a certeza que deseja DEFERIR (aceitar) este recurso? A inscrição do candidato voltará para o status EM ANÁLISE.');">
+                                            @csrf
+                                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700">
+                                                Deferir Recurso
+                                            </button>
+                                        </form>
+                                        
+                                        <button @click="showResourceDenialModal = true; resourceDenialAction = '{{ route('admin.recursos.indeferir', $candidato) }}'" type="button" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700">
+                                            Indeferir Recurso
+                                        </button>
+                                    </div>
+                                </div>
+                            @else
+                                {{-- Ações normais (quando não há recurso em análise) --}}
+                                <p class="text-sm text-gray-600 mb-4">Após analisar todas as informações, use os botões abaixo para alterar o status da inscrição.</p>
+                                
+                                @if($prazosAtivos)
+                                    <div class="p-4 bg-yellow-100 text-yellow-800 rounded-lg">
+                                        <p class="font-bold">Ações Finais Bloqueadas</p>
+                                        <p>O candidato possui uma ou mais atividades com prazo de recurso em andamento. Aguarde o término do prazo para prosseguir.</p>
+                                    </div>
+                                @else
+                                    @if ($candidato->status === 'Em Análise')
+                                        <form action="{{ route('admin.candidatos.update', $candidato->id) }}" method="POST" onsubmit="return confirm('Você tem certeza que deseja alterar o status desta inscrição?');">
+                                            @csrf
+                                            @method('PUT')
+                                            <div class="space-y-4">
+                                                <div>
+                                                    <label for="admin_observacao" class="block text-sm font-medium text-gray-700">Justificativa / Observação</label>
+                                                    <textarea name="admin_observacao" id="admin_observacao" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">{{ $candidato->admin_observacao }}</textarea>
+                                                </div>
+                                                <div class="flex items-center space-x-4">
+                                                    <button type="submit" name="status" value="Aprovado" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">Aprovar Inscrição</button>
+                                                    <button @click="showProfileRejectionModal = true" type="button" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Rejeitar Inscrição</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    @elseif ($candidato->status === 'Aprovado')
+                                        <form action="{{ route('admin.candidatos.homologar', $candidato->id) }}" method="POST" class="w-full mt-4">
+                                            @csrf
+                                            <div class="bg-yellow-50 p-4 rounded-lg mt-4 mb-4">
+                                                <p class="font-bold text-yellow-800 mb-2">Ação: Homologar Candidato</p>
+                                                <div class="mb-3">
+                                                    <label for="ato_homologacao" class="block text-sm font-medium text-gray-700">Número/Referência do Ato de Homologação <span class="text-red-500">*</span></label>
+                                                    <input type="text" name="ato_homologacao" id="ato_homologacao" required 
+                                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                                           value="{{ old('ato_homologacao', $candidato->ato_homologacao) }}">
+                                                    @error('ato_homologacao')
+                                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="homologacao_observacoes" class="block text-sm font-medium text-gray-700">Observações (Opcional)</label>
+                                                    <textarea name="homologacao_observacoes" id="homologacao_observacoes" rows="3" 
+                                                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">{{ old('homologacao_observacoes', $candidato->homologacao_observacoes) }}</textarea>
+                                                    @error('homologacao_observacoes')
+                                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
+                                                <button type="submit" class="w-full px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-medium">Homologar Candidato</button>
+                                            </div>
+                                        </form>
+                                    @elseif ($candidato->status === 'Homologado')
+                                        <div class="bg-blue-50 p-4 rounded-lg mt-4 mb-4">
+                                            <p class="font-bold text-blue-800 mb-2">Candidato Homologado!</p>
+                                            <p class="text-sm text-blue-700">Ato de Homologação: <span class="font-medium">{{ $candidato->ato_homologacao ?? 'N/A' }}</span></p>
+                                            <p class="text-sm text-blue-700">Homologado em: <span class="font-medium">{{ $candidato->homologado_em ? $candidato->homologado_em->format('d/m/Y H:i') : 'N/A' }}</span></p>
+                                            @if ($candidato->homologacao_observacoes)
+                                                <p class="text-sm text-blue-700 mt-2">Observações: <span class="font-medium">{{ $candidato->homologacao_observacoes }}</span></p>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div class="bg-gray-50 p-4 rounded-lg mt-4 mb-4">
+                                            <p class="font-bold text-gray-800 mb-2">Ações Atuais:</p>
+                                            <p class="text-sm text-gray-700">O status do candidato não permite homologação ou aprovação direta no momento.</p>
+                                        </div>
+                                    @endif
+                                @endif
+                            @endif
+                            {{-- ✅ FIM DO AJUSTE --}}
+                        </div>
                     </div>
                 </div>
-            </form>
-        @endif
-
-        {{-- ✅ FORMULÁRIO DE HOMOLOGAÇÃO - Visível apenas se o status for 'Aprovado' --}}
-        @if ($candidato->status === 'Aprovado')
-            <form action="{{ route('admin.candidatos.homologar', $candidato->id) }}" method="POST" class="w-full mt-4">
-                @csrf
-                <div class="bg-yellow-50 p-4 rounded-lg mt-4 mb-4">
-                    <p class="font-bold text-yellow-800 mb-2">Ação: Homologar Candidato</p>
-                    <div class="mb-3">
-                        <label for="ato_homologacao" class="block text-sm font-medium text-gray-700">Número/Referência do Ato de Homologação <span class="text-red-500">*</span></label>
-                        <input type="text" name="ato_homologacao" id="ato_homologacao" required 
-                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                               value="{{ old('ato_homologacao', $candidato->ato_homologacao) }}">
-                        @error('ato_homologacao')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="homologacao_observacoes" class="block text-sm font-medium text-gray-700">Observações (Opcional)</label>
-                        <textarea name="homologacao_observacoes" id="homologacao_observacoes" rows="3" 
-                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">{{ old('homologacao_observacoes', $candidato->homologacao_observacoes) }}</textarea>
-                        @error('homologacao_observacoes')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <button type="submit" class="w-full px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-medium">Homologar Candidato</button>
-                </div>
-            </form>
-        @elseif ($candidato->status === 'Homologado')
-            <div class="bg-blue-50 p-4 rounded-lg mt-4 mb-4">
-                <p class="font-bold text-blue-800 mb-2">Candidato Homologado!</p>
-                <p class="text-sm text-blue-700">Ato de Homologação: <span class="font-medium">{{ $candidato->ato_homologacao ?? 'N/A' }}</span></p>
-                <p class="text-sm text-blue-700">Homologado em: <span class="font-medium">{{ $candidato->homologado_em ? $candidato->homologado_em->format('d/m/Y H:i') : 'N/A' }}</span></p>
-                @if ($candidato->homologacao_observacoes)
-                    <p class="text-sm text-blue-700 mt-2">Observações: <span class="font-medium">{{ $candidato->homologacao_observacoes }}</span></p>
-                @endif
             </div>
-        @else {{-- Status como 'Rejeitado', 'Inscrição Incompleta' --}}
-            <div class="bg-gray-50 p-4 rounded-lg mt-4 mb-4">
-                <p class="font-bold text-gray-800 mb-2">Ações Atuais:</p>
-                <p class="text-sm text-gray-700">O status do candidato não permite homologação ou aprovação direta no momento.</p>
-                @if ($candidato->status === 'Rejeitado')
-                    <p class="text-sm text-red-600 mt-2">Candidato Rejeitado. Gerencie o recurso (futuramente).</p>
-                @elseif ($candidato->status === 'Inscrição Incompleta')
-                    <p class="text-sm text-yellow-600 mt-2">Candidato com inscrição incompleta. Verifique os documentos.</p>
-                @endif
-            </div>
-        @endif
-
-        {{-- Botão Voltar para a lista de candidatos (mantido) --}}
-        <div class="text-right mt-4">
-             <a href="{{ route('admin.candidatos.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Voltar para a Lista</a>
         </div>
-    </div>
-</div> 
 
-                </div>
-            </div>
-        </div>
-
-        {{-- MODAL DE REJEIÇÃO (PARA ATIVIDADES INDIVIDUAIS) --}}
+        {{-- MODAIS --}}
         <div x-show="showRejectionModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50" style="display: none;">
             <div @click.away="showRejectionModal = false" class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Justificar Rejeição</h3>
@@ -292,7 +408,6 @@
             </div>
         </div>
 
-        {{-- ✅ NOVO MODAL DE REJEIÇÃO (PARA O PERFIL GERAL DO CANDIDATO) --}}
         <div x-show="showProfileRejectionModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50" style="display: none;">
             <div @click.away="showProfileRejectionModal = false" class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Rejeitar Inscrição do Candidato</h3>
@@ -307,6 +422,43 @@
                     <div class="mt-6 flex justify-end space-x-3">
                         <button @click="showProfileRejectionModal = false" type="button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-sm">Cancelar</button>
                         <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">Confirmar Rejeição da Inscrição</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div x-show="showDocRejectionModal" x-transition class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50" style="display: none;">
+            <div @click.away="showDocRejectionModal = false" class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Justificar Rejeição do Documento</h3>
+                <form :action="docRejectionAction" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="status" value="rejeitado">
+                    <div>
+                        <label for="doc_motivo_rejeicao" class="block text-sm font-medium text-gray-700">Por favor, descreva o motivo da rejeição:</label>
+                        <textarea name="motivo_rejeicao" id="doc_motivo_rejeicao" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required minlength="10"></textarea>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button @click="showDocRejectionModal = false" type="button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-sm">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">Confirmar Rejeição</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- ✅ NOVO MODAL: Para indeferir (negar) o recurso --}}
+        <div x-show="showResourceDenialModal" x-transition class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50" style="display: none;">
+            <div @click.away="showResourceDenialModal = false" class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Indeferir Recurso</h3>
+                <form :action="resourceDenialAction" method="POST">
+                    @csrf
+                    <div>
+                        <label for="indeferimento_motivo" class="block text-sm font-medium text-gray-700">Justificativa Final (será visível para o candidato)</label>
+                        <textarea name="admin_observacao" id="indeferimento_motivo" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required minlength="10" placeholder="Ex: Os argumentos apresentados não alteram a decisão inicial, pois o requisito X do edital não foi cumprido."></textarea>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button @click="showResourceDenialModal = false" type="button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-sm">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">Confirmar Indeferimento</button>
                     </div>
                 </form>
             </div>

@@ -2,14 +2,10 @@
     <div class="py-6"> 
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                {{-- ✅ AJUSTE CRÍTICO E DEFINITIVO: Prepara TODAS as variáveis em um único array PHP para json_encode --}}
                 @php
-                    // Garante que o ID da regra selecionada seja sempre uma string, mesmo que null
                     $initialRegraSelecionada = (string) (old('tipo_de_atividade_id') ?? '');
-                    // Garante que $regrasDePontuacao seja um array para json_encode
                     $regrasDePontuacaoArray = $regrasDePontuacao->toArray();
                     
-                    // Prepara os campos do 'fields' para garantir que sejam strings ou valores válidos
                     $fieldsData = [
                         'descricao_customizada' => (string) (old('descricao_customizada') ?? ''),
                         'carga_horaria' => (string) (old('carga_horaria') ?? ''),
@@ -19,7 +15,6 @@
                         'media_declarada_atividade' => (string) (old('media_declarada_atividade') ?? ''),
                     ];
 
-                    // Cria um único array com todos os dados que o Alpine.js precisa
                     $alpineData = [
                         'showForm' => !! $errors->any(),
                         'regraSelecionada' => $initialRegraSelecionada,
@@ -156,11 +151,27 @@
                                         <p class="font-semibold">{{ $atividade->tipoDeAtividade->nome }}</p>
                                         <p class="text-xs text-gray-600">{{ $atividade->descricao_customizada }}</p>
                                         
-                                        @if($atividade->status === 'Rejeitada' && $atividade->motivo_rejeicao)
+                                        {{-- ✅ INÍCIO DO AJUSTE: Bloco para exibir motivo e prazo da rejeição --}}
+                                        @if($atividade->status === 'Rejeitada')
                                             <div class="mt-2 p-2 text-xs text-red-800 bg-red-50 rounded-md border border-red-200">
                                                 <strong class="font-bold">Motivo da Rejeição:</strong> {{ $atividade->motivo_rejeicao }}
+                                                
+                                                {{-- Verifica se existe um prazo de recurso --}}
+                                                @if($atividade->prazo_recurso_ate)
+                                                    {{-- Verifica se o prazo ainda está ativo --}}
+                                                    @if(\Carbon\Carbon::now()->lt($atividade->prazo_recurso_ate))
+                                                        <p class="mt-1 font-bold">
+                                                            Você pode corrigir e reenviar este item até: 
+                                                            {{ \Carbon\Carbon::parse($atividade->prazo_recurso_ate)->format('d/m/Y \à\s H:i') }}
+                                                        </p>
+                                                    @else
+                                                        <p class="mt-1 font-bold text-red-600">O prazo para recurso deste item encerrou.</p>
+                                                    @endif
+                                                @endif
                                             </div>
                                         @endif
+                                        {{-- ✅ FIM DO AJUSTE --}}
+
                                     </div>
                                     
                                     <div class="flex items-center space-x-3 flex-shrink-0 ml-4">
@@ -235,33 +246,27 @@
                 isFormValid() {
                     if (!this.regraSelecionada) return false;
                     
-                    // Validação específica para semestres cursados
                     if (this.isSemestresCursadosRule()) {
                         const semestres = parseInt(this.fields.semestres_declarados);
                         return !isNaN(semestres) && semestres >= 1;
                     }
                     
-                    // Validação específica para aproveitamento acadêmico
                     if (this.isAproveitamentoAcademicoRule()) {
                         const media = parseFloat(this.fields.media_declarada_atividade);
                         return !isNaN(media) && media >= 0 && media <= 10;
                     }
                     
-                    // Validação de descrição para outros casos
                     if (!this.fields.descricao_customizada.trim()) return false;
                     
-                    // Validação de carga horária
                     if (this.selectedRegra && this.selectedRegra.unidade_medida === 'horas') {
                         const cargaHoraria = parseInt(this.fields.carga_horaria);
                         if (isNaN(cargaHoraria) || cargaHoraria < 1) return false;
                     }
                     
-                    // Validação de datas
                     if (this.selectedRegra && this.selectedRegra.unidade_medida === 'meses') {
                         if (!this.fields.data_inicio || !this.fields.data_fim) return false;
                     }
                     
-                    // Validação de arquivo
                     const comprovativoInput = document.getElementById('comprovativo'); 
                     if (comprovativoInput && comprovativoInput.required && !comprovativoInput.files.length) { 
                         return false; 
@@ -288,7 +293,7 @@
                             
                         case 'media_declarada_atividade':
                             if (!this.isAproveitamentoAcademicoRule()) return false;
-                            if (!value) return true; // Campo obrigatório
+                            if (!value) return true;
                             const media = parseFloat(value);
                             return isNaN(media) || media < 0 || media > 10;
                             
@@ -313,38 +318,31 @@
                 
                 // Métodos de ação
                 initializeForm() {
-                    // Converter regraSelecionada para número
                     this.regraSelecionada = parseInt(this.regraSelecionada); 
                     if (isNaN(this.regraSelecionada)) {
                         this.regraSelecionada = '';
                     }
                     
-                    // Limpar campos desnecessários baseado na regra inicial
                     this.clearUnusedFields();
                     
-                    // Watch para mudanças na regra selecionada
                     this.$watch('regraSelecionada', () => {
                         this.clearUnusedFields();
                     });
                 },
                 
                 clearUnusedFields() {
-                    // Limpar semestres se não for regra de semestres cursados
                     if (!this.isSemestresCursadosRule()) {
                         this.fields.semestres_declarados = '';
                     }
                     
-                    // Limpar média se não for aproveitamento acadêmico
                     if (!this.isAproveitamentoAcademicoRule()) {
                         this.fields.media_declarada_atividade = '';
                     }
                     
-                    // Limpar carga horária se não for regra de horas
                     if (!this.selectedRegra || this.selectedRegra.unidade_medida !== 'horas') {
                         this.fields.carga_horaria = '';
                     }
                     
-                    // Limpar datas se não for regra de meses
                     if (!this.selectedRegra || this.selectedRegra.unidade_medida !== 'meses') {
                         this.fields.data_inicio = '';
                         this.fields.data_fim = '';
@@ -357,7 +355,6 @@
                     if (this.isFormValid()) {
                         this.$refs.activityAddForm.submit();
                     } else {
-                        // Focar no primeiro campo inválido
                         setTimeout(() => {
                             const form = this.$refs.activityAddForm;
                             if (form) {

@@ -14,15 +14,32 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
-        // ✅ CORREÇÃO: Garante que as relações corretas sejam carregadas no utilizador.
         $user->load(['candidato.curso', 'candidatoAtividades']);
 
         $candidato = $user->candidato;
 
-        // A contagem é feita na relação do UTILIZADOR, que está correta.
+        // A contagem de itens rejeitados (lógica existente, mantida)
         $itensRejeitadosCount = $user->candidatoAtividades
-                                     ->where('status', 'Rejeitada')
-                                     ->count();
+                                        ->where('status', 'Rejeitada')
+                                        ->count();
+
+        // ✅ INÍCIO DO AJUSTE: Lógica para verificar pendências, conforme o plano de ação.
+        $temRecursoPendente = false;
+        $temInscricaoIncompleta = false;
+
+        if ($candidato) {
+            // Verifica se há atividades com prazo de recurso ativo
+            $temRecursoPendente = $user->candidatoAtividades()
+                                    ->where('status', 'Rejeitada')
+                                    ->where('prazo_recurso_ate', '>', now())
+                                    ->exists();
+
+            // Verifica se o perfil/documentos foram rejeitados pelo admin
+            $temInscricaoIncompleta = ($candidato->status === 'Inscrição Incompleta' && !empty($candidato->admin_observacao));
+        }
+
+        $temPendencias = $temRecursoPendente || $temInscricaoIncompleta;
+        // ✅ FIM DO AJUSTE
 
         $classificacaoDoCurso = collect();
         $regrasDePontuacao = collect();
@@ -30,15 +47,16 @@ class DashboardController extends Controller
         if ($candidato && $candidato->curso) {
             $regrasDePontuacao = TipoDeAtividade::all();
 
-            // A relação é carregada através do 'user' em cada candidato da lista.
             $candidatosAprovadosNoCurso = Candidato::where('status', 'Aprovado')
-                                                  ->where('curso_id', $candidato->curso_id)
-                                                  ->with('user.candidatoAtividades.tipoDeAtividade') 
-                                                  ->get();
+                                                ->where('curso_id', $candidato->curso_id)
+                                                ->with('user.candidatoAtividades.tipoDeAtividade') 
+                                                ->get();
 
             $classificacaoDoCurso = $candidatosAprovadosNoCurso->map(function ($c) use ($regrasDePontuacao) {
-                // A chamada para o cálculo continua a mesma, pois o método no Model está correto.
-                $resultado = $c->calcularPontuacaoDetalhada();
+                // Garante que o método exista antes de chamar
+                $resultado = method_exists($c, 'calcularPontuacaoDetalhada') 
+                    ? $c->calcularPontuacaoDetalhada() 
+                    : ['total' => 0, 'detalhes' => []];
                 
                 $pontosPorAtividade = [];
                 foreach ($regrasDePontuacao as $regra) {
@@ -65,6 +83,7 @@ class DashboardController extends Controller
             'itensRejeitadosCount' => $itensRejeitadosCount,
             'classificacaoDoCurso' => $classificacaoDoCurso,
             'regrasDePontuacao' => $regrasDePontuacao,
+            'temPendencias' => $temPendencias, // ✅ ADICIONADO: Passa a variável para a view
         ]);
     }
 }

@@ -16,11 +16,22 @@ class Documento extends Model
      */
     protected $fillable = [
         'user_id',
+        'candidato_id', // ✅ ADICIONADO
         'tipo_documento',
         'path',
         'nome_original',
         'status',
+        'motivo_rejeicao', // ✅ ADICIONADO
     ];
+
+    /**
+     * ✅ AJUSTE: Um documento agora pertence a um Candidato.
+     * Esta é a relação principal.
+     */
+    public function candidato()
+    {
+        return $this->belongsTo(Candidato::class);
+    }
 
     /**
      * Define a relação de que um Documento pertence a um Usuário.

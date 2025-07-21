@@ -14,6 +14,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Candidato\ProfileController as CandidatoProfileController;
 use App\Http\Controllers\Candidato\DocumentoController;
 use App\Http\Controllers\Candidato\AtividadeController; 
+use App\Http\Controllers\Candidato\RecursoController; // ✅ ADICIONADO: Controller do Recurso
 use App\Http\Controllers\ClassificacaoController; // Controlador da classificação pública
 
 // Controllers do Admin
@@ -90,6 +91,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/candidato/atividades/{atividade}/edit', [AtividadeController::class, 'edit'])->name('candidato.atividades.edit');
     Route::put('/candidato/atividades/{atividade}', [AtividadeController::class, 'update'])->name('candidato.atividades.update');
     Route::get('/atividades/{atividade}/visualizar', [AtividadeController::class, 'show'])->name('candidato.atividades.show');
+
+    // ✅ INÍCIO DO AJUSTE: Rotas de Recurso do Candidato
+    Route::get('/meu-recurso', [RecursoController::class, 'create'])->name('candidato.recurso.create');
+    Route::post('/meu-recurso', [RecursoController::class, 'store'])->name('candidato.recurso.store');
+    // ✅ FIM DO AJUSTE
 });
 
 
@@ -118,7 +124,58 @@ Route::middleware(['auth', \App\Http\Middleware\CheckAdminRole::class])
         
         // ✅ NOVA ROTA PARA HOMOLOGAR O CANDIDATO - ADICIONADA AQUI
         Route::post('candidatos/{candidato}/homologar', [CandidatoController::class, 'homologar'])->name('candidatos.homologar');
+        Route::post('recursos/{candidato}/deferir', [CandidatoController::class, 'deferirRecurso'])->name('recursos.deferir');
+        Route::post('recursos/{candidato}/indeferir', [CandidatoController::class, 'indeferirRecurso'])->name('recursos.indeferir');
 });
+
+// ✅ INÍCIO DO CÓDIGO DE TESTE - COLE AQUI
+use App\Models\Candidato;
+use Illuminate\Http\Request;
+
+Route::get('/test-save', function () {
+    // Tente encontrar o primeiro candidato que está "Em Análise"
+    $candidato = Candidato::where('status', 'Em Análise')->first();
+
+    // Se não encontrar, pegue qualquer candidato
+    if (!$candidato) {
+        $candidato = Candidato::first();
+    }
+
+    // Se ainda não houver nenhum candidato, exiba uma mensagem
+    if (!$candidato) {
+        return "Nenhum candidato encontrado no banco de dados para testar.";
+    }
+
+    // Cria um histórico de teste
+    $test_reason = [
+        [
+            'timestamp' => now()->toDateTimeString(),
+            'reason' => "Este é um teste de salvamento direto no banco.",
+            'action' => 'test_save',
+            'previous_status' => $candidato->status,
+        ]
+    ];
+
+    // Tenta salvar o histórico
+    try {
+        $candidato->revert_reason = $test_reason;
+        $candidato->save();
+
+        // Recarrega o candidato do banco para ter certeza
+        $candidato->refresh();
+
+        echo "<h1>Teste Concluído para o Candidato: " . $candidato->nome_completo . "</h1>";
+        echo "<h2>Conteúdo salvo no banco de dados:</h2>";
+        echo "<pre>";
+        print_r($candidato->revert_reason);
+        echo "</pre>";
+
+    } catch (\Exception $e) {
+        echo "<h1>Ocorreu um erro ao tentar salvar!</h1>";
+        echo "<p><strong>Mensagem do Erro:</strong> " . $e->getMessage() . "</p>";
+    }
+});
+// ✅ FIM DO CÓDIGO DE TESTE
 
 
 // Inclui as rotas de autenticação (login, register, etc.) do Breeze

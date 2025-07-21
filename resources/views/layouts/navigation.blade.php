@@ -14,7 +14,6 @@
                     </x-nav-link>
 
                     {{-- Lógica para mostrar menus diferentes para Admin e Candidato --}}
-                    {{-- ✅ INÍCIO DO BLOCO DE VERIFICAÇÃO DE AUTENTICAÇÃO --}}
                     @auth 
                         @if (auth()->user()->role === 'admin')
                             
@@ -53,16 +52,36 @@
                                         </x-dropdown-link>
                                         <x-dropdown-link :href="route('candidato.documentos.index')">Enviar Documentos</x-dropdown-link>
                                         <x-dropdown-link :href="route('candidato.atividades.index')">Anexar Atividades</x-dropdown-link>
+                                        
+                                        {{-- ✅ INÍCIO DO AJUSTE CIRÚRGICO --}}
+                                        @php
+                                            $candidato = Auth::user()->candidato;
+                                            $showRecursoLink = false;
+                                            if ($candidato) {
+                                                $isRejeitado = $candidato->status === 'Rejeitado';
+                                                $isHomologadoEmPrazo = $candidato->status === 'Homologado' && $candidato->recurso_tipo === 'classificacao' && $candidato->recurso_prazo_ate && now()->lt($candidato->recurso_prazo_ate);
+                                                if ($isRejeitado || $isHomologadoEmPrazo) {
+                                                    $showRecursoLink = true;
+                                                }
+                                            }
+                                        @endphp
+
+                                        @if($showRecursoLink)
+                                            <div class="border-t border-gray-200"></div>
+                                            <x-dropdown-link :href="route('candidato.recurso.create')" class="font-bold text-red-600">
+                                                {{ __('Interpor Recurso') }}
+                                            </x-dropdown-link>
+                                        @endif
+                                        {{-- ✅ FIM DO AJUSTE --}}
                                     </x-slot>
                                 </x-dropdown>
                             </div>
                             
                         @endif
-                    @endauth {{-- ✅ FIM DO BLOCO DE VERIFICAÇÃO DE AUTENTICAÇÃO --}}
+                    @endauth
                 </div>
 
                 <div class="hidden sm:flex sm:items-center sm:ms-6">
-                    {{-- ✅ INÍCIO DO BLOCO DE VERIFICAÇÃO DE AUTENTICAÇÃO PARA O DROPDOWN DO PERFIL --}}
                     @auth 
                         <x-dropdown align="right" width="48">
                             <x-slot name="trigger">
@@ -74,7 +93,6 @@
                                     <div class="text-left">
                                         <div class="font-medium text-sm text-gray-800">{{ Auth::user()->name }}</div>
 
-                                        {{-- Mostra o papel APENAS se for admin --}}
                                         @if(auth()->user()->role === 'admin')
                                             <div class="font-medium text-xs text-gray-500">Administrador</div>
                                         @endif
@@ -97,19 +115,19 @@
                                     @csrf
 
                                     <x-dropdown-link :href="route('logout')"
-                                        onclick="event.preventDefault();
-                                                    this.closest('form').submit();">
+                                            onclick="event.preventDefault();
+                                                        this.closest('form').submit();">
                                         {{ __('Log Out') }}
                                     </x-dropdown-link>
                                 </form>
                             </x-slot>
                         </x-dropdown>
-                    @else {{-- ✅ Se não estiver autenticado, mostre links de Entrar/Inscreva-se aqui, se quiser --}}
+                    @else
                         <a href="{{ route('login') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-gray-300 transition ease-in-out duration-150">Entrar</a>
                         @if (Route::has('register'))
                             <a href="{{ route('register') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-gray-300 transition ease-in-out duration-150 ms-3">Inscreva-se</a>
                         @endif
-                    @endauth {{-- ✅ FIM DO BLOCO DE VERIFICAÇÃO DE AUTENTICAÇÃO --}}
+                    @endauth
                 </div>
 
                 <div class="-me-2 flex items-center sm:hidden">
@@ -130,7 +148,6 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
-            {{-- ✅ INÍCIO DO BLOCO DE VERIFICAÇÃO DE AUTENTICAÇÃO RESPONSIVO --}}
             @auth
                 @if (auth()->user()->role === 'admin')
                     <x-responsive-nav-link :href="route('admin.instituicoes.index')" :active="request()->routeIs('admin.instituicoes.*')">
@@ -146,22 +163,31 @@
                         {{ __('Candidatos') }}
                     </x-responsive-nav-link>
                 @else {{-- Usuário logado que NÃO é admin (candidato) --}}
-                    {{-- Adicione links responsivos específicos para candidato aqui, se houver. Ex: --}}
-                    {{-- <x-responsive-nav-link :href="route('candidato.profile.edit')" :active="request()->routeIs('candidato.profile.*')">
-                        {{ __('Meu Perfil') }}
-                    </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('candidato.documentos.index')" :active="request()->routeIs('candidato.documentos.*')">
-                        {{ __('Meus Documentos') }}
-                    </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('candidato.atividades.index')" :active="request()->routeIs('candidato.atividades.*')">
-                        {{ __('Minhas Atividades') }}
-                    </x-responsive-nav-link> --}}
+                    {{-- ✅ INÍCIO DO AJUSTE RESPONSIVO --}}
+                    <div class="border-t border-gray-200 pt-2">
+                        <x-responsive-nav-link :href="route('candidato.profile.edit')">
+                            Preencher/Editar Dados
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('candidato.documentos.index')">
+                            Enviar Documentos
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('candidato.atividades.index')">
+                            Anexar Atividades
+                        </x-responsive-nav-link>
+                        
+                        {{-- A mesma lógica do menu desktop é aplicada aqui --}}
+                        @if(isset($showRecursoLink) && $showRecursoLink)
+                            <x-responsive-nav-link :href="route('candidato.recurso.create')" class="font-bold text-red-600">
+                                {{ __('Interpor Recurso') }}
+                            </x-responsive-nav-link>
+                        @endif
+                    </div>
+                    {{-- ✅ FIM DO AJUSTE RESPONSIVO --}}
                 @endif
-            @endauth {{-- ✅ FIM DO BLOCO DE VERIFICAÇÃO DE AUTENTICAÇÃO RESPONSIVO --}}
+            @endauth
         </div>
 
         <div class="pt-4 pb-1 border-t border-gray-200">
-            {{-- ✅ INÍCIO DO BLOCO DE VERIFICAÇÃO DE AUTENTICAÇÃO RESPONSIVO PARA DADOS DO USUÁRIO --}}
             @auth
                 <div class="px-4">
                     <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
@@ -177,13 +203,13 @@
                         @csrf
 
                         <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
+                                onclick="event.preventDefault();
+                                            this.closest('form').submit();">
                             {{ __('Log Out') }}
                         </x-responsive-nav-link>
                     </form>
                 </div>
-            @else {{-- ✅ Se não estiver autenticado, mostre links de Entrar/Inscreva-se aqui, se quiser --}}
+            @else
                 <div class="mt-3 space-y-1">
                     <x-responsive-nav-link :href="route('login')">
                         {{ __('Entrar') }}
@@ -194,7 +220,7 @@
                         </x-responsive-nav-link>
                     @endif
                 </div>
-            @endauth {{-- ✅ FIM DO BLOCO DE VERIFICAÇÃO DE AUTENTICAÇÃO RESPONSIVO --}}
+            @endauth
         </div>
     </div>
 </nav>

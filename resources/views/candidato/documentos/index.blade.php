@@ -12,18 +12,15 @@
                     {{-- Verificação de Perfil Completo --}}
                     @if (!$candidato->isProfileComplete())
                         
-                        {{-- MENSAGEM DE BLOQUEIO SE O PERFIL ESTIVER INCOMPLETO --}}
                         <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
                             <p class="font-bold">Ação Necessária</p>
-                            <p>Por favor, complete 100% do seu perfil de dados cadastrais na página "Preencher/Editar Dados" antes de enviar os seus documentos.</p>
+                            <p>Por favor, complete 100% do seu perfil de dados cadastrais na página "Meu Currículo" antes de enviar os seus documentos.</p>
                             
-                            {{-- ✅ NOVO BLOCO DE DEBUG: ADICIONE ISTO --}}
                             <div class="mt-3 p-2 border border-red-300 bg-red-50 text-red-900 text-xs rounded">
                                 <strong>Informação de Debug:</strong>
                                 <p>O sistema identificou que o campo "<strong>{{ $candidato->getFirstIncompleteField() ?? 'Não foi possível identificar' }}</strong>" está em falta.</p>
                                 <p>Por favor, volte ao seu perfil e verifique se este campo está preenchido corretamente.</p>
                             </div>
-                            {{-- FIM DO BLOCO DE DEBUG --}}
 
                             <a href="{{ route('candidato.profile.edit') }}" class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                                 Completar Meu Perfil
@@ -31,6 +28,15 @@
                         </div>
 
                     @else
+
+                        {{-- ✅ INÍCIO DO AJUSTE CIRÚRGICO: Mensagem de alerta simplificada --}}
+                        @if($candidato->status === 'Inscrição Incompleta' && !empty($candidato->admin_observacao))
+                            <div class="p-4 mb-6 border-l-4 border-red-500 bg-red-50 text-red-800 rounded-lg" role="alert">
+                                <h3 class="font-bold text-lg">Correção Necessária!</h3>
+                                <p class="mt-1">A Comissão Organizadora solicitou uma correção no seu cadastro, conforme descrito abaixo. O andamento do seu processo seletivo permanecerá suspenso até que o ajuste seja devidamente realizado.</p>
+                            </div>
+                        @endif
+                        {{-- ✅ FIM DO AJUSTE --}}
 
                         {{-- Mensagens de Sucesso e Erro --}}
                         @if (session('success'))
@@ -54,7 +60,7 @@
                             @foreach ($documentosNecessarios as $tipo => $nome)
                                 <div class="p-4 border rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4">
                                     {{-- Seção de Informações do Documento --}}
-                                    <div class="flex-grow text-center sm:text-left">
+                                    <div class="flex-grow text-center sm:text-left w-full">
                                         <p class="font-semibold">{{ $nome }}</p>
                                         @php
                                             $documentoEnviado = $documentosEnviados->get($tipo);
@@ -68,6 +74,16 @@
                                             ">
                                                 Status: {{ $documentoEnviado->status }}
                                             </span>
+
+                                            @if($documentoEnviado->status === 'rejeitado' && !empty($documentoEnviado->motivo_rejeicao))
+                                                <div class="mt-2 p-2 text-xs text-red-800 bg-red-50 rounded-md border border-red-200">
+                                                    <strong class="font-bold">Motivo da Rejeição:</strong> {{ $documentoEnviado->motivo_rejeicao }}
+                                                    <p class="mt-1">Por favor, substitua o arquivo com as correções solicitadas.</p>
+                                                </div>
+                                            @elseif($documentoEnviado->status === 'enviado')
+                                                <p class="text-xs text-blue-700 mt-1 italic">Aguardando análise pela comissão.</p>
+                                            @endif
+
                                         @else
                                             <span class="text-xs font-medium capitalize px-2.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
                                                 Status: Pendente
@@ -78,7 +94,6 @@
                                     {{-- Seção de Ações --}}
                                     <div class="w-full sm:w-auto">
                                         @if($documentoEnviado)
-                                            {{-- MOSTRA BOTÕES DE VISUALIZAR/SUBSTITUIR SE JÁ FOI ENVIADO --}}
                                             <div x-data="{ showUpload: false }" class="flex items-center justify-center sm:justify-end space-x-2 flex-wrap gap-2">
                                                 <a href="{{ route('candidato.documentos.show', $documentoEnviado->id) }}" target="_blank" class="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700 whitespace-nowrap">
                                                     Visualizar
@@ -95,7 +110,6 @@
                                                 </div>
                                             </div>
                                         @else
-                                            {{-- MOSTRA FORMULÁRIO DE UPLOAD SE ESTIVER PENDENTE --}}
                                             <form action="{{ route('candidato.documentos.store') }}" method="POST" enctype="multipart/form-data" class="flex items-center justify-center sm:justify-end space-x-2">
                                                 @csrf
                                                 <input type="hidden" name="tipo_documento" value="{{ $tipo }}">

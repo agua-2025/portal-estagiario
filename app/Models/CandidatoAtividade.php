@@ -9,18 +9,23 @@ class CandidatoAtividade extends Model
 {
     use HasFactory;
 
+    /**
+     * ✅ AJUSTE: O array $fillable foi corrigido e completado.
+     */
     protected $fillable = [
         'user_id',
+        'candidato_id', 
         'tipo_de_atividade_id',
         'descricao_customizada',
         'carga_horaria',
         'data_inicio',
         'data_fim',
-        'path',
+        'comprovativo_path', // Corrigido de 'path' para o nome correto
         'status',
         'motivo_rejeicao',
-        'semestres_declarados', // ✅ ADICIONADO: Nova coluna
-        'media_declarada_atividade', // ✅ ADICIONADO: Nova coluna para a média
+        'semestres_declarados', 
+        'media_declarada_atividade',
+        'prazo_recurso_ate', // Adicionado o campo de prazo
     ];
 
     /**
@@ -31,9 +36,18 @@ class CandidatoAtividade extends Model
     protected $casts = [
         'data_inicio' => 'date',
         'data_fim' => 'date',
-        'semestres_declarados' => 'integer', // ✅ ADICIONADO: Cast para a nova coluna
-        'media_declarada_atividade' => 'float', // ✅ ADICIONADO: Cast para a nova coluna de média
+        'semestres_declarados' => 'integer', 
+        'media_declarada_atividade' => 'float',
+        'prazo_recurso_ate' => 'datetime', // ✅ ADICIONADO: Cast para o prazo
     ];
+
+    /**
+     * ✅ AJUSTE: Adicionada a nova relação principal com Candidato.
+     */
+    public function candidato()
+    {
+        return $this->belongsTo(Candidato::class);
+    }
 
     public function user()
     {
