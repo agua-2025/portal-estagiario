@@ -141,9 +141,10 @@
             <?php echo $__env->yieldContent('content'); ?> 
         </main>
         
-        <footer class="bg-gray-900 text-white py-12">
+     <footer class="bg-gray-900 text-white py-12">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center md:text-left">
+                    
                     <div data-aos="fade-right" data-aos-duration="1000">
                         <a href="<?php echo e(route('welcome')); ?>" class="flex items-center justify-center md:justify-start space-x-3 mb-4">
                             <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
@@ -155,51 +156,64 @@
                                 Portal do Estagiário
                             </span>
                         </a>
-                        <p class="text-gray-400 text-sm leading-relaxed">
+                        <p class="text-gray-400 text-sm leading-relaxed mb-4">
                             Seu ponto de partida para as melhores oportunidades de estágio. Conectando o agora ao futuro.
                         </p>
-                    </div>
-
-                    <div data-aos="fade-up" data-aos-duration="1000">
-                        <h4 class="text-lg font-semibold text-white mb-4">Links Úteis</h4>
-                        <ul class="space-y-2">
-                            <li><a href="<?php echo e(route('welcome')); ?>#cursos" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Cursos Disponíveis</a></li>
-                            <li><a href="<?php echo e(route('welcome')); ?>#documentos" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Editais e Documentos</a></li>
-                            <li><a href="<?php echo e(route('classificacao.index')); ?>" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Classificação</a></li>
-                            <li><a href="<?php echo e(route('welcome')); ?>#sobre" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Sobre Nós</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Política de Privacidade</a></li>
-                        </ul>
-                    </div>
-
-                    <div data-aos="fade-left" data-aos-duration="1000">
-                        <h4 class="text-lg font-semibold text-white mb-4">Contato</h4>
-                        <p class="text-gray-400 text-sm mb-4">
-                            Dúvidas? Entre em contato conosco!
-                            <br>
-                            E-mail: <a href="mailto:contato@portaldoestagiario.com.br" class="text-blue-400 hover:underline">contato@portaldoestagiario.com.br</a>
-                        </p>
-                        <h4 class="text-lg font-semibold text-white mb-4">Siga-nos</h4>
+                        
+                        <h4 class="text-base font-semibold text-white mb-3 md:hidden">Siga-nos</h4> 
                         <div class="flex justify-center md:justify-start space-x-4">
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+                            <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200" title="Facebook">
                                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33V22C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" />
                                 </svg>
                             </a>
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+                            <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200" title="Instagram">
                                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M12.0007 2.00067C6.48667 2.00067 2.00067 6.48667 2.00067 12.0007C2.00067 17.5147 6.48667 22.0007 12.0007 22.0007C17.5147 22.0007 22.0007 17.5147 22.0007 12.0007C22.0007 6.48667 17.5147 2.00067 12.0007 2.00067ZM15.0113 5.48533C15.0113 5.99933 14.5953 6.41533 14.0813 6.41533C13.5673 6.41533 13.1513 5.99933 13.1513 5.48533C13.1513 4.97133 13.5673 4.55533 14.0813 4.55533C14.5953 4.55533 15.0113 4.97133 15.0113 5.48533ZM12.0007 7.00067C9.23933 7.00067 7.00067 9.23933 7.00067 12.0007C7.00067 14.762 9.23933 17.0007 12.0007 17.0007C14.762 17.0007 17.0007 14.762 17.0007 12.0007C17.0007 9.23933 14.762 7.00067 12.0007 7.00067ZM12.0007 8.86733C13.7313 8.86733 15.134 10.27 15.134 12.0007C15.134 13.7313 13.7313 15.134 12.0007 15.134C10.27 15.134 8.86733 13.7313 8.86733 12.0007C8.86733 10.27 10.27 8.86733 12.0007 8.86733Z" />
                                 </svg>
                             </a>
-                            <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+                            <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200" title="GitHub">
                                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M12 2C6.477 2 2 6.477 2 12c0 4.29 2.766 7.935 6.64 9.263.485.09.663-.209.663-.464 0-.228-.009-.834-.014-1.637-2.693.585-3.268-1.295-3.268-1.295-.441-1.121-1.076-1.423-1.076-1.423-.878-.598.066-.586.066-.586.97.069 1.479.998 1.479.998.864 1.477 2.274 1.05 2.825.803.087-.624.339-1.05.617-1.292-2.156-.245-4.428-1.078-4.428-4.795 0-1.058.377-1.928 1.002-2.607-.1-.247-.435-1.232.096-2.569 0 0 .817-.261 2.673.998.779-.217 1.61-.326 2.44-.33-.83.006-1.66.115-2.44.33-.23.69-.691 1.656-.096 2.569.625.68 1.002 1.549 1.002 2.607 0 3.725-2.275 4.547-4.437 4.789.347.3.656.892.656 1.794 0 1.292-.012 2.332-.012 2.648 0 .256.176.558.667.458C19.236 20.063 22 16.418 22 12z" />
                                 </svg>
                             </a>
                         </div>
                     </div>
+
+                    
+                    <div data-aos="fade-up" data-aos-duration="1000">
+                        <h4 class="text-lg font-semibold text-white mb-4">Navegação</h4>
+                        <ul class="space-y-2">
+                            <li><a href="<?php echo e(route('welcome')); ?>" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Home</a></li>
+                            <li><a href="<?php echo e(route('sobre-nos')); ?>" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Sobre Nós</a></li>
+                            <li><a href="<?php echo e(route('politica-privacidade')); ?>" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Política de Privacidade</a></li>
+                            <li><a href="<?php echo e(route('termos-de-uso')); ?>" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Termos de Uso</a></li>
+                        </ul>
+                    </div>
+
+                   
+                    
+                    <div data-aos="fade-left" data-aos-duration="1000" data-aos-delay="300"> 
+                        <h4 class="text-lg font-semibold text-white mb-4">Legislação</h4>
+                        <ul class="space-y-2">
+                            <li><a href="https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2008/lei/l11788.htm" target="_blank" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Lei Federal nº 11.788</a></li>
+                            <li><a href="https://leismunicipais.com.br/a1/mt/m/mirassol-do-oeste/lei-ordinaria/2017/141/1409/lei-ordinaria-n-1409-2017-dispoe-sobre-o-estagio-de-estudantes-no-ambito-do-municipio-de-mirassol-d-oeste-mt-em-conformidade-com-o-estabelecido-na-lei-federal-n-11788-2008-e-da-outras-providencias?q=1.409" target="_blank" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Lei Municipal nº 1.409</a></li>
+                            <li><a href="https://leismunicipais.com.br/a1/mt/m/mirassol-do-oeste/decreto/2023/446/4458/decreto-n-4458-2023-dispoe-sobre-a-criacao-de-banco-de-curriculos-para-estagio-remunerado-de-diversas-areas-do-ensino-superior-e-estabelece-criterios-para-selecao-dos-candidatos?q=4.458" target="_blank" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Decreto nº 4.458/23</a></li>
+                        </ul>
+                        </div>
+
+                         
+                    <div data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200"> 
+                        <h4 class="text-lg font-semibold text-white mb-4">Contato</h4>
+                        <ul class="space-y-2">
+                            <li class="text-gray-400 text-sm">(65) 9 9800 - 0683</li>
+                            <li><a href="<?php echo e(route('contato.show')); ?>" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Fale Conosco</a></li>
+                        </ul>
+                       </div>
                 </div>
+
                 <div class="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400 text-sm">
-                    &copy; 2025 Portal do Estagiário. Todos os direitos reservados.
+                    &copy; <?php echo e(date('Y')); ?> Portal do Estagiário. Todos os direitos reservados.
                 </div>
             </div>
         </footer>
@@ -212,4 +226,5 @@
             });
         </script>
     </body>
-    </html><?php /**PATH C:\laragon\www\portal-estagiario\resources\views/layouts/site.blade.php ENDPATH**/ ?>
+</html>
+<?php /**PATH C:\laragon\www\portal-estagiario\resources\views/layouts/site.blade.php ENDPATH**/ ?>
