@@ -3,10 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use App\Models\Estado;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Page;
 
 // ✅ Importações de Controllers
 use App\Http\Controllers\WelcomeController; // Controlador da página inicial pública
 use App\Http\Controllers\CursoController; // Controlador público para detalhes do curso
+use App\Http\Controllers\ContactController;
 
 // Controllers Genéricos e de Candidato
 use App\Http\Controllers\ProfileController;
@@ -24,6 +26,7 @@ use App\Http\Controllers\Admin\CursoController as AdminCursoController;
 use App\Http\Controllers\Admin\TipoDeAtividadeController;
 use App\Http\Controllers\Admin\CandidatoController; 
 use App\Http\Controllers\Admin\AtividadeAnaliseController; 
+use App\Http\Controllers\Admin\PageController; 
 
 
 /*
@@ -35,11 +38,32 @@ use App\Http\Controllers\Admin\AtividadeAnaliseController;
 // Rota da página inicial
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
+Route::get('/classificacao', [ClassificacaoController::class, 'index'])->name('classificacao.index');
+
+// Rotas para páginas dinâmicas (Política de Privacidade, Termos de Uso, Sobre Nós)
+// O slug no banco de dados deve corresponder ao que é buscado aqui.
+Route::get('/politica-privacidade', function () {
+    $page = Page::where('slug', 'politica-de-privacidade')->firstOrFail();
+    return view('public.politica-privacidade', compact('page'));
+})->name('politica-privacidade');
+
+Route::get('/termos-de-uso', function () {
+    $page = Page::where('slug', 'termos-de-uso')->firstOrFail();
+    return view('public.termos-de-uso', compact('page'));
+})->name('termos-de-uso');
+
+Route::get('/sobre-nos', function () {
+    $page = Page::where('slug', 'sobre-nos')->firstOrFail();
+    return view('public.sobre-nos', compact('page'));
+})->name('sobre-nos');
+
+
 // Rota para exibir detalhes de um curso específico
 Route::get('/cursos/{curso}', [CursoController::class, 'show'])->name('cursos.show');
 
 // Rota de Classificação pública completa
-Route::get('/classificacao', [ClassificacaoController::class, 'index'])->name('classificacao.index');
+Route::get('/contato', [ContactController::class, 'showForm'])->name('contato.show');
+Route::post('/contato', [ContactController::class, 'sendEmail'])->name('contato.send');
 
 // Rota de Teste (mantida comentada conforme seu arquivo)
 //Route::get('/teste', [TesteController::class, 'index']);
@@ -115,6 +139,8 @@ Route::middleware(['auth', \App\Http\Middleware\CheckAdminRole::class])
         Route::resource('cursos', AdminCursoController::class); 
         Route::resource('tipos-de-atividade', TipoDeAtividadeController::class);
         Route::resource('candidatos', CandidatoController::class);
+        Route::resource('pages', PageController::class);
+
         
         Route::post('/atividades/{atividade}/aprovar', [AtividadeAnaliseController::class, 'aprovar'])->name('atividades.aprovar');
         Route::post('/atividades/{atividade}/rejeitar', [AtividadeAnaliseController::class, 'rejeitar'])->name('atividades.rejeitar');

@@ -29,6 +29,10 @@
                             <x-nav-link :href="route('admin.candidatos.index')" :active="request()->routeIs('admin.candidatos.*')">
                                 {{ __('Candidatos') }}
                             </x-nav-link>
+                             {{-- ✅ ADICIONADO: Link para Gerenciar Páginas (apenas para Admin) --}}
+                            <x-nav-link :href="route('admin.pages.index')" :active="request()->routeIs('admin.pages.*')">
+                                {{ __('Páginas') }}
+                            </x-nav-link>
 
                         @else {{-- Usuário logado que NÃO é admin (presume-se que seja um candidato) --}}
 
