@@ -150,8 +150,11 @@ Route::middleware(['auth', \App\Http\Middleware\CheckAdminRole::class])
         
         // ✅ NOVA ROTA PARA HOMOLOGAR O CANDIDATO - ADICIONADA AQUI
         Route::post('candidatos/{candidato}/homologar', [CandidatoController::class, 'homologar'])->name('candidatos.homologar');
+        
+        // ✅ INÍCIO DO AJUSTE: Rotas para decisão do recurso
         Route::post('recursos/{candidato}/deferir', [CandidatoController::class, 'deferirRecurso'])->name('recursos.deferir');
         Route::post('recursos/{candidato}/indeferir', [CandidatoController::class, 'indeferirRecurso'])->name('recursos.indeferir');
+        // ✅ FIM DO AJUSTE
 });
 
 // ✅ INÍCIO DO CÓDIGO DE TESTE - COLE AQUI

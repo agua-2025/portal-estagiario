@@ -65,10 +65,11 @@
                             }
                         }
 
-                        $prazosAtivos = $candidato->user->candidatoAtividades()
-                                            ->where('status', 'Rejeitada')
-                                            ->where('prazo_recurso_ate', '>', now())
-                                            ->exists();
+                        // ✅ CORRIGIDO: Usa a relação direta a partir de $candidato
+                        $prazosAtivos = $candidato->atividades()
+                                                ->where('status', 'Rejeitada')
+                                                ->where('prazo_recurso_ate', '>', now())
+                                                ->exists();
                     @endphp
 
                     {{-- Alerta GLOBAL se o perfil foi alterado --}}
@@ -219,7 +220,8 @@
                                 </div>
                             @endforeach
 
-                            @foreach($candidato->user->candidatoAtividades as $atividade)
+                            {{-- ✅ CORRIGIDO: Usa a relação direta a partir de $candidato --}}
+                            @foreach($candidato->atividades as $atividade)
                                 <div class="p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm bg-gray-50">
                                     <div class="flex-grow mb-3 sm:mb-0">
                                         <div class="flex items-center">

@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Candidato;
-use App\Models\Documento;
-use App\Models\CandidatoAtividade; // ✅ Adicionado
 
 class User extends Authenticatable
 {
@@ -37,17 +35,6 @@ class User extends Authenticatable
         return $this->hasOne(Candidato::class);
     }
 
-    public function documentos()
-    {
-        return $this->hasMany(Documento::class);
-    }
-
-    /**
-     * ✅ NOVA RELAÇÃO UNIFICADA
-     * Pega todas as atividades de pontuação enviadas pelo utilizador.
-     */
-    public function candidatoAtividades()
-    {
-        return $this->hasMany(CandidatoAtividade::class);
-    }
+    // ✅ AJUSTE: As relações 'documentos()' e 'candidatoAtividades()' foram removidas
+    // pois agora pertencem ao Model 'Candidato'.
 }

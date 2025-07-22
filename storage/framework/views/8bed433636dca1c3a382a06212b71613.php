@@ -75,10 +75,11 @@
                             }
                         }
 
-                        $prazosAtivos = $candidato->user->candidatoAtividades()
-                                            ->where('status', 'Rejeitada')
-                                            ->where('prazo_recurso_ate', '>', now())
-                                            ->exists();
+                        // ✅ CORRIGIDO: Usa a relação direta a partir de $candidato
+                        $prazosAtivos = $candidato->atividades()
+                                                ->where('status', 'Rejeitada')
+                                                ->where('prazo_recurso_ate', '>', now())
+                                                ->exists();
                     ?>
 
                     
@@ -245,7 +246,8 @@
                                 </div>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
-                            <?php $__currentLoopData = $candidato->user->candidatoAtividades; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $atividade): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            
+                            <?php $__currentLoopData = $candidato->atividades; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $atividade): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm bg-gray-50">
                                     <div class="flex-grow mb-3 sm:mb-0">
                                         <div class="flex items-center">

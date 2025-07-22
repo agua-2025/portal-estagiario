@@ -14,32 +14,35 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
-        $user->load(['candidato.curso', 'candidatoAtividades']);
+        // ✅ AJUSTE: Carrega as relações a partir do candidato
+        $user->load(['candidato.curso', 'candidato.atividades']);
 
         $candidato = $user->candidato;
 
-        // A contagem de itens rejeitados (lógica existente, mantida)
-        $itensRejeitadosCount = $user->candidatoAtividades
+        // Se o candidato não existir, inicializa as variáveis para evitar erros
+        if (!$candidato) {
+            return view('dashboard', [
+                'user' => $user,
+                'candidato' => null,
+                'itensRejeitadosCount' => 0,
+                'temPendencias' => false,
+                'classificacaoDoCurso' => collect(),
+                'regrasDePontuacao' => collect(),
+            ]);
+        }
+
+        // ✅ AJUSTE: A contagem é feita na nova relação do candidato
+        $itensRejeitadosCount = $candidato->atividades
                                         ->where('status', 'Rejeitada')
                                         ->count();
 
-        // ✅ INÍCIO DO AJUSTE: Lógica para verificar pendências, conforme o plano de ação.
-        $temRecursoPendente = false;
-        $temInscricaoIncompleta = false;
-
-        if ($candidato) {
-            // Verifica se há atividades com prazo de recurso ativo
-            $temRecursoPendente = $user->candidatoAtividades()
+        // Lógica de verificação de pendências
+        $temRecursoPendente = $candidato->atividades()
                                     ->where('status', 'Rejeitada')
                                     ->where('prazo_recurso_ate', '>', now())
                                     ->exists();
-
-            // Verifica se o perfil/documentos foram rejeitados pelo admin
-            $temInscricaoIncompleta = ($candidato->status === 'Inscrição Incompleta' && !empty($candidato->admin_observacao));
-        }
-
+        $temInscricaoIncompleta = ($candidato->status === 'Inscrição Incompleta' && !empty($candidato->admin_observacao));
         $temPendencias = $temRecursoPendente || $temInscricaoIncompleta;
-        // ✅ FIM DO AJUSTE
 
         $classificacaoDoCurso = collect();
         $regrasDePontuacao = collect();
@@ -47,13 +50,14 @@ class DashboardController extends Controller
         if ($candidato && $candidato->curso) {
             $regrasDePontuacao = TipoDeAtividade::all();
 
+            // ✅ AJUSTE: Carrega a nova relação 'atividades' para o cálculo, diretamente do Candidato
             $candidatosAprovadosNoCurso = Candidato::where('status', 'Aprovado')
                                                 ->where('curso_id', $candidato->curso_id)
-                                                ->with('user.candidatoAtividades.tipoDeAtividade') 
+                                                ->with('atividades.tipoDeAtividade') 
                                                 ->get();
 
             $classificacaoDoCurso = $candidatosAprovadosNoCurso->map(function ($c) use ($regrasDePontuacao) {
-                // Garante que o método exista antes de chamar
+                // A chamada para o cálculo continua a mesma, pois o método no Model já foi corrigido
                 $resultado = method_exists($c, 'calcularPontuacaoDetalhada') 
                     ? $c->calcularPontuacaoDetalhada() 
                     : ['total' => 0, 'detalhes' => []];
@@ -83,7 +87,7 @@ class DashboardController extends Controller
             'itensRejeitadosCount' => $itensRejeitadosCount,
             'classificacaoDoCurso' => $classificacaoDoCurso,
             'regrasDePontuacao' => $regrasDePontuacao,
-            'temPendencias' => $temPendencias, // ✅ ADICIONADO: Passa a variável para a view
+            'temPendencias' => $temPendencias,
         ]);
     }
 }

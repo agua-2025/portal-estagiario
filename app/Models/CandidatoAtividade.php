@@ -10,7 +10,7 @@ class CandidatoAtividade extends Model
     use HasFactory;
 
     /**
-     * ✅ AJUSTE: O array $fillable foi corrigido e completado.
+     * ✅ CORRIGIDO: O array $fillable foi ajustado para usar 'path' e incluir todos os campos necessários.
      */
     protected $fillable = [
         'user_id',
@@ -20,29 +20,27 @@ class CandidatoAtividade extends Model
         'carga_horaria',
         'data_inicio',
         'data_fim',
-        'comprovativo_path', // Corrigido de 'path' para o nome correto
+        'path', // Nome correto da coluna do ficheiro
         'status',
         'motivo_rejeicao',
         'semestres_declarados', 
         'media_declarada_atividade',
-        'prazo_recurso_ate', // Adicionado o campo de prazo
+        'prazo_recurso_ate',
     ];
 
     /**
      * The attributes that should be cast.
-     *
-     * @var array<string, string>
      */
     protected $casts = [
         'data_inicio' => 'date',
         'data_fim' => 'date',
         'semestres_declarados' => 'integer', 
-        'media_declarada_atividade' => 'float',
-        'prazo_recurso_ate' => 'datetime', // ✅ ADICIONADO: Cast para o prazo
+        'media_declarada_atividade' => 'float', 
+        'prazo_recurso_ate' => 'datetime',
     ];
 
     /**
-     * ✅ AJUSTE: Adicionada a nova relação principal com Candidato.
+     * Uma atividade agora pertence a um Candidato.
      */
     public function candidato()
     {

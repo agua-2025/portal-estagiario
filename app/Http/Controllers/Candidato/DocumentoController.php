@@ -11,13 +11,12 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Log; 
 use Carbon\Carbon; 
-use Illuminate\Support\Facades\DB; // ✅ ADICIONADO: Essencial para a transação
+use Illuminate\Support\Facades\DB;
 
 class DocumentoController extends Controller
 {
     use AuthorizesRequests;
 
-    // DEFINA SEUS DOCUMENTOS OBRIGATÁRIOS AQUI - AJUSTE ESTA LISTA!
     private const DOCUMENTOS_OBRIGATORIOS = [
         'HISTORICO_ESCOLAR',
         'DECLARACAO_MATRICULA',
@@ -42,14 +41,14 @@ class DocumentoController extends Controller
             $documentosNecessarios['LAUDO_MEDICO'] = 'Laudo Médico (PCD)';
         }
 
-        $documentosEnviados = $user->documentos->keyBy('tipo_documento');
+        // ✅ AJUSTE: Busca os documentos a partir do candidato, não do user.
+        $documentosEnviados = $candidato->documentos->keyBy('tipo_documento');
 
         return view('candidato.documentos.index', compact('candidato', 'documentosNecessarios', 'documentosEnviados'));
     }
 
     /**
      * Armazena um novo documento enviado pelo candidato.
-     * ✅ AJUSTE CIRÚRGICO: Adicionado controle de transação manual para garantir o salvamento no banco.
      */
     public function store(Request $request)
     {
@@ -57,6 +56,9 @@ class DocumentoController extends Controller
 
         $user = Auth::user();
         $candidato = $user->candidato; 
+        if (!$candidato) {
+            return redirect()->back()->with('error', 'Perfil de candidato não encontrado.');
+        }
         $previousStatus = $candidato->status; 
 
         Log::debug("Status do candidato ANTES da operação (DocumentoController@store): {$previousStatus}");
@@ -69,27 +71,30 @@ class DocumentoController extends Controller
 
         $tipoDocumento = $request->input('tipo_documento');
 
-        // ✅ INÍCIO DA TRANSAÇÃO
         DB::beginTransaction();
 
         try {
-            $documentoAntigo = $user->documentos()->where('tipo_documento', $tipoDocumento)->first();
+            // ✅ AJUSTE: Procura o documento antigo na relação do candidato.
+            $documentoAntigo = $candidato->documentos()->where('tipo_documento', $tipoDocumento)->first();
             if ($documentoAntigo) {
                 Storage::disk('public')->delete($documentoAntigo->path); 
-                Log::info("Documento antigo do tipo '{$tipoDocumento}' substituído para o usuário ID {$user->id}. Caminho antigo: {$documentoAntigo->path}");
+                Log::info("Documento antigo do tipo '{$tipoDocumento}' substituído para o candidato ID {$candidato->id}.");
             }
 
             $filePath = $request->file('documento')->store('documentos/' . $user->id, 'public'); 
 
-            $user->documentos()->updateOrCreate(
+            // ✅ AJUSTE: Cria ou atualiza o documento na relação do candidato.
+            // O 'candidato_id' será preenchido automaticamente.
+            $candidato->documentos()->updateOrCreate(
                 ['tipo_documento' => $tipoDocumento],
                 [
+                    'user_id' => $user->id, // Mantém o user_id por retrocompatibilidade ou auditoria
                     'path' => $filePath, 
                     'nome_original' => $request->file('documento')->getClientOriginalName(),
                     'status' => 'enviado',
                 ]
             );
-            Log::info("Documento '{$tipoDocumento}' enviado por usuário ID {$user->id}. Caminho: {$filePath}");
+            Log::info("Documento '{$tipoDocumento}' enviado por candidato ID {$candidato->id}. Caminho: {$filePath}");
 
             $documentosNecessariosParaVerificar = [
                 'HISTORICO_ESCOLAR',
@@ -103,9 +108,9 @@ class DocumentoController extends Controller
                 $documentosNecessariosParaVerificar[] = 'LAUDO_MEDICO';
             }
 
-            // Recarrega a relação de documentos para garantir que a verificação seja feita com os dados mais atuais
-            $user->load('documentos');
-            $tiposDocumentosEnviados = $user->documentos->pluck('tipo_documento')->unique()->toArray();
+            // ✅ AJUSTE: Recarrega a relação de documentos a partir do candidato.
+            $candidato->load('documentos');
+            $tiposDocumentosEnviados = $candidato->documentos->pluck('tipo_documento')->unique()->toArray();
             
             $todosObrigatoriosEnviados = empty(array_diff($documentosNecessariosParaVerificar, $tiposDocumentosEnviados));
             Log::debug("Verificação de documentos obrigatórios: Todos enviados? " . ($todosObrigatoriosEnviados ? 'Sim' : 'Não'));
@@ -131,7 +136,7 @@ class DocumentoController extends Controller
                 $candidato->save();
                 Log::info("Candidato ID {$candidato->id} (Status anterior: {$previousStatus}) alterou documento '{$tipoDocumento}' e voltou para 'Em Análise'.");
                 
-                DB::commit(); // ✅ Confirma a transação no banco
+                DB::commit();
                 return redirect()->back()->with('success', 'Documento enviado com sucesso! Sua inscrição voltou para "Em Análise" devido à alteração.');
             } 
             elseif ($todosObrigatoriosEnviados && $candidato->status === 'Inscrição Incompleta') {
@@ -140,17 +145,17 @@ class DocumentoController extends Controller
                 $candidato->save();
                 Log::info("Candidato ID {$candidato->id} mudou para 'Em Análise' após enviar todos os documentos obrigatórios.");
                 
-                DB::commit(); // ✅ Confirma a transação no banco
+                DB::commit();
                 return redirect()->back()->with('success', 'Documento enviado com sucesso! Sua inscrição agora está "Em Análise".');
             } else {
                 Log::debug("Candidato ID {$candidato->id} status não alterado.");
             }
 
-            DB::commit(); // ✅ Confirma a transação caso nenhuma condição acima seja atendida
+            DB::commit();
             return redirect()->back()->with('success', 'Documento enviado com sucesso!');
 
         } catch (\Exception $e) {
-            DB::rollBack(); // ✅ Desfaz a transação em caso de erro
+            DB::rollBack();
             Log::error("Erro na transação de store de documento: " . $e->getMessage(), ['exception' => $e]);
             return redirect()->back()->with('error', 'Ocorreu um erro ao processar sua solicitação.');
         }
@@ -180,10 +185,6 @@ class DocumentoController extends Controller
         abort(404, 'Arquivo não encontrado.');
     }
 
-    /**
-     * Remove um documento específico.
-     * ✅ AJUSTE CIRÚRGICO: Adicionado controle de transação manual para garantir o salvamento no banco.
-     */
     public function destroy(Documento $documento)
     {
         $this->authorize('delete', $documento); 
@@ -192,10 +193,9 @@ class DocumentoController extends Controller
         $candidato = $user->candidato;
         $previousStatus = $candidato->status; 
 
-        // ✅ INÍCIO DA TRANSAÇÃO
         DB::beginTransaction();
         try {
-            $tipoDocumentoRemovido = $documento->tipo_documento; // Captura o tipo antes de deletar
+            $tipoDocumentoRemovido = $documento->tipo_documento;
             Storage::disk('public')->delete($documento->path); 
             $documento->delete(); 
             Log::info("Documento ID {$documento->id} apagado. Tipo: {$tipoDocumentoRemovido}.");
@@ -212,9 +212,9 @@ class DocumentoController extends Controller
                 $documentosNecessariosParaVerificar[] = 'LAUDO_MEDICO';
             }
 
-            // Pega os documentos restantes após a exclusão
-            $user->load('documentos');
-            $tiposDocumentosRestantes = $user->documentos()->pluck('tipo_documento')->unique()->toArray();
+            // ✅ AJUSTE: Recarrega e verifica os documentos a partir do candidato.
+            $candidato->load('documentos');
+            $tiposDocumentosRestantes = $candidato->documentos()->pluck('tipo_documento')->unique()->toArray();
             
             $todosObrigatoriosAindaPresentes = empty(array_diff($documentosNecessariosParaVerificar, $tiposDocumentosRestantes));
 
@@ -239,15 +239,15 @@ class DocumentoController extends Controller
                     $candidato->save();
                     Log::info("Candidato ID {$candidato->id} (Status: {$previousStatus}) removeu documento '{$tipoDocumentoRemovido}' e mudou para '{$candidato->status}'.");
                     
-                    DB::commit(); // ✅ Confirma a transação no banco
+                    DB::commit();
                     return redirect()->back()->with('success', 'Documento removido! Sua inscrição precisa ser reanalisada.');
                 }
             }
 
-            DB::commit(); // ✅ Confirma a transação no banco
+            DB::commit();
             return redirect()->route('candidato.documentos.index')->with('success', 'Documento removido com sucesso!');
         } catch (\Exception $e) {
-            DB::rollBack(); // ✅ Desfaz a transação em caso de erro
+            DB::rollBack();
             Log::error("Erro ao apagar documento ID {$documento->id}: " . $e->getMessage());
             return redirect()->back()->with('error', 'Ocorreu um erro ao remover o documento.');
         }
