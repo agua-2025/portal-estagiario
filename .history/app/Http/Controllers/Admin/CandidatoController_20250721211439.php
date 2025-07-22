@@ -20,16 +20,12 @@ class CandidatoController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-
         $query = Candidato::query()->with(['user', 'curso', 'instituicao']);
-
         if ($search) {
             $query->where('nome_completo', 'like', "%{$search}%")
                   ->orWhere('cpf', 'like', "%{$search}%");
         }
-
         $candidatos = $query->latest()->paginate(15);
-
         return view('admin.candidatos.index', compact('candidatos', 'search'));
     }
 
@@ -52,16 +48,8 @@ class CandidatoController extends Controller
             'user_id' => 'required|exists:users,id',
             'nome_completo' => 'required|string|max:255',
             'cpf' => 'required|string|max:14|unique:candidatos,cpf',
-        ], [
-            'user_id.required' => 'O usuário associado é obrigatório.',
-            'user_id.exists' => 'O usuário associado não existe.',
-            'nome_completo.required' => 'O nome completo é obrigatório.',
-            'cpf.required' => 'O CPF é obrigatório.',
-            'cpf.unique' => 'Este CPF já está cadastrado.',
         ]);
-
         $validatedData['status'] = 'Inscrição Incompleta'; 
-
         try {
             Candidato::create($validatedData);
             return redirect()->route('admin.candidatos.index')->with('success', 'Candidato criado com sucesso!');
@@ -76,7 +64,7 @@ class CandidatoController extends Controller
      */
     public function show(Candidato $candidato)
     {
-        // ✅ AJUSTE: Carrega as relações a partir do candidato, não do user
+        // ✅ AJUSTE: Carrega as relações a partir do candidato
         $candidato->load([
             'documentos', 
             'atividades.tipoDeAtividade', 

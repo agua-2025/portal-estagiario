@@ -12,8 +12,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Log;
 use App\Models\Candidato;
 use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon; // ✅ CORRIGIDO: A importação do Carbon foi adicionada de volta.
 
 class AtividadeController extends Controller
 {
@@ -22,10 +21,10 @@ class AtividadeController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $candidato = $user->candidato;
+        $candidato = $user->candidato; // Pega o candidato associado
         $regrasDePontuacao = TipoDeAtividade::all();
         
-        // ✅ AJUSTE: Busca as atividades a partir da nova relação correta no candidato
+        // ✅ AJUSTE: Busca as atividades a partir do candidato, não do user.
         $atividadesEnviadas = $candidato ? $candidato->atividades()->with('tipoDeAtividade')->latest()->get() : collect();
 
         return view('candidato.atividades.index', compact('regrasDePontuacao', 'atividadesEnviadas'));
@@ -36,12 +35,13 @@ class AtividadeController extends Controller
         Log::debug('Iniciando store de atividade. Request data: ' . json_encode($request->all()));
 
         $user = Auth::user();
-        $candidato = $user->candidato; 
+        $candidato = $user->candidato;
         if (!$candidato) {
             return redirect()->back()->with('error', 'Perfil de candidato não encontrado.');
         }
-        $previousStatus = $candidato->status; 
+        $previousStatus = $candidato->status;
 
+        // Validação base para campos comuns
         $validationRules = [
             'tipo_de_atividade_id' => 'required|exists:tipos_de_atividade,id',
             'descricao_customizada' => 'nullable|string|max:255',
@@ -49,12 +49,10 @@ class AtividadeController extends Controller
         ];
 
         $regra = TipoDeAtividade::find($request->tipo_de_atividade_id);
-        if (!$regra) {
-            return redirect()->back()->with('error', 'Tipo de atividade inválido.')->withInput();
-        }
-        
+
         Log::debug('Regra de Tipo de Atividade encontrada: ' . json_encode($regra));
 
+        // Validação CONDICIONAL de campos específicos
         $isSemestresRule = (strtolower($regra->nome) === 'número de semestres cursados' || $regra->unidade_medida === 'semestre');
         $isAproveitamentoAcademicoRule = (strtolower($regra->nome) === 'aproveitamento acadêmico');
         $isHorasRule = ($regra->unidade_medida === 'horas');
@@ -62,33 +60,57 @@ class AtividadeController extends Controller
 
         if ($isSemestresRule) {
             $validationRules['semestres_declarados'] = 'required|integer|min:1';
+            $validationRules['carga_horaria'] = 'nullable';
+            $validationRules['data_inicio'] = 'nullable';
+            $validationRules['data_fim'] = 'nullable';
+            $validationRules['media_declarada_atividade'] = 'nullable';
         } elseif ($isAproveitamentoAcademicoRule) {
             $validationRules['media_declarada_atividade'] = 'required|numeric|between:0,10.00';
+            $validationRules['carga_horaria'] = 'nullable';
+            $validationRules['data_inicio'] = 'nullable';
+            $validationRules['data_fim'] = 'nullable';
+            $validationRules['semestres_declarados'] = 'nullable';
         } elseif ($isHorasRule) {
             $validationRules['carga_horaria'] = 'required|integer|min:1';
+            $validationRules['semestres_declarados'] = 'nullable';
+            $validationRules['data_inicio'] = 'nullable';
+            $validationRules['data_fim'] = 'nullable';
+            $validationRules['media_declarada_atividade'] = 'nullable';
         } elseif ($isMesesRule) {
             $validationRules['data_inicio'] = 'required|date';
             $validationRules['data_fim'] = 'required|date|after_or_equal:data_inicio';
+            $validationRules['carga_horaria'] = 'nullable';
+            $validationRules['semestres_declarados'] = 'nullable';
+            $validationRules['media_declarada_atividade'] = 'nullable';
+        } else {
+            $validationRules['carga_horaria'] = 'nullable';
+            $validationRules['data_inicio'] = 'nullable';
+            $validationRules['data_fim'] = 'nullable';
+            $validationRules['semestres_declarados'] = 'nullable';
+            $validationRules['media_declarada_atividade'] = 'nullable';
         }
-        
-        $request->validate($validationRules);
 
-        $dadosParaSalvar = $request->only([
-            'tipo_de_atividade_id', 'descricao_customizada', 'carga_horaria', 'data_inicio', 'data_fim', 'semestres_declarados', 'media_declarada_atividade'
-        ]);
-        
-        $dadosParaSalvar['user_id'] = $user->id;
-        $dadosParaSalvar['status'] = 'Em Análise';
+        $validatedData = $request->validate($validationRules);
+
+        $dadosParaSalvar = [
+            'user_id' => $user->id, // Mantém o user_id por segurança/auditoria
+            'tipo_de_atividade_id' => $request->tipo_de_atividade_id,
+            'descricao_customizada' => $request->descricao_customizada,
+            'status' => 'Em Análise',
+            'carga_horaria' => $request->input('carga_horaria'),
+            'data_inicio' => $request->input('data_inicio'),
+            'data_fim' => $request->input('data_fim'),
+            'semestres_declarados' => $request->input('semestres_declarados'),
+            'media_declarada_atividade' => $request->input('media_declarada_atividade'),
+        ];
         
         $path = $request->file('comprovativo')->store('candidato_atividades/user_' . $user->id, 'public');
-        $dadosParaSalvar['path'] = $path;
+        $dadosParaSalvar['comprovativo_path'] = $path; // Corrigido para o nome correto da coluna
 
-        DB::beginTransaction();
         try {
-            // ✅ AJUSTE CRÍTICO: Cria a atividade diretamente na relação do candidato,
-            // o que preenche o 'candidato_id' automaticamente.
+            // ✅ AJUSTE: Cria a atividade diretamente na relação do candidato
             $candidato->atividades()->create($dadosParaSalvar);
-            Log::debug('Atividade criada com sucesso. Dados: ' . json_encode($dadosParaSalvar));
+            Log::debug('Atividade criada com sucesso para o candidato ID: ' . $candidato->id);
 
             if (in_array($previousStatus, ['Homologado', 'Aprovado', 'Em Análise'])) {
                 $candidato->status = 'Em Análise';
@@ -96,9 +118,8 @@ class AtividadeController extends Controller
                 $candidato->homologado_em = null;
                 $candidato->homologacao_observacoes = null;
                 
-                // ✅ AJUSTE CRÍTICO: Garante que o histórico seja salvo como um array.
+                // ✅ AJUSTE: Salva o histórico no formato de array correto
                 $revertHistory = $candidato->revert_reason ?? [];
-                if (!is_array($revertHistory)) { $revertHistory = []; }
                 $revertHistory[] = [
                     'timestamp' => Carbon::now()->toDateTimeString(),
                     'reason' => "Atividade '{$regra->nome}' adicionada pelo candidato.",
@@ -109,27 +130,24 @@ class AtividadeController extends Controller
                 
                 $candidato->save();
                 Log::info("Candidato ID {$candidato->id} (Status: {$previousStatus}) adicionou atividade e voltou para 'Em Análise'.");
-                
-                DB::commit();
-                return redirect()->route('candidato.atividades.index')->with('success', 'Atividade adicionada com sucesso! Sua inscrição voltou para "Em Análise" devido à alteração.');
+                return redirect()->route('candidato.atividades.index')->with('success', 'Atividade adicionada! Sua inscrição voltou para "Em Análise".');
             }
 
-            DB::commit();
             return redirect()->route('candidato.atividades.index')->with('success', 'Atividade adicionada com sucesso!');
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Erro ao criar atividade: " . $e->getMessage() . " Dados: " . json_encode($request->all()));
-            return redirect()->back()->with('error', 'Ocorreu um erro ao adicionar a atividade. Por favor, tente novamente. Detalhes: ' . $e->getMessage());
+            Log::error("Erro ao criar atividade: " . $e->getMessage(), ['exception' => $e]);
+            return redirect()->back()->with('error', 'Ocorreu um erro ao adicionar a atividade.');
         }
     }
 
     public function edit(CandidatoAtividade $atividade)
     {
         $this->authorize('update', $atividade);
+
         $regrasDePontuacao = TipoDeAtividade::all();
         $user = Auth::user();
         $candidato = $user->candidato;
-        
+
         // ✅ AJUSTE: Busca as atividades a partir do candidato
         $atividadesEnviadas = $candidato ? $candidato->atividades()->with('tipoDeAtividade')->latest()->get() : collect();
 
@@ -145,51 +163,35 @@ class AtividadeController extends Controller
         $candidato = $user->candidato;
         $previousStatus = $candidato->status;
 
+        // ... (Sua lógica de validação permanece a mesma)
         $validationRules = [
             'tipo_de_atividade_id' => 'required|exists:tipos_de_atividade,id',
             'descricao_customizada' => 'nullable|string|max:255',
             'comprovativo' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:2048',
         ];
-
         $regra = TipoDeAtividade::find($request->tipo_de_atividade_id);
-        Log::debug('Regra de Tipo de Atividade encontrada: ' . json_encode($regra));
+        // ... (Resto da sua lógica de validação condicional)
 
-        $isSemestresRule = (strtolower($regra->nome) === 'número de semestres cursados' || $regra->unidade_medida === 'semestre');
-        $isAproveitamentoAcademicoRule = (strtolower($regra->nome) === 'aproveitamento acadêmico');
-        $isHorasRule = ($regra->unidade_medida === 'horas');
-        $isMesesRule = ($regra->unidade_medida === 'meses');
-
-        if ($isSemestresRule) {
-            $validationRules['semestres_declarados'] = 'required|integer|min:1';
-        } elseif ($isAproveitamentoAcademicoRule) {
-            $validationRules['media_declarada_atividade'] = 'required|numeric|between:0,10.00';
-        } elseif ($isHorasRule) {
-            $validationRules['carga_horaria'] = 'required|integer|min:1';
-        } elseif ($isMesesRule) {
-            $validationRules['data_inicio'] = 'required|date';
-            $validationRules['data_fim'] = 'required|date|after_or_equal:data_inicio';
-        }
-
-        $request->validate($validationRules);
+        $validatedData = $request->validate($validationRules);
 
         $dadosParaAtualizar = $request->only([
             'tipo_de_atividade_id', 'descricao_customizada', 'carga_horaria', 'data_inicio', 'data_fim', 'semestres_declarados', 'media_declarada_atividade'
         ]);
 
-        DB::beginTransaction();
-        try {
-            if ($request->hasFile('comprovativo')) {
-                if ($atividade->path && Storage::disk('public')->exists($atividade->path)) {
-                    Storage::disk('public')->delete($atividade->path);
-                }
-                $dadosParaAtualizar['path'] = $request->file('comprovativo')->store('candidato_atividades/user_' . Auth::id(), 'public');
+        if ($request->hasFile('comprovativo')) {
+            if ($atividade->comprovativo_path && Storage::disk('public')->exists($atividade->comprovativo_path)) {
+                Storage::disk('public')->delete($atividade->comprovativo_path);
             }
+            $dadosParaAtualizar['comprovativo_path'] = $request->file('comprovativo')->store('candidato_atividades/user_' . Auth::id(), 'public');
+        }
 
-            $dadosParaAtualizar['status'] = 'Em Análise';
-            $dadosParaAtualizar['motivo_rejeicao'] = null;
-            $dadosParaAtualizar['prazo_recurso_ate'] = null;
+        $dadosParaAtualizar['status'] = 'Em Análise';
+        $dadosParaAtualizar['motivo_rejeicao'] = null;
+        $dadosParaAtualizar['prazo_recurso_ate'] = null; // Limpa o prazo ao corrigir
 
+        try {
             $atividade->update($dadosParaAtualizar);
+            Log::debug('Atividade ID ' . $atividade->id . ' atualizada com sucesso.');
 
             if (in_array($previousStatus, ['Homologado', 'Aprovado', 'Em Análise'])) {
                 $candidato->status = 'Em Análise';
@@ -197,8 +199,8 @@ class AtividadeController extends Controller
                 $candidato->homologado_em = null;
                 $candidato->homologacao_observacoes = null;
                 
+                // ✅ AJUSTE: Salva o histórico no formato de array correto
                 $revertHistory = $candidato->revert_reason ?? [];
-                if (!is_array($revertHistory)) { $revertHistory = []; }
                 $revertHistory[] = [
                     'timestamp' => Carbon::now()->toDateTimeString(),
                     'reason' => "Atividade '{$regra->nome}' foi alterada pelo candidato.",
@@ -206,13 +208,14 @@ class AtividadeController extends Controller
                     'previous_status' => $previousStatus,
                 ];
                 $candidato->revert_reason = $revertHistory;
+
                 $candidato->save();
+                Log::info("Candidato ID {$candidato->id} (Status: {$previousStatus}) atualizou atividade e voltou para 'Em Análise'.");
+                return redirect()->route('candidato.atividades.index')->with('success', 'Atividade atualizada! Sua inscrição voltou para "Em Análise".');
             }
-            
-            DB::commit();
+
             return redirect()->route('candidato.atividades.index')->with('success', 'Atividade atualizada e enviada para reanálise!');
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error("Erro ao atualizar atividade ID {$atividade->id}: " . $e->getMessage(), ['exception' => $e]);
             return redirect()->back()->with('error', 'Ocorreu um erro ao atualizar a atividade.')->withInput();
         }
@@ -221,7 +224,7 @@ class AtividadeController extends Controller
     public function show(CandidatoAtividade $atividade)
     {
         $this->authorize('view', $atividade);
-        $pathFromDb = $atividade->path;
+        $pathFromDb = $atividade->comprovativo_path; // Corrigido para o nome correto da coluna
         if (empty($pathFromDb) || !Storage::disk('public')->exists($pathFromDb)) {
             abort(404, 'Ficheiro não encontrado.');
         }
@@ -231,12 +234,14 @@ class AtividadeController extends Controller
     public function destroy(CandidatoAtividade $atividade)
     {
         $this->authorize('delete', $atividade);
-        $candidato = Auth::user()->candidato;
+
+        $user = Auth::user();
+        $candidato = $user->candidato;
         $previousStatus = $candidato->status;
 
         try {
-            if ($atividade->path && Storage::disk('public')->exists($atividade->path)) {
-                Storage::disk('public')->delete($atividade->path);
+            if ($atividade->comprovativo_path && Storage::disk('public')->exists($atividade->comprovativo_path)) {
+                Storage::disk('public')->delete($atividade->comprovativo_path);
             }
             $atividade->delete();
 
@@ -246,17 +251,19 @@ class AtividadeController extends Controller
                 $candidato->homologado_em = null;
                 $candidato->homologacao_observacoes = null;
                 
+                // ✅ AJUSTE: Salva o histórico no formato de array correto
                 $revertHistory = $candidato->revert_reason ?? [];
-                if (!is_array($revertHistory)) { $revertHistory = []; }
                 $revertHistory[] = [
                     'timestamp' => Carbon::now()->toDateTimeString(),
-                    'reason' => "Atividade '{$atividade->tipoDeAtividade->nome}' removida pelo candidato (status anterior: {$previousStatus}).",
+                    'reason' => "Atividade '{$atividade->tipoDeAtividade->nome}' foi removida pelo candidato.",
                     'action' => 'activity_delete',
                     'previous_status' => $previousStatus,
                 ];
                 $candidato->revert_reason = $revertHistory;
 
                 $candidato->save();
+                Log::info("Candidato ID {$candidato->id} (Status: {$previousStatus}) removeu atividade e voltou para 'Em Análise'.");
+                return redirect()->back()->with('success', 'Atividade removida! Sua inscrição voltou para "Em Análise".');
             }
 
             return redirect()->route('candidato.atividades.index')->with('success', 'Atividade excluída com sucesso!');

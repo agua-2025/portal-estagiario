@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Candidato;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB; // ✅ ADICIONADO: Essencial para transações
 
 class AtividadeController extends Controller
 {
@@ -36,11 +36,11 @@ class AtividadeController extends Controller
         Log::debug('Iniciando store de atividade. Request data: ' . json_encode($request->all()));
 
         $user = Auth::user();
-        $candidato = $user->candidato; 
+        $candidato = $user->candidato;
         if (!$candidato) {
             return redirect()->back()->with('error', 'Perfil de candidato não encontrado.');
         }
-        $previousStatus = $candidato->status; 
+        $previousStatus = $candidato->status;
 
         $validationRules = [
             'tipo_de_atividade_id' => 'required|exists:tipos_de_atividade,id',
@@ -52,8 +52,6 @@ class AtividadeController extends Controller
         if (!$regra) {
             return redirect()->back()->with('error', 'Tipo de atividade inválido.')->withInput();
         }
-        
-        Log::debug('Regra de Tipo de Atividade encontrada: ' . json_encode($regra));
 
         $isSemestresRule = (strtolower($regra->nome) === 'número de semestres cursados' || $regra->unidade_medida === 'semestre');
         $isAproveitamentoAcademicoRule = (strtolower($regra->nome) === 'aproveitamento acadêmico');
@@ -88,7 +86,7 @@ class AtividadeController extends Controller
             // ✅ AJUSTE CRÍTICO: Cria a atividade diretamente na relação do candidato,
             // o que preenche o 'candidato_id' automaticamente.
             $candidato->atividades()->create($dadosParaSalvar);
-            Log::debug('Atividade criada com sucesso. Dados: ' . json_encode($dadosParaSalvar));
+            Log::debug('Atividade criada com sucesso para o candidato ID: ' . $candidato->id);
 
             if (in_array($previousStatus, ['Homologado', 'Aprovado', 'Em Análise'])) {
                 $candidato->status = 'Em Análise';
@@ -109,17 +107,14 @@ class AtividadeController extends Controller
                 
                 $candidato->save();
                 Log::info("Candidato ID {$candidato->id} (Status: {$previousStatus}) adicionou atividade e voltou para 'Em Análise'.");
-                
-                DB::commit();
-                return redirect()->route('candidato.atividades.index')->with('success', 'Atividade adicionada com sucesso! Sua inscrição voltou para "Em Análise" devido à alteração.');
             }
-
+            
             DB::commit();
             return redirect()->route('candidato.atividades.index')->with('success', 'Atividade adicionada com sucesso!');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("Erro ao criar atividade: " . $e->getMessage() . " Dados: " . json_encode($request->all()));
-            return redirect()->back()->with('error', 'Ocorreu um erro ao adicionar a atividade. Por favor, tente novamente. Detalhes: ' . $e->getMessage());
+            Log::error("Erro ao criar atividade: " . $e->getMessage(), ['exception' => $e]);
+            return redirect()->back()->with('error', 'Ocorreu um erro ao adicionar a atividade. Por favor, tente novamente.');
         }
     }
 

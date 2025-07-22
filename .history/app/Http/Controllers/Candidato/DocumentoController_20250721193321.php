@@ -47,18 +47,12 @@ class DocumentoController extends Controller
         return view('candidato.documentos.index', compact('candidato', 'documentosNecessarios', 'documentosEnviados'));
     }
 
-    /**
-     * Armazena um novo documento enviado pelo candidato.
-     */
     public function store(Request $request)
     {
         Log::debug('Iniciando store de documento. Request data: ' . json_encode($request->all()));
 
         $user = Auth::user();
         $candidato = $user->candidato; 
-        if (!$candidato) {
-            return redirect()->back()->with('error', 'Perfil de candidato não encontrado.');
-        }
         $previousStatus = $candidato->status; 
 
         Log::debug("Status do candidato ANTES da operação (DocumentoController@store): {$previousStatus}");
@@ -81,6 +75,7 @@ class DocumentoController extends Controller
                 Log::info("Documento antigo do tipo '{$tipoDocumento}' substituído para o candidato ID {$candidato->id}.");
             }
 
+            // O caminho do ficheiro ainda pode usar o user->id para organização, se desejar.
             $filePath = $request->file('documento')->store('documentos/' . $user->id, 'public'); 
 
             // ✅ AJUSTE: Cria ou atualiza o documento na relação do candidato.

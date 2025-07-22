@@ -25,7 +25,7 @@ class AtividadeController extends Controller
         $candidato = $user->candidato;
         $regrasDePontuacao = TipoDeAtividade::all();
         
-        // ✅ AJUSTE: Busca as atividades a partir da nova relação correta no candidato
+        // ✅ AJUSTE: Busca as atividades a partir do candidato
         $atividadesEnviadas = $candidato ? $candidato->atividades()->with('tipoDeAtividade')->latest()->get() : collect();
 
         return view('candidato.atividades.index', compact('regrasDePontuacao', 'atividadesEnviadas'));
@@ -36,11 +36,11 @@ class AtividadeController extends Controller
         Log::debug('Iniciando store de atividade. Request data: ' . json_encode($request->all()));
 
         $user = Auth::user();
-        $candidato = $user->candidato; 
+        $candidato = $user->candidato;
         if (!$candidato) {
             return redirect()->back()->with('error', 'Perfil de candidato não encontrado.');
         }
-        $previousStatus = $candidato->status; 
+        $previousStatus = $candidato->status;
 
         $validationRules = [
             'tipo_de_atividade_id' => 'required|exists:tipos_de_atividade,id',
@@ -52,8 +52,6 @@ class AtividadeController extends Controller
         if (!$regra) {
             return redirect()->back()->with('error', 'Tipo de atividade inválido.')->withInput();
         }
-        
-        Log::debug('Regra de Tipo de Atividade encontrada: ' . json_encode($regra));
 
         $isSemestresRule = (strtolower($regra->nome) === 'número de semestres cursados' || $regra->unidade_medida === 'semestre');
         $isAproveitamentoAcademicoRule = (strtolower($regra->nome) === 'aproveitamento acadêmico');
@@ -70,23 +68,27 @@ class AtividadeController extends Controller
             $validationRules['data_inicio'] = 'required|date';
             $validationRules['data_fim'] = 'required|date|after_or_equal:data_inicio';
         }
-        
+
         $request->validate($validationRules);
 
-        $dadosParaSalvar = $request->only([
-            'tipo_de_atividade_id', 'descricao_customizada', 'carga_horaria', 'data_inicio', 'data_fim', 'semestres_declarados', 'media_declarada_atividade'
-        ]);
-        
-        $dadosParaSalvar['user_id'] = $user->id;
-        $dadosParaSalvar['status'] = 'Em Análise';
+        $dadosParaSalvar = [
+            'user_id' => $user->id,
+            'tipo_de_atividade_id' => $request->tipo_de_atividade_id,
+            'descricao_customizada' => $request->descricao_customizada,
+            'status' => 'Em Análise',
+            'carga_horaria' => $request->input('carga_horaria'),
+            'data_inicio' => $request->input('data_inicio'),
+            'data_fim' => $request->input('data_fim'),
+            'semestres_declarados' => $request->input('semestres_declarados'),
+            'media_declarada_atividade' => $request->input('media_declarada_atividade'),
+        ];
         
         $path = $request->file('comprovativo')->store('candidato_atividades/user_' . $user->id, 'public');
         $dadosParaSalvar['path'] = $path;
 
         DB::beginTransaction();
         try {
-            // ✅ AJUSTE CRÍTICO: Cria a atividade diretamente na relação do candidato,
-            // o que preenche o 'candidato_id' automaticamente.
+            // ✅ AJUSTE: Cria a atividade diretamente na relação do candidato
             $candidato->atividades()->create($dadosParaSalvar);
             Log::debug('Atividade criada com sucesso. Dados: ' . json_encode($dadosParaSalvar));
 
@@ -96,7 +98,7 @@ class AtividadeController extends Controller
                 $candidato->homologado_em = null;
                 $candidato->homologacao_observacoes = null;
                 
-                // ✅ AJUSTE CRÍTICO: Garante que o histórico seja salvo como um array.
+                // ✅ AJUSTE: Salva o histórico no formato de array correto
                 $revertHistory = $candidato->revert_reason ?? [];
                 if (!is_array($revertHistory)) { $revertHistory = []; }
                 $revertHistory[] = [
@@ -111,9 +113,9 @@ class AtividadeController extends Controller
                 Log::info("Candidato ID {$candidato->id} (Status: {$previousStatus}) adicionou atividade e voltou para 'Em Análise'.");
                 
                 DB::commit();
-                return redirect()->route('candidato.atividades.index')->with('success', 'Atividade adicionada com sucesso! Sua inscrição voltou para "Em Análise" devido à alteração.');
+                return redirect()->route('candidato.atividades.index')->with('success', 'Atividade adicionada com sucesso! Sua inscrição voltou para "Em Análise".');
             }
-
+            
             DB::commit();
             return redirect()->route('candidato.atividades.index')->with('success', 'Atividade adicionada com sucesso!');
         } catch (\Exception $e) {
@@ -181,8 +183,10 @@ class AtividadeController extends Controller
             if ($request->hasFile('comprovativo')) {
                 if ($atividade->path && Storage::disk('public')->exists($atividade->path)) {
                     Storage::disk('public')->delete($atividade->path);
+                    Log::debug('Comprovativo antigo apagado: ' . $atividade->path);
                 }
                 $dadosParaAtualizar['path'] = $request->file('comprovativo')->store('candidato_atividades/user_' . Auth::id(), 'public');
+                Log::debug('Novo comprovativo salvo: ' . $dadosParaAtualizar['path']);
             }
 
             $dadosParaAtualizar['status'] = 'Em Análise';
@@ -190,6 +194,7 @@ class AtividadeController extends Controller
             $dadosParaAtualizar['prazo_recurso_ate'] = null;
 
             $atividade->update($dadosParaAtualizar);
+            Log::debug('Atividade ID ' . $atividade->id . ' atualizada com sucesso.');
 
             if (in_array($previousStatus, ['Homologado', 'Aprovado', 'Em Análise'])) {
                 $candidato->status = 'Em Análise';
@@ -206,7 +211,9 @@ class AtividadeController extends Controller
                     'previous_status' => $previousStatus,
                 ];
                 $candidato->revert_reason = $revertHistory;
+                
                 $candidato->save();
+                Log::info("Candidato ID {$candidato->id} (Status: {$previousStatus}) atualizou atividade e voltou para 'Em Análise'.");
             }
             
             DB::commit();
@@ -221,24 +228,42 @@ class AtividadeController extends Controller
     public function show(CandidatoAtividade $atividade)
     {
         $this->authorize('view', $atividade);
+
         $pathFromDb = $atividade->path;
-        if (empty($pathFromDb) || !Storage::disk('public')->exists($pathFromDb)) {
-            abort(404, 'Ficheiro não encontrado.');
+
+        if (empty($pathFromDb)) {
+            Log::warning("Documento ID {$atividade->id} tem caminho nulo ou vazio no banco de dados.");
+            abort(404, 'Arquivo não encontrado ou caminho inválido.');
         }
-        return Storage::disk('public')->response($pathFromDb);
+
+        if (Storage::disk('public')->exists($pathFromDb)) {
+            return Storage::disk('public')->response($pathFromDb);
+        }
+
+        $cleanedPath = str_replace('public/', '', $pathFromDb);
+        if (Storage::disk('public')->exists($cleanedPath)) {
+            return Storage::disk('public')->response($cleanedPath);
+        }
+        
+        abort(404, 'Ficheiro não encontrado no armazenamento após todas as verificações.');
     }
 
     public function destroy(CandidatoAtividade $atividade)
     {
         $this->authorize('delete', $atividade);
-        $candidato = Auth::user()->candidato;
+
+        $user = Auth::user();
+        $candidato = $user->candidato;
         $previousStatus = $candidato->status;
 
         try {
             if ($atividade->path && Storage::disk('public')->exists($atividade->path)) {
                 Storage::disk('public')->delete($atividade->path);
+                Log::debug('Comprovativo da atividade ID ' . $atividade->id . ' apagado: ' . $atividade->path);
             }
+
             $atividade->delete();
+            Log::debug('Atividade ID ' . $atividade->id . ' excluída com sucesso.');
 
             if (in_array($previousStatus, ['Homologado', 'Aprovado'])) {
                 $candidato->status = 'Em Análise';
@@ -257,6 +282,8 @@ class AtividadeController extends Controller
                 $candidato->revert_reason = $revertHistory;
 
                 $candidato->save();
+                Log::info("Candidato ID {$candidato->id} (Status: {$previousStatus}) removeu atividade e voltou para 'Em Análise'.");
+                return redirect()->back()->with('success', 'Atividade removida com sucesso! Sua inscrição (anteriormente homologada/aprovada) voltou para "Em Análise" devido à remoção de uma atividade.');
             }
 
             return redirect()->route('candidato.atividades.index')->with('success', 'Atividade excluída com sucesso!');

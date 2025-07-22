@@ -52,16 +52,8 @@ class CandidatoController extends Controller
             'user_id' => 'required|exists:users,id',
             'nome_completo' => 'required|string|max:255',
             'cpf' => 'required|string|max:14|unique:candidatos,cpf',
-        ], [
-            'user_id.required' => 'O usuário associado é obrigatório.',
-            'user_id.exists' => 'O usuário associado não existe.',
-            'nome_completo.required' => 'O nome completo é obrigatório.',
-            'cpf.required' => 'O CPF é obrigatório.',
-            'cpf.unique' => 'Este CPF já está cadastrado.',
         ]);
-
         $validatedData['status'] = 'Inscrição Incompleta'; 
-
         try {
             Candidato::create($validatedData);
             return redirect()->route('admin.candidatos.index')->with('success', 'Candidato criado com sucesso!');
