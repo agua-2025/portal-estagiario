@@ -18,7 +18,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             <!-- Secção de Estatísticas -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <h3 class="text-sm font-medium text-gray-500">Total de Inscrições</h3>
                     <p class="mt-1 text-3xl font-semibold text-gray-900"><?php echo e($totalInscricoes); ?></p>
@@ -34,6 +34,10 @@
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <h3 class="text-sm font-medium text-gray-500">Rejeitados</h3>
                     <p class="mt-1 text-3xl font-semibold text-red-600"><?php echo e($rejeitados); ?></p>
+                </div>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <h3 class="text-sm font-medium text-gray-500">Homologados</h3>
+                    <p class="mt-1 text-3xl font-semibold text-blue-600"><?php echo e($homologados); ?></p>
                 </div>
             </div>
 

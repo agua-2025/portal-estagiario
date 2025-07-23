@@ -13,23 +13,28 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth; 
 use Carbon\Carbon; 
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB; // ✅ ADICIONADO: Essencial para a transação
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
     /**
      * Mostra o formulário para o candidato editar seu perfil.
-     * (Este método não foi alterado)
+     * ✅ CORRIGIDO: Removido firstOrCreate que salvava automaticamente
      */
     public function edit(Request $request)
     {
-        $candidato = $request->user()->candidato()->with('curso')->firstOrCreate(
-            ['user_id' => Auth::id()], 
-            [
-                'nome_completo' => $request->user()->name, 
-                'status' => 'Inscrição Incompleta' 
-            ]
-        );
+        // SOLUÇÃO 1: Apenas busca, não cria automaticamente
+        $candidato = $request->user()->candidato()->with('curso')->first();
+        
+        // Se não existir candidato, cria um objeto em memória (não salva no banco)
+        if (!$candidato) {
+            $candidato = new Candidato([
+                'user_id' => Auth::id(),
+                'nome_completo' => $request->user()->name,
+                'status' => 'Inscrição Incompleta'
+            ]);
+            // Não chama save() aqui!
+        }
         
         $instituicoes = Instituicao::orderBy('nome')->get();
         $cursos = Curso::orderBy('nome')->get();
@@ -57,12 +62,12 @@ class ProfileController extends Controller
 
     /**
      * Atualiza o perfil do candidato no banco de dados.
-     * ✅ AJUSTE CIRÚRGICO: A lógica agora está dentro de uma transação de banco de dados
-     * para garantir que todas as alterações sejam salvas juntas ou nenhuma seja.
+     * ✅ AJUSTADO: Agora cria o candidato apenas quando necessário
      */
     public function update(Request $request)
     {
-        $candidato = $request->user()->candidato;
+        // Busca ou cria o candidato apenas no momento do save
+        $candidato = $request->user()->candidato ?? new Candidato(['user_id' => Auth::id()]);
 
         $validatedData = $request->validate([
             'nome_completo' => 'required|string|max:255',
@@ -92,15 +97,19 @@ class ProfileController extends Controller
         ]);
         
         try {
-            // Inicia uma transação. Ou tudo funciona, ou nada é salvo.
             DB::transaction(function () use ($candidato, $validatedData) {
                 $previousStatus = $candidato->status; 
 
                 // 1. Preenche o modelo com os dados validados do formulário
                 $candidato->fill($validatedData); 
                 
-                // 2. Verifica se o status precisa ser revertido
-                if (in_array($previousStatus, ['Homologado', 'Aprovado', 'Em Análise'])) {
+                // 2. Se é um novo candidato, define status inicial
+                if (!$candidato->exists) {
+                    $candidato->status = 'Inscrição Incompleta';
+                }
+                
+                // 3. Verifica se o status precisa ser revertido (apenas para candidatos existentes)
+                if ($candidato->exists && in_array($previousStatus, ['Homologado', 'Aprovado', 'Em Análise'])) {
                     $candidato->status = 'Em Análise'; 
                     
                     // Limpa os campos de homologação
@@ -109,7 +118,7 @@ class ProfileController extends Controller
                     $candidato->homologacao_observacoes = null;
 
                     // Adiciona o motivo da reversão ao histórico
-                    $revertHistory = $candidato->revert_reason ?? []; // Usa o histórico existente ou cria um novo array
+                    $revertHistory = $candidato->revert_reason ?? [];
                     $revertHistory[] = [
                         'timestamp' => Carbon::now()->toDateTimeString(),
                         'reason' => "Perfil alterado pelo candidato.",
@@ -121,12 +130,12 @@ class ProfileController extends Controller
                     Log::info("Candidato ID {$candidato->id} (Status anterior: {$previousStatus}) alterou perfil. Status revertido para 'Em Análise'.");
                 }
                 
-                // 3. Salva todas as alterações (dados do perfil, status e histórico) de uma só vez.
+                // 4. Salva todas as alterações
                 $candidato->save();
             });
 
         } catch (\Exception $e) {
-            Log::error("Erro na transação ao atualizar perfil do candidato ID {$candidato->id}: " . $e->getMessage(), ['exception' => $e]);
+            Log::error("Erro na transação ao atualizar perfil do candidato: " . $e->getMessage(), ['exception' => $e]);
             return redirect()->back()->with('error', 'Ocorreu um erro ao salvar seu perfil. Por favor, tente novamente.')->withInput();
         }
 

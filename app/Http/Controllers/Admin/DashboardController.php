@@ -15,12 +15,13 @@ class DashboardController extends Controller
     {
         // 1. Obter as estatísticas
         $totalInscricoes = Candidato::count();
-        $aguardandoAnalise = Candidato::where('status', 'Aguardando Análise')->count();
+        $aguardandoAnalise = Candidato::where('status', 'Em Análise')->count(); // ✅ CORRIGIDO
         $aprovados = Candidato::where('status', 'Aprovado')->count();
         $rejeitados = Candidato::where('status', 'Rejeitado')->count();
+        $homologados = Candidato::where('status', 'Homologado')->count(); // ✅ ADICIONADO
 
         // 2. Obter as últimas 10 inscrições que precisam de ser analisadas
-        $ultimasPendentes = Candidato::where('status', 'Aguardando Análise')
+        $ultimasPendentes = Candidato::where('status', 'Em Análise') // ✅ CORRIGIDO
                                       ->with('user', 'curso') // Otimização para carregar dados relacionados
                                       ->latest() // Ordena pelas mais recentes
                                       ->take(10)
@@ -32,6 +33,7 @@ class DashboardController extends Controller
             'aguardandoAnalise',
             'aprovados',
             'rejeitados',
+            'homologados', // ✅ ADICIONADO
             'ultimasPendentes'
         ));
     }
