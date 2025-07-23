@@ -24,21 +24,19 @@ class DocumentoController extends Controller
     ];
 
     /**
-     * ✅ CORRIGIDO: Usa first() + new em vez de firstOrCreate() para não salvar automaticamente
+     * ✅ CORRIGIDO: Não cria candidato automaticamente ao acessar a página
      */
     public function index()
     {
         $user = Auth::user();
         
-        // Busca o candidato existente
-        $candidato = $user->candidato()->first();
+        // SOLUÇÃO: Apenas busca o candidato, não cria automaticamente
+        $candidato = $user->candidato;
         
-        // Se não existe, cria um objeto em memória (não salva no banco)
+        // Se não existe candidato, redireciona para completar o perfil primeiro
         if (!$candidato) {
-            $candidato = new Candidato([
-                'user_id' => $user->id,
-                'status' => 'Inscrição Incompleta'
-            ]);
+            return redirect()->route('candidato.profile.edit')
+                ->with('info', 'Complete seu perfil antes de enviar documentos.');
         }
 
         $documentosNecessarios = [
@@ -70,12 +68,10 @@ class DocumentoController extends Controller
         $user = Auth::user();
         $candidato = $user->candidato; 
         
-        // Se não existe candidato, cria agora (apenas no momento do save)
+        // Verifica se o candidato existe antes de prosseguir
         if (!$candidato) {
-            $candidato = Candidato::create([
-                'user_id' => $user->id,
-                'status' => 'Inscrição Incompleta'
-            ]);
+            return redirect()->route('candidato.profile.edit')
+                ->with('error', 'Complete seu perfil antes de enviar documentos.');
         }
         
         $previousStatus = $candidato->status; 

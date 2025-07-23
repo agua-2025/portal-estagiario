@@ -23,24 +23,21 @@ class DocumentoController extends Controller
         'DECLARACAO_ELEITORAL',
     ];
 
-    /**
-     * ✅ CORRIGIDO: Usa first() + new em vez de firstOrCreate() para não salvar automaticamente
-     */
     public function index()
     {
         $user = Auth::user();
-        
-        // Busca o candidato existente
         $candidato = $user->candidato()->first();
-        
-        // Se não existe, cria um objeto em memória (não salva no banco)
+
+        // ✅ AJUSTE ADICIONADO: Garante que o candidato exista antes de prosseguir.
+        // Se não existir, redireciona o usuário para criar o perfil.
         if (!$candidato) {
-            $candidato = new Candidato([
-                'user_id' => $user->id,
-                'status' => 'Inscrição Incompleta'
-            ]);
+            // Lembre-se de substituir 'candidato.perfil.create' pelo nome real da sua rota.
+            return redirect()->route('candidato.perfil.create') 
+                             ->with('info', 'Para enviar documentos, primeiro você precisa completar seu perfil de candidato.');
         }
 
+        // O restante do método continua inalterado, pois agora temos certeza
+        // de que a variável $candidato não é nula.
         $documentosNecessarios = [
             'HISTORICO_ESCOLAR' => 'Histórico Escolar (para comprovar média e semestres)',
             'DECLARACAO_MATRICULA' => 'Declaração de Matrícula',
@@ -54,30 +51,21 @@ class DocumentoController extends Controller
             $documentosNecessarios['LAUDO_MEDICO'] = 'Laudo Médico (PCD)';
         }
 
-        // Busca os documentos a partir do candidato
+        // ✅ AJUSTE: Busca os documentos a partir do candidato, não do user.
         $documentosEnviados = $candidato->documentos->keyBy('tipo_documento');
 
         return view('candidato.documentos.index', compact('candidato', 'documentosNecessarios', 'documentosEnviados'));
     }
 
-    /**
-     * Armazena um novo documento enviado pelo candidato.
-     */
     public function store(Request $request)
     {
         Log::debug('Iniciando store de documento. Request data: ' . json_encode($request->all()));
 
         $user = Auth::user();
         $candidato = $user->candidato; 
-        
-        // Se não existe candidato, cria agora (apenas no momento do save)
         if (!$candidato) {
-            $candidato = Candidato::create([
-                'user_id' => $user->id,
-                'status' => 'Inscrição Incompleta'
-            ]);
+            return redirect()->back()->with('error', 'Perfil de candidato não encontrado.');
         }
-        
         $previousStatus = $candidato->status; 
 
         Log::debug("Status do candidato ANTES da operação (DocumentoController@store): {$previousStatus}");
@@ -93,7 +81,7 @@ class DocumentoController extends Controller
         DB::beginTransaction();
 
         try {
-            // Procura o documento antigo na relação do candidato
+            // ✅ AJUSTE: Procura o documento antigo na relação do candidato.
             $documentoAntigo = $candidato->documentos()->where('tipo_documento', $tipoDocumento)->first();
             if ($documentoAntigo) {
                 Storage::disk('public')->delete($documentoAntigo->path); 
@@ -102,7 +90,8 @@ class DocumentoController extends Controller
 
             $filePath = $request->file('documento')->store('documentos/' . $user->id, 'public'); 
 
-            // Cria ou atualiza o documento na relação do candidato
+            // ✅ AJUSTE: Cria ou atualiza o documento na relação do candidato.
+            // O 'candidato_id' será preenchido automaticamente.
             $candidato->documentos()->updateOrCreate(
                 ['tipo_documento' => $tipoDocumento],
                 [
@@ -126,7 +115,7 @@ class DocumentoController extends Controller
                 $documentosNecessariosParaVerificar[] = 'LAUDO_MEDICO';
             }
 
-            // Recarrega a relação de documentos a partir do candidato
+            // ✅ AJUSTE: Recarrega a relação de documentos a partir do candidato.
             $candidato->load('documentos');
             $tiposDocumentosEnviados = $candidato->documentos->pluck('tipo_documento')->unique()->toArray();
             
@@ -209,11 +198,6 @@ class DocumentoController extends Controller
 
         $user = Auth::user();
         $candidato = $user->candidato;
-        
-        if (!$candidato) {
-            return redirect()->back()->with('error', 'Candidato não encontrado.');
-        }
-        
         $previousStatus = $candidato->status; 
 
         DB::beginTransaction();
@@ -235,7 +219,7 @@ class DocumentoController extends Controller
                 $documentosNecessariosParaVerificar[] = 'LAUDO_MEDICO';
             }
 
-            // Recarrega e verifica os documentos a partir do candidato
+            // ✅ AJUSTE: Recarrega e verifica os documentos a partir do candidato.
             $candidato->load('documentos');
             $tiposDocumentosRestantes = $candidato->documentos()->pluck('tipo_documento')->unique()->toArray();
             
