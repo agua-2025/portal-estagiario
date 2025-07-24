@@ -1,0 +1,23 @@
+{
+    "$schema": "https://json.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": { // <--- ESTA É A SEÇÃO CORRETA
+        "build": "vite build",
+        "dev": "vite",
+        "tailwind-build-test": "tailwindcss -i ./resources/css/app.css -o ./public/temp-tailwind.css --minify" // ADICIONADA AQUI
+    },
+    "devDependencies": {
+        "@alpinejs/mask": "^3.14.9",
+        "@tailwindcss/forms": "^0.5.2",
+        "@tailwindcss/vite": "^4.0.0",
+        "alpinejs": "^3.4.2",
+        "autoprefixer": "^10.4.21",
+        "axios": "^1.8.2",
+        "concurrently": "^9.0.1",
+        "laravel-vite-plugin": "^1.2.0",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^3.4.17",
+        "vite": "^6.2.4"
+    }
+}

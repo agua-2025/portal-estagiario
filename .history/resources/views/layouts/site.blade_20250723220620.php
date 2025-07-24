@@ -83,20 +83,10 @@
         .status-rejected { background-color: #f8d7da; color: #721c24; } /* bg-red-100 text-red-800 */
         .status-analise { background-color: #fff3cd; color: #856404; } /* bg-yellow-100 text-yellow-800 */
 
-        /* Forçar que o texto não seja truncado */
-        .no-truncate {
-            overflow: visible !important;
-            text-overflow: unset !important;
-            white-space: nowrap !important;
-        }
-
-        /* Ajustes para o header */
-        header .max-w-7xl {
-            overflow: visible !important;
-        }
         /* Estilos do menu mobile */
         .mobile-menu {
             transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
         }
         
         .mobile-menu.open {
@@ -121,11 +111,6 @@
             .text-xl { font-size: 1.125rem; }
             .text-lg { font-size: 1rem; }
         }
-
-        /* Ajustes específicos para telas muito pequenas */
-        @media (max-width: 375px) {
-            .text-sm { font-size: 0.75rem; }
-        }
     </style>
 
     {{-- Você pode adicionar um @stack('styles') aqui se quiser estilos específicos de alguma página --}}
@@ -141,22 +126,22 @@
     <div class="relative min-h-screen z-10">
         <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between py-3 sm:py-4 w-full">
-                    <div class="flex items-center space-x-2 sm:space-x-3 overflow-visible" data-aos="fade-right">
-                        <a href="{{ route('welcome') }}" class="flex items-center space-x-2 sm:space-x-3 overflow-visible">
-                            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div class="flex justify-between items-center py-3 sm:py-4">
+                    <div class="flex-shrink-0" data-aos="fade-right">
+                        <a href="{{ route('welcome') }}" class="flex items-center space-x-2 sm:space-x-3">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
                                 <svg class="w-5 h-5 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                 </svg>
                             </div>
-                            <span class="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap no-truncate">
+                            <span class="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                                 Portal do Estagiário
                             </span>
                         </a>
                     </div>
                     
                     <!-- Menu Desktop -->
-                    <nav class="hidden lg:flex space-x-6 xl:space-x-8" data-aos="fade-down">
+                    <nav class="hidden lg:flex space-x-8" data-aos="fade-down">
                         <a href="{{ route('welcome') }}#cursos" class="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Cursos Disponíveis</a>
                         <a href="{{ route('welcome') }}#documentos" class="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Editais e Documentos</a>
                         <a href="{{ route('classificacao.index') }}" class="text-base font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200">Classificação</a>
@@ -164,7 +149,7 @@
                     </nav>
 
                     <!-- Botões de Auth Desktop -->
-                    <div class="hidden sm:flex items-center space-x-2 flex-shrink-0" data-aos="fade-left">
+                    <div class="hidden sm:flex items-center space-x-2" data-aos="fade-left">
                         @if (Route::has('login'))
                             @auth
                                 <a href="{{ url('/dashboard') }}" class="px-4 lg:px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl">Painel</a>
@@ -181,7 +166,7 @@
                     </div>
 
                     <!-- Botão do Menu Mobile -->
-                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="sm:hidden p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition-colors duration-200 flex-shrink-0">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="sm:hidden p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition-colors duration-200">
                         <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
