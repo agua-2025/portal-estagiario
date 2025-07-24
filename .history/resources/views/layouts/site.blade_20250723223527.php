@@ -2,8 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <!-- Adicionando viewport-fit=cover para melhor controle em dispositivos com entalhe (notch) -->
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Portal do Estagiário')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,81 +12,74 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        /* --- CORREÇÕES FINAIS PARA CONTER TOTALMENTE A LARGURA --- */
-        /* Reforçando contenção no html e body */
+        /* --- Correção de Responsividade para Overflow Horizontal --- */
+        /* Reforçando box-sizing para todos os elementos */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box; /* Inclui padding e border no width/height */
+             /* Garante que elementos não ultrapassem a largura do container pai */
+            max-width: 100%;
+            word-wrap: break-word; /* Quebra palavras longas se necessário */
+        }
+
+        /* Garantir que o html e body ocupem 100% da largura sem margens/paddings extras */
         html, body {
-            max-width: 100vw;
-            overflow-x: hidden;
             margin: 0;
             padding: 0;
-            width: 100%;
-            /* Impedir qualquer elemento filho de forçar largura */
-            position: relative;
+            width: 100%; /* Largura total */
+            /* Importante: overflow-x hidden aqui e no body */
+            overflow-x: hidden;
         }
 
-        /* Reforçando box-sizing */
-        *, *::before, *::after {
-            max-width: 100%;
-            box-sizing: border-box;
-            /* Impedir elementos absolutos de escaparem */
-            left: 0 !important;
-            right: 0 !important;
-        }
-
-        /* Contenção absoluta do contêiner principal */
+        /* Garantir que o contêiner principal também respeite os limites */
         .relative.min-h-screen.z-10 {
             width: 100%;
             max-width: 100vw;
+            /* Importante: overflow-x hidden também aqui */
             overflow-x: hidden;
-            margin: 0;
-            padding: 0;
-            position: relative;
+            margin: 0; /* Remove margem padrão se houver */
+            padding: 0; /* Remove padding padrão se houver */
         }
 
-        /* Contenção ABSOLUTA do contêiner de fundo e blobs */
-        .fixed.inset-0.overflow-hidden.pointer-events-none.z-0 {
-            width: 100vw;
-            max-width: 100vw;
-            overflow: hidden !important; /* Força esconder qualquer overflow */
-            left: 0 !important;
-            right: 0 !important;
-            position: fixed !important;
-            top: 0 !important;
-            bottom: 0 !important;
-            /* Isola completamente este elemento e seus filhos */
-            contain: strict !important;
-        }
-
-        /* Correção FINAL para os blobs */
-        .blob {
-            position: absolute !important;
-            /* Limitar tamanho máximo dos blobs */
-            max-width: calc(100vw - 20px) !important;
-            max-height: calc(100vh - 20px) !important;
-            width: auto !important;
-            height: auto !important;
-            /* Garantir que o blur não cause overflow */
-            filter: blur(40px) !important;
-            /* Desativar animações que podem causar overflow em edge cases */
-            /* animation: none !important; */ /* Descomente se ainda tiver problema */
-        }
-
-        /* Forçar contenção nas classes max-w-7xl do Tailwind */
-        .max-w-7xl {
-            max-width: min(80rem, 100vw) !important; /* Não ultrapassar 100vw */
-            width: 100% !important;
-        }
-
-        /* Garantir que o header não force largura */
+        /* Header fixo também deve respeitar os limites rigorosamente */
         header {
-            width: 100vw;
-            max-width: 100vw;
-            left: 0;
-            right: 0;
+            width: 100vw; /* Ocupa toda a largura da viewport */
+            max-width: 100vw; /* Impede ultrapassar */
+            left: 0; /* Alinha à esquerda */
+            right: 0; /* Alinha à direita */
+            margin-left: auto; /* Centraliza se necessário */
+            margin-right: auto; /* Centraliza se necessário */
+            /* Impede que o header em si cause overflow */
             overflow-x: hidden;
         }
 
-        /* --- SEUS ESTILOS EXISTENTES (mantidos e ajustados) --- */
+        /* Corrigir o container interno do header para não ultrapassar */
+        header > .max-w-7xl.mx-auto {
+            /* Garante que o conteúdo dentro do container não ultrapasse */
+            max-width: 100vw;
+            width: 100%;
+            padding-left: theme('spacing.4'); /* px-4 */
+            padding-right: theme('spacing.4'); /* px-4 */
+        }
+
+        /* Para telas sm */
+        @media (min-width: 640px) {
+            header > .max-w-7xl.mx-auto {
+                padding-left: theme('spacing.6'); /* sm:px-6 */
+                padding-right: theme('spacing.6'); /* sm:px-6 */
+            }
+        }
+
+        /* Para telas lg */
+        @media (min-width: 1024px) {
+            header > .max-w-7xl.mx-auto {
+                padding-left: theme('spacing.8'); /* lg:px-8 */
+                padding-right: theme('spacing.8'); /* lg:px-8 */
+            }
+        }
+
+        /* --- Estilos Originais (mantidos) --- */
         * {
             font-family: 'Inter', sans-serif;
         }
@@ -115,11 +107,16 @@
         .text-shadow {
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
-        /* .blob { ... } - Removido daqui, já definido acima */
+        .blob {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: blob 7s infinite;
+        }
         @keyframes blob {
             0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(10px, -20px) scale(1.05); } /* Movimento reduzido */
-            66% { transform: translate(-10px, 10px) scale(0.95); } /* Movimento reduzido */
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
             100% { transform: translate(0px, 0px) scale(1); }
         }
         .stats-counter {
@@ -135,6 +132,7 @@
         .status-approved { background-color: #d4edda; color: #155724; } /* bg-green-100 text-green-800 */
         .status-rejected { background-color: #f8d7da; color: #721c24; } /* bg-red-100 text-red-800 */
         .status-analise { background-color: #fff3cd; color: #856404; } /* bg-yellow-100 text-yellow-800 */
+
         /* Correção específica para o texto do logo */
         .logo-text-fix {
             overflow: visible !important;
@@ -171,9 +169,8 @@
         /* Melhorias para mobile */
         @media (max-width: 768px) {
             .blob {
-                width: 150px !important; /* Reduzido */
-                height: 150px !important;
-                max-width: calc(100vw - 20px) !important;
+                width: 200px !important;
+                height: 200px !important;
             }
             .floating {
                 animation: none; /* Remove animação em mobile para performance */
@@ -190,17 +187,16 @@
             .text-sm { font-size: 0.75rem; }
         }
     </style>
+    {{-- Você pode adicionar um @stack('styles') aqui se quiser estilos específicos de alguma página --}}
 </head>
-<!-- Reforçando overflow-x-hidden no body -->
+<!-- Adicionado overflow-x-hidden à tag body também -->
 <body class="antialiased bg-gray-50 overflow-x-hidden">
-    <!-- Reforçando contenção no contêiner de fundo -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <!-- Blobs com tamanhos limitados -->
         <div class="blob absolute top-0 left-0 w-48 sm:w-72 h-48 sm:h-72 opacity-20 -translate-x-1/2 -translate-y-1/2"></div>
         <div class="blob absolute top-1/2 right-0 w-64 sm:w-96 h-64 sm:h-96 opacity-15 translate-x-1/3 -translate-y-1/2" style="animation-delay: 2s;"></div>
         <div class="blob absolute bottom-0 left-1/3 w-56 sm:w-80 h-56 sm:h-80 opacity-10 translate-y-1/2" style="animation-delay: 4s;"></div>
     </div>
-    <!-- Reforçando contenção no contêiner principal -->
+    <!-- Este é o div principal que agora tem overflow-x-hidden -->
     <div class="relative min-h-screen z-10 overflow-x-hidden">
         <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

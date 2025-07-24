@@ -2,205 +2,176 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <!-- Adicionando viewport-fit=cover para melhor controle em dispositivos com entalhe (notch) -->
+    <!-- Crucial: viewport-fit=cover para dispositivos com notch -->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>@yield('title', 'Portal do Estagiário')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Carregar CSS do Vite -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Carregar AOS -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- Carregar Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <style>
-        /* --- CORREÇÕES FINAIS PARA CONTER TOTALMENTE A LARGURA --- */
-        /* Reforçando contenção no html e body */
-        html, body {
-            max-width: 100vw;
-            overflow-x: hidden;
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            /* Impedir qualquer elemento filho de forçar largura */
-            position: relative;
+        /*! CSS MINIFICADO E CRÍTICO PARA CORREÇÃO DE OVERFLOW */
+        /* 1. Reset completo e brutal de largura */
+        html, body, div, span, applet, object, iframe,
+        h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+        a, abbr, acronym, address, big, cite, code,
+        del, dfn, em, img, ins, kbd, q, s, samp,
+        small, strike, strong, sub, sup, tt, var,
+        b, u, i, center,
+        dl, dt, dd, ol, ul, li,
+        fieldset, form, label, legend,
+        table, caption, tbody, tfoot, thead, tr, th, td,
+        article, aside, canvas, details, embed, 
+        figure, figcaption, footer, header, hgroup, 
+        menu, nav, output, ruby, section, summary,
+        time, mark, audio, video {
+            max-width: 100vw !important;
+            box-sizing: border-box !important;
+            /* Impedir esticar para fora */
+            margin: 0 !important;
+            padding: 0 !important;
         }
-
-        /* Reforçando box-sizing */
-        *, *::before, *::after {
-            max-width: 100%;
-            box-sizing: border-box;
-            /* Impedir elementos absolutos de escaparem */
+        /* 2. Contenção absoluta do HTML e BODY */
+        html {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+            position: relative !important;
+            /* Impedir que o html mesmo tenha scroll */
+            /* overflow: hidden !important; */ /* Teste se isso resolver, mas pode esconder scroll Y */
+        }
+        body {
+            width: 100% !important; /* Relativo ao html */
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+            position: relative !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            /* Força o body a não ultrapassar */
             left: 0 !important;
             right: 0 !important;
         }
-
-        /* Contenção absoluta do contêiner principal */
+        /* 3. Contenção do contêiner principal */
         .relative.min-h-screen.z-10 {
-            width: 100%;
-            max-width: 100vw;
-            overflow-x: hidden;
-            margin: 0;
-            padding: 0;
-            position: relative;
+            width: 100% !important;
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            position: relative !important;
         }
-
-        /* Contenção ABSOLUTA do contêiner de fundo e blobs */
+        /* 4. Contenção ABSOLUTA do contêiner de fundo */
         .fixed.inset-0.overflow-hidden.pointer-events-none.z-0 {
-            width: 100vw;
-            max-width: 100vw;
-            overflow: hidden !important; /* Força esconder qualquer overflow */
+            width: 100vw !important;
+            max-width: 100vw !important;
+            /* overflow: hidden !important; removido pois já está no html */
             left: 0 !important;
             right: 0 !important;
+            /* Adicionado para forçar contenção */
             position: fixed !important;
             top: 0 !important;
             bottom: 0 !important;
-            /* Isola completamente este elemento e seus filhos */
-            contain: strict !important;
+            /* Impede que qualquer filho force largura */
+            contain: strict !important; 
         }
-
-        /* Correção FINAL para os blobs */
+        /* 5. Correção FINAL e ABSOLUTA para os blobs */
         .blob {
             position: absolute !important;
-            /* Limitar tamanho máximo dos blobs */
-            max-width: calc(100vw - 20px) !important;
+            max-width: calc(100vw - 20px) !important; /* Margem de segurança */
             max-height: calc(100vh - 20px) !important;
             width: auto !important;
             height: auto !important;
             /* Garantir que o blur não cause overflow */
             filter: blur(40px) !important;
-            /* Desativar animações que podem causar overflow em edge cases */
-            /* animation: none !important; */ /* Descomente se ainda tiver problema */
+            /* Resetar animações que podem causar overflow */
+            animation: none !important; 
         }
-
-        /* Forçar contenção nas classes max-w-7xl do Tailwind */
-        .max-w-7xl {
-            max-width: min(80rem, 100vw) !important; /* Não ultrapassar 100vw */
+        /* 6. Reset de margens/paddings em containers comuns */
+        .max-w-7xl, .mx-auto, .px-4, .sm\:px-6, .lg\:px-8 {
+            max-width: 100vw !important;
             width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
         }
-
-        /* Garantir que o header não force largura */
-        header {
-            width: 100vw;
-            max-width: 100vw;
-            left: 0;
-            right: 0;
-            overflow-x: hidden;
+        /* 7. Forçar contenção em elementos flex e grid */
+        .flex, .grid {
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
         }
-
-        /* --- SEUS ESTILOS EXISTENTES (mantidos e ajustados) --- */
-        * {
-            font-family: 'Inter', sans-serif;
+        /* 8. Impedir imagens de forçarem largura */
+        img, svg {
+            max-width: 100% !important;
+            height: auto !important;
         }
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* 9. Reset de estilos do AOS que podem interferir */
+        [data-aos] {
+            /* Remover qualquer transformação que force posição */
+            /* transform: none !important; */ /* Pode quebrar animações */
+             /* Garantir contenção */
+             overflow-x: hidden !important;
         }
-        .glass-effect {
-            backdrop-filter: blur(20px);
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        /* 10. Forçar contenção em elementos absolutos */
+        [class*='absolute'], [class*='fixed'] {
+            max-width: 100vw !important;
         }
-        .hover-scale {
-            transition: transform 0.3s ease;
-        }
-        .hover-scale:hover {
-            transform: scale(1.05);
-        }
-        .floating {
-            animation: floating 3s ease-in-out infinite;
-        }
-        @keyframes floating {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-        .text-shadow {
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
+        /* --- SEUS ESTILOS EXISTENTES (com correções) --- */
+        * { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass-effect { backdrop-filter: blur(20px); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .hover-scale { transition: transform 0.3s ease; }
+        .hover-scale:hover { transform: scale(1.05); }
+        .floating { animation: floating 3s ease-in-out infinite; }
+        @keyframes floating { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } /* Reduzido */ }
+        .text-shadow { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
         /* .blob { ... } - Removido daqui, já definido acima */
-        @keyframes blob {
-            0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(10px, -20px) scale(1.05); } /* Movimento reduzido */
-            66% { transform: translate(-10px, 10px) scale(0.95); } /* Movimento reduzido */
-            100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .stats-counter {
-            animation: countUp 2s ease-out;
-        }
-        @keyframes countUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        /* Alpine.js x-cloak para evitar flicker de conteúdo x-show */
+        .stats-counter { animation: countUp 2s ease-out; }
+        @keyframes countUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         [x-cloak] { display: none !important; }
-        /* Cores de status replicadas para consistência (usadas na classificação) */
-        .status-approved { background-color: #d4edda; color: #155724; } /* bg-green-100 text-green-800 */
-        .status-rejected { background-color: #f8d7da; color: #721c24; } /* bg-red-100 text-red-800 */
-        .status-analise { background-color: #fff3cd; color: #856404; } /* bg-yellow-100 text-yellow-800 */
-        /* Correção específica para o texto do logo */
-        .logo-text-fix {
-            overflow: visible !important;
-            text-overflow: clip !important;
-            white-space: nowrap !important;
-            max-width: none !important;
-            width: auto !important;
-            display: inline-block !important;
-        }
-        /* Garantir que containers não ultrapassem a tela */
-        .container-fix {
-            width: 100%;
-            max-width: 100vw;
-            overflow: hidden;
-        }
-        /* Forçar elementos flexbox a não ultrapassarem */
-        .flex-fix {
-            min-width: 0;
-            flex-shrink: 1;
-        }
-        /* Media query para telas muito pequenas - esconder parte do texto se necessário */
-        @media (max-width: 320px) {
-            .logo-text-fix {
-                font-size: 0.75rem !important;
-            }
-        }
-        /* Estilos do menu mobile */
-        .mobile-menu {
-            transform: translateX(-100%);
-        }
-        .mobile-menu.open {
-            transform: translateX(0);
-        }
-        /* Melhorias para mobile */
+        .status-approved { background-color: #d4edda; color: #155724; }
+        .status-rejected { background-color: #f8d7da; color: #721c24; }
+        .status-analise { background-color: #fff3cd; color: #856404; }
+        .logo-text-fix { overflow: visible !important; text-overflow: clip !important; white-space: nowrap !important; max-width: none !important; width: auto !important; display: inline-block !important; }
+        .container-fix { width: 100%; max-width: 100vw; overflow: hidden; }
+        .flex-fix { min-width: 0; flex-shrink: 1; }
+        @media (max-width: 320px) { .logo-text-fix { font-size: 0.75rem !important; } }
+        .mobile-menu { transform: translateX(-100%); }
+        .mobile-menu.open { transform: translateX(0); }
         @media (max-width: 768px) {
             .blob {
-                width: 150px !important; /* Reduzido */
+                width: 150px !important;
                 height: 150px !important;
                 max-width: calc(100vw - 20px) !important;
             }
-            .floating {
-                animation: none; /* Remove animação em mobile para performance */
-            }
+            .floating { animation: none; }
         }
-        /* Ajustes para telas pequenas */
-        @media (max-width: 640px) {
-            .text-2xl { font-size: 1.25rem; }
-            .text-xl { font-size: 1.125rem; }
-            .text-lg { font-size: 1rem; }
-        }
-        /* Ajustes específicos para telas muito pequenas */
-        @media (max-width: 375px) {
-            .text-sm { font-size: 0.75rem; }
-        }
+        @media (max-width: 640px) { .text-2xl { font-size: 1.25rem; } .text-xl { font-size: 1.125rem; } .text-lg { font-size: 1rem; } }
+        @media (max-width: 375px) { .text-sm { font-size: 0.75rem; } }
     </style>
 </head>
-<!-- Reforçando overflow-x-hidden no body -->
+<!-- Adicionado overflow-x-hidden à tag body também -->
 <body class="antialiased bg-gray-50 overflow-x-hidden">
-    <!-- Reforçando contenção no contêiner de fundo -->
+    <!-- Blobs de fundo - ajustados -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <!-- Blobs com tamanhos limitados -->
+        <!-- Blob 1 - Canto superior esquerdo -->
         <div class="blob absolute top-0 left-0 w-48 sm:w-72 h-48 sm:h-72 opacity-20 -translate-x-1/2 -translate-y-1/2"></div>
+        <!-- Blob 2 - Meio direito -->
         <div class="blob absolute top-1/2 right-0 w-64 sm:w-96 h-64 sm:h-96 opacity-15 translate-x-1/3 -translate-y-1/2" style="animation-delay: 2s;"></div>
+        <!-- Blob 3 - Canto inferior esquerdo -->
         <div class="blob absolute bottom-0 left-1/3 w-56 sm:w-80 h-56 sm:h-80 opacity-10 translate-y-1/2" style="animation-delay: 4s;"></div>
     </div>
-    <!-- Reforçando contenção no contêiner principal -->
+    <!-- Este é o div principal que agora tem overflow-x-hidden -->
     <div class="relative min-h-screen z-10 overflow-x-hidden">
         <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -286,8 +257,8 @@
                 </div>
             </div>
         </header>
-        <main>
-            @yield('content')
+        <main> {{-- ✅ ESTA É A ÁREA ONDE O CONTEÚDO ESPECÍFICO DE CADA PÁGINA SERÁ INJETADO --}}
+            @yield('content') {{-- Esta linha é o ponto de injeção --}}
         </main>
         <footer class="bg-gray-900 text-white py-8 sm:py-12">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

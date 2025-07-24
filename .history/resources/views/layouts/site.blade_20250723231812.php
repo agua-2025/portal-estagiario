@@ -2,16 +2,20 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <!-- Adicionando viewport-fit=cover para melhor controle em dispositivos com entalhe (notch) -->
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Portal do Estagiário')</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <style>
         /* --- CORREÇÕES FINAIS PARA CONTER TOTALMENTE A LARGURA --- */
         /* Reforçando contenção no html e body */
@@ -87,7 +91,7 @@
             overflow-x: hidden;
         }
 
-        /* --- SEUS ESTILOS EXISTENTES (mantidos e ajustados) --- */
+        /* --- SEUS ESTILOS EXISTENTES (mantidos) --- */
         * {
             font-family: 'Inter', sans-serif;
         }
@@ -190,18 +194,18 @@
             .text-sm { font-size: 0.75rem; }
         }
     </style>
+
+    {{-- Você pode adicionar um @stack('styles') aqui se quiser estilos específicos de alguma página --}}
 </head>
-<!-- Reforçando overflow-x-hidden no body -->
+
 <body class="antialiased bg-gray-50 overflow-x-hidden">
-    <!-- Reforçando contenção no contêiner de fundo -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <!-- Blobs com tamanhos limitados -->
         <div class="blob absolute top-0 left-0 w-48 sm:w-72 h-48 sm:h-72 opacity-20 -translate-x-1/2 -translate-y-1/2"></div>
         <div class="blob absolute top-1/2 right-0 w-64 sm:w-96 h-64 sm:h-96 opacity-15 translate-x-1/3 -translate-y-1/2" style="animation-delay: 2s;"></div>
         <div class="blob absolute bottom-0 left-1/3 w-56 sm:w-80 h-56 sm:h-80 opacity-10 translate-y-1/2" style="animation-delay: 4s;"></div>
     </div>
-    <!-- Reforçando contenção no contêiner principal -->
-    <div class="relative min-h-screen z-10 overflow-x-hidden">
+
+    <div class="relative min-h-screen z-10">
         <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between py-3 sm:py-4">
@@ -220,6 +224,7 @@
                             </div>
                         </a>
                     </div>
+                    
                     <!-- Menu Desktop -->
                     <nav class="hidden lg:flex space-x-8" data-aos="fade-down">
                         <a href="{{ route('welcome') }}#cursos" class="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Cursos Disponíveis</a>
@@ -227,6 +232,7 @@
                         <a href="{{ route('classificacao.index') }}" class="text-base font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200">Classificação</a>
                         <a href="{{ route('welcome') }}#sobre" class="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Sobre</a>
                     </nav>
+
                     <!-- Botões de Auth Desktop -->
                     <div class="hidden sm:flex items-center space-x-2 flex-shrink-0" data-aos="fade-left">
                         @if (Route::has('login'))
@@ -234,6 +240,7 @@
                                 <a href="{{ url('/dashboard') }}" class="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl">Painel</a>
                             @else
                                 <a href="{{ route('login') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-200">Entrar</a>
+
                                 @if (Route::has('register'))
                                     <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl sm:px-6">
                                         Inscreva-se
@@ -242,6 +249,7 @@
                             @endauth
                         @endif
                     </div>
+
                     <!-- Botão do Menu Mobile -->
                     <button @click="mobileMenuOpen = !mobileMenuOpen" class="sm:hidden p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition-colors duration-200">
                         <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -253,6 +261,7 @@
                     </button>
                 </div>
             </div>
+
             <!-- Menu Mobile -->
             <div x-show="mobileMenuOpen" 
                  x-transition:enter="transition ease-out duration-200"
@@ -268,6 +277,7 @@
                     <a href="{{ route('welcome') }}#documentos" class="block text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200" @click="mobileMenuOpen = false">Editais e Documentos</a>
                     <a href="{{ route('classificacao.index') }}" class="block text-base font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200" @click="mobileMenuOpen = false">Classificação</a>
                     <a href="{{ route('welcome') }}#sobre" class="block text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200" @click="mobileMenuOpen = false">Sobre</a>
+                    
                     <!-- Auth buttons para mobile -->
                     <div class="pt-3 border-t border-gray-200 space-y-3">
                         @if (Route::has('login'))
@@ -275,6 +285,7 @@
                                 <a href="{{ url('/dashboard') }}" class="block w-full text-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg" @click="mobileMenuOpen = false">Painel</a>
                             @else
                                 <a href="{{ route('login') }}" class="block text-center text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-200" @click="mobileMenuOpen = false">Entrar</a>
+
                                 @if (Route::has('register'))
                                     <a href="{{ route('register') }}" class="block w-full text-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg" @click="mobileMenuOpen = false">
                                         Inscreva-se
@@ -286,9 +297,11 @@
                 </div>
             </div>
         </header>
-        <main>
-            @yield('content')
+
+        <main> {{-- ✅ ESTA É A ÁREA ONDE O CONTEÚDO ESPECÍFICO DE CADA PÁGINA SERÁ INJETADO --}}
+            @yield('content') {{-- Esta linha é o ponto de injeção --}}
         </main>
+        
         <footer class="bg-gray-900 text-white py-8 sm:py-12">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 text-center sm:text-left">
@@ -326,6 +339,7 @@
                             </a>
                         </div>
                     </div>
+
                     {{-- Coluna 2: Navegação --}}
                     <div data-aos="fade-up" data-aos-duration="1000">
                         <h4 class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Navegação</h4>
@@ -336,6 +350,7 @@
                             <li><a href="{{ route('termos-de-uso') }}" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Termos de Uso</a></li>
                         </ul>
                     </div>
+
                     {{-- Coluna 3: Legislação --}}
                     <div data-aos="fade-left" data-aos-duration="1000" data-aos-delay="300">
                         <h4 class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Legislação</h4>
@@ -345,6 +360,7 @@
                             <li><a href="https://leismunicipais.com.br/a1/mt/m/mirassol-do-oeste/decreto/2023/446/4458/decreto-n-4458-2023-dispoe-sobre-a-criacao-de-banco-de-curriculos-para-estagio-remunerado-de-diversas-areas-do-ensino-superior-e-estabelece-criterios-para-selecao-dos-candidatos?q=4.458" target="_blank" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm break-words">Decreto nº 4.458/23</a></li>
                         </ul>
                     </div>
+
                     {{-- Coluna 4: Contato --}}
                     <div data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
                         <h4 class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Contato</h4>
@@ -354,12 +370,14 @@
                         </ul>
                     </div>
                 </div>
+
                 <div class="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-800 text-center text-gray-400 text-xs sm:text-sm">
                     &copy; {{ date('Y') }} Portal do Estagiário. Todos os direitos reservados.
                 </div>
             </div>
         </footer>
     </div>
+
     <script>
         AOS.init({
             duration: 1000,

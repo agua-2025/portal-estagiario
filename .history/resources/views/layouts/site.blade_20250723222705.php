@@ -2,139 +2,101 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <!-- Adicionando viewport-fit=cover para melhor controle em dispositivos com entalhe (notch) -->
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Portal do Estagiário')</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <style>
-        /* --- CORREÇÕES FINAIS PARA CONTER TOTALMENTE A LARGURA --- */
-        /* Reforçando contenção no html e body */
-        html, body {
-            max-width: 100vw;
-            overflow-x: hidden;
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            /* Impedir qualquer elemento filho de forçar largura */
-            position: relative;
-        }
-
-        /* Reforçando box-sizing */
-        *, *::before, *::after {
-            max-width: 100%;
-            box-sizing: border-box;
-            /* Impedir elementos absolutos de escaparem */
-            left: 0 !important;
-            right: 0 !important;
-        }
-
-        /* Contenção absoluta do contêiner principal */
-        .relative.min-h-screen.z-10 {
-            width: 100%;
-            max-width: 100vw;
-            overflow-x: hidden;
-            margin: 0;
-            padding: 0;
-            position: relative;
-        }
-
-        /* Contenção ABSOLUTA do contêiner de fundo e blobs */
-        .fixed.inset-0.overflow-hidden.pointer-events-none.z-0 {
-            width: 100vw;
-            max-width: 100vw;
-            overflow: hidden !important; /* Força esconder qualquer overflow */
-            left: 0 !important;
-            right: 0 !important;
-            position: fixed !important;
-            top: 0 !important;
-            bottom: 0 !important;
-            /* Isola completamente este elemento e seus filhos */
-            contain: strict !important;
-        }
-
-        /* Correção FINAL para os blobs */
-        .blob {
-            position: absolute !important;
-            /* Limitar tamanho máximo dos blobs */
-            max-width: calc(100vw - 20px) !important;
-            max-height: calc(100vh - 20px) !important;
-            width: auto !important;
-            height: auto !important;
-            /* Garantir que o blur não cause overflow */
-            filter: blur(40px) !important;
-            /* Desativar animações que podem causar overflow em edge cases */
-            /* animation: none !important; */ /* Descomente se ainda tiver problema */
-        }
-
-        /* Forçar contenção nas classes max-w-7xl do Tailwind */
-        .max-w-7xl {
-            max-width: min(80rem, 100vw) !important; /* Não ultrapassar 100vw */
-            width: 100% !important;
-        }
-
-        /* Garantir que o header não force largura */
-        header {
-            width: 100vw;
-            max-width: 100vw;
-            left: 0;
-            right: 0;
-            overflow-x: hidden;
-        }
-
-        /* --- SEUS ESTILOS EXISTENTES (mantidos e ajustados) --- */
         * {
             font-family: 'Inter', sans-serif;
         }
+        
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
+        
         .glass-effect {
             backdrop-filter: blur(20px);
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        
         .hover-scale {
             transition: transform 0.3s ease;
         }
+        
         .hover-scale:hover {
             transform: scale(1.05);
         }
+        
         .floating {
             animation: floating 3s ease-in-out infinite;
         }
+        
         @keyframes floating {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-20px); }
         }
+        
         .text-shadow {
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
-        /* .blob { ... } - Removido daqui, já definido acima */
+        
+        .blob {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: blob 7s infinite;
+        }
+        
         @keyframes blob {
             0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(10px, -20px) scale(1.05); } /* Movimento reduzido */
-            66% { transform: translate(-10px, 10px) scale(0.95); } /* Movimento reduzido */
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
             100% { transform: translate(0px, 0px) scale(1); }
         }
+        
         .stats-counter {
             animation: countUp 2s ease-out;
         }
+        
         @keyframes countUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
         /* Alpine.js x-cloak para evitar flicker de conteúdo x-show */
         [x-cloak] { display: none !important; }
+
         /* Cores de status replicadas para consistência (usadas na classificação) */
         .status-approved { background-color: #d4edda; color: #155724; } /* bg-green-100 text-green-800 */
         .status-rejected { background-color: #f8d7da; color: #721c24; } /* bg-red-100 text-red-800 */
         .status-analise { background-color: #fff3cd; color: #856404; } /* bg-yellow-100 text-yellow-800 */
+
+        /* Correção definitiva para overflow horizontal */
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Forçar todos os elementos a respeitarem a largura da tela */
+        *, *::before, *::after {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
         /* Correção específica para o texto do logo */
         .logo-text-fix {
             overflow: visible !important;
@@ -144,17 +106,20 @@
             width: auto !important;
             display: inline-block !important;
         }
+
         /* Garantir que containers não ultrapassem a tela */
         .container-fix {
             width: 100%;
             max-width: 100vw;
             overflow: hidden;
         }
+
         /* Forçar elementos flexbox a não ultrapassarem */
         .flex-fix {
             min-width: 0;
             flex-shrink: 1;
         }
+
         /* Media query para telas muito pequenas - esconder parte do texto se necessário */
         @media (max-width: 320px) {
             .logo-text-fix {
@@ -165,94 +130,100 @@
         .mobile-menu {
             transform: translateX(-100%);
         }
+        
         .mobile-menu.open {
             transform: translateX(0);
         }
+
         /* Melhorias para mobile */
         @media (max-width: 768px) {
             .blob {
-                width: 150px !important; /* Reduzido */
-                height: 150px !important;
-                max-width: calc(100vw - 20px) !important;
+                width: 200px !important;
+                height: 200px !important;
             }
+            
             .floating {
                 animation: none; /* Remove animação em mobile para performance */
             }
         }
+
         /* Ajustes para telas pequenas */
         @media (max-width: 640px) {
             .text-2xl { font-size: 1.25rem; }
             .text-xl { font-size: 1.125rem; }
             .text-lg { font-size: 1rem; }
         }
+
         /* Ajustes específicos para telas muito pequenas */
         @media (max-width: 375px) {
             .text-sm { font-size: 0.75rem; }
         }
     </style>
+
+    {{-- Você pode adicionar um @stack('styles') aqui se quiser estilos específicos de alguma página --}}
 </head>
-<!-- Reforçando overflow-x-hidden no body -->
+
 <body class="antialiased bg-gray-50 overflow-x-hidden">
-    <!-- Reforçando contenção no contêiner de fundo -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <!-- Blobs com tamanhos limitados -->
         <div class="blob absolute top-0 left-0 w-48 sm:w-72 h-48 sm:h-72 opacity-20 -translate-x-1/2 -translate-y-1/2"></div>
         <div class="blob absolute top-1/2 right-0 w-64 sm:w-96 h-64 sm:h-96 opacity-15 translate-x-1/3 -translate-y-1/2" style="animation-delay: 2s;"></div>
         <div class="blob absolute bottom-0 left-1/3 w-56 sm:w-80 h-56 sm:h-80 opacity-10 translate-y-1/2" style="animation-delay: 4s;"></div>
     </div>
-    <!-- Reforçando contenção no contêiner principal -->
-    <div class="relative min-h-screen z-10 overflow-x-hidden">
-        <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between py-3 sm:py-4">
-                    <!-- Logo e Título -->
-                    <div class="flex items-center space-x-3" data-aos="fade-right">
-                        <a href="{{ route('welcome') }}" class="flex items-center space-x-3">
-                            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+    <div class="relative min-h-screen z-10">
+        <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 container-fix" x-data="{ mobileMenuOpen: false }">
+            <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 container-fix">
+                <div class="flex items-center justify-between py-2 sm:py-3 gap-1 sm:gap-2">
+                    <div class="flex items-center flex-fix" data-aos="fade-right">
+                        <a href="{{ route('welcome') }}" class="flex items-center space-x-1 sm:space-x-2">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                 </svg>
                             </div>
-                            <div>
-                                <span style="overflow: visible !important; text-overflow: unset !important; white-space: nowrap !important; max-width: none !important;" class="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                    Portal do Estagiário
-                                </span>
-                            </div>
+                            <span class="logo-text-fix text-xs sm:text-sm md:text-base lg:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                Portal do Estagiário
+                            </span>
                         </a>
                     </div>
+                    
                     <!-- Menu Desktop -->
-                    <nav class="hidden lg:flex space-x-8" data-aos="fade-down">
-                        <a href="{{ route('welcome') }}#cursos" class="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Cursos Disponíveis</a>
-                        <a href="{{ route('welcome') }}#documentos" class="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Editais e Documentos</a>
-                        <a href="{{ route('classificacao.index') }}" class="text-base font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200">Classificação</a>
-                        <a href="{{ route('welcome') }}#sobre" class="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Sobre</a>
+                    <nav class="hidden lg:flex space-x-2 xl:space-x-4 flex-fix" data-aos="fade-down">
+                        <a href="{{ route('welcome') }}#cursos" class="text-xs lg:text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Cursos</a>
+                        <a href="{{ route('welcome') }}#documentos" class="text-xs lg:text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Docs</a>
+                        <a href="{{ route('classificacao.index') }}" class="text-xs lg:text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200">Ranking</a>
+                        <a href="{{ route('welcome') }}#sobre" class="text-xs lg:text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">Sobre</a>
                     </nav>
+
                     <!-- Botões de Auth Desktop -->
-                    <div class="hidden sm:flex items-center space-x-2 flex-shrink-0" data-aos="fade-left">
+                    <div class="hidden sm:flex items-center space-x-1 flex-shrink-0" data-aos="fade-left">
                         @if (Route::has('login'))
                             @auth
-                                <a href="{{ url('/dashboard') }}" class="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl">Painel</a>
+                                <a href="{{ url('/dashboard') }}" class="px-2 lg:px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl">Painel</a>
                             @else
-                                <a href="{{ route('login') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-200">Entrar</a>
+                                <a href="{{ route('login') }}" class="text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-200 px-1">Entrar</a>
+
                                 @if (Route::has('register'))
-                                    <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl sm:px-6">
-                                        Inscreva-se
+                                    <a href="{{ route('register') }}" class="px-2 lg:px-3 py-1.5 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+                                        Cadastro
                                     </a>
                                 @endif
                             @endauth
                         @endif
                     </div>
+
                     <!-- Botão do Menu Mobile -->
-                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="sm:hidden p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition-colors duration-200">
-                        <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="sm:hidden p-1.5 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition-colors duration-200 flex-shrink-0">
+                        <svg x-show="!mobileMenuOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
-                        <svg x-show="mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-cloak>
+                        <svg x-show="mobileMenuOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-cloak>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
             </div>
+
             <!-- Menu Mobile -->
             <div x-show="mobileMenuOpen" 
                  x-transition:enter="transition ease-out duration-200"
@@ -268,6 +239,7 @@
                     <a href="{{ route('welcome') }}#documentos" class="block text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200" @click="mobileMenuOpen = false">Editais e Documentos</a>
                     <a href="{{ route('classificacao.index') }}" class="block text-base font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200" @click="mobileMenuOpen = false">Classificação</a>
                     <a href="{{ route('welcome') }}#sobre" class="block text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200" @click="mobileMenuOpen = false">Sobre</a>
+                    
                     <!-- Auth buttons para mobile -->
                     <div class="pt-3 border-t border-gray-200 space-y-3">
                         @if (Route::has('login'))
@@ -275,6 +247,7 @@
                                 <a href="{{ url('/dashboard') }}" class="block w-full text-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg" @click="mobileMenuOpen = false">Painel</a>
                             @else
                                 <a href="{{ route('login') }}" class="block text-center text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-200" @click="mobileMenuOpen = false">Entrar</a>
+
                                 @if (Route::has('register'))
                                     <a href="{{ route('register') }}" class="block w-full text-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg" @click="mobileMenuOpen = false">
                                         Inscreva-se
@@ -286,9 +259,11 @@
                 </div>
             </div>
         </header>
-        <main>
-            @yield('content')
+
+        <main> {{-- ✅ ESTA É A ÁREA ONDE O CONTEÚDO ESPECÍFICO DE CADA PÁGINA SERÁ INJETADO --}}
+            @yield('content') {{-- Esta linha é o ponto de injeção --}}
         </main>
+        
         <footer class="bg-gray-900 text-white py-8 sm:py-12">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 text-center sm:text-left">
@@ -326,6 +301,7 @@
                             </a>
                         </div>
                     </div>
+
                     {{-- Coluna 2: Navegação --}}
                     <div data-aos="fade-up" data-aos-duration="1000">
                         <h4 class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Navegação</h4>
@@ -336,6 +312,7 @@
                             <li><a href="{{ route('termos-de-uso') }}" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Termos de Uso</a></li>
                         </ul>
                     </div>
+
                     {{-- Coluna 3: Legislação --}}
                     <div data-aos="fade-left" data-aos-duration="1000" data-aos-delay="300">
                         <h4 class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Legislação</h4>
@@ -345,6 +322,7 @@
                             <li><a href="https://leismunicipais.com.br/a1/mt/m/mirassol-do-oeste/decreto/2023/446/4458/decreto-n-4458-2023-dispoe-sobre-a-criacao-de-banco-de-curriculos-para-estagio-remunerado-de-diversas-areas-do-ensino-superior-e-estabelece-criterios-para-selecao-dos-candidatos?q=4.458" target="_blank" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm break-words">Decreto nº 4.458/23</a></li>
                         </ul>
                     </div>
+
                     {{-- Coluna 4: Contato --}}
                     <div data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
                         <h4 class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Contato</h4>
@@ -354,12 +332,14 @@
                         </ul>
                     </div>
                 </div>
+
                 <div class="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-800 text-center text-gray-400 text-xs sm:text-sm">
                     &copy; {{ date('Y') }} Portal do Estagiário. Todos os direitos reservados.
                 </div>
             </div>
         </footer>
     </div>
+
     <script>
         AOS.init({
             duration: 1000,

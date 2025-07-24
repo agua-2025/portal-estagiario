@@ -13,81 +13,81 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        /* --- CORREÇÕES FINAIS PARA CONTER TOTALMENTE A LARGURA --- */
-        /* Reforçando contenção no html e body */
+        /* --- CORREÇÃO PRINCIPAL PARA OVERFLOW HORIZONTAL --- */
+        /* Reset mais agressivo */
         html, body {
-            max-width: 100vw;
-            overflow-x: hidden;
             margin: 0;
             padding: 0;
-            width: 100%;
-            /* Impedir qualquer elemento filho de forçar largura */
-            position: relative;
+            /* width: 100%; */ /* Removido temporariamente para teste */
+            max-width: 100vw;
+            overflow-x: hidden;
+            /* Impedir qualquer scroll horizontal */
+            position: relative; 
         }
 
-        /* Reforçando box-sizing */
+        /* Forçar todos os elementos a respeitarem a largura da tela */
         *, *::before, *::after {
+            box-sizing: border-box; /* Já estava, reforçando */
             max-width: 100%;
-            box-sizing: border-box;
-            /* Impedir elementos absolutos de escaparem */
-            left: 0 !important;
-            right: 0 !important;
+            /* word-wrap: break-word; */ /* Pode interferir em alguns layouts */
         }
 
-        /* Contenção absoluta do contêiner principal */
+        /* Contêiner principal - Forçar restrição */
         .relative.min-h-screen.z-10 {
             width: 100%;
             max-width: 100vw;
             overflow-x: hidden;
             margin: 0;
             padding: 0;
-            position: relative;
         }
 
-        /* Contenção ABSOLUTA do contêiner de fundo e blobs */
+         /* Fixar o contêiner dos blobs para não ultrapassar */
         .fixed.inset-0.overflow-hidden.pointer-events-none.z-0 {
             width: 100vw;
             max-width: 100vw;
-            overflow: hidden !important; /* Força esconder qualquer overflow */
-            left: 0 !important;
-            right: 0 !important;
-            position: fixed !important;
-            top: 0 !important;
-            bottom: 0 !important;
-            /* Isola completamente este elemento e seus filhos */
-            contain: strict !important;
-        }
-
-        /* Correção FINAL para os blobs */
-        .blob {
-            position: absolute !important;
-            /* Limitar tamanho máximo dos blobs */
-            max-width: calc(100vw - 20px) !important;
-            max-height: calc(100vh - 20px) !important;
-            width: auto !important;
-            height: auto !important;
-            /* Garantir que o blur não cause overflow */
-            filter: blur(40px) !important;
-            /* Desativar animações que podem causar overflow em edge cases */
-            /* animation: none !important; */ /* Descomente se ainda tiver problema */
-        }
-
-        /* Forçar contenção nas classes max-w-7xl do Tailwind */
-        .max-w-7xl {
-            max-width: min(80rem, 100vw) !important; /* Não ultrapassar 100vw */
-            width: 100% !important;
-        }
-
-        /* Garantir que o header não force largura */
-        header {
-            width: 100vw;
-            max-width: 100vw;
+            overflow: hidden; /* Era overflow-hidden, reforçando */
             left: 0;
             right: 0;
-            overflow-x: hidden;
         }
 
-        /* --- SEUS ESTILOS EXISTENTES (mantidos e ajustados) --- */
+        /* Ajuste CRÍTICO nos blobs para garantir que não forcem largura */
+        .blob {
+            /* Manter as propriedades existentes */
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: blob 7s infinite;
+            /* --- Correções críticas --- */
+            position: absolute;
+            /* Impedir que o width ou height intrínseco ultrapasse */
+            max-width: 100vw; 
+            max-height: 100vh; 
+            /* Garantir que o translate não os jogue para fora da tela de forma invisível */
+            /* Isso pode precisar de ajuste fino visual */
+        }
+        /* Ajustar posições dos blobs para serem mais seguras */
+        .blob.absolute.top-0.left-0 { /* Blob 1 */
+            /* top: 0; left: 0; */ /* Mantém */
+            /* width e height definidos inline, mas limitamos com max-width/max-height */
+            transform: translate(-50%, -50%); /* Mantém */
+        }
+        .blob.absolute.top-1\/2.right-0 { /* Blob 2 */
+            top: 50%; /* top-1/2 */
+            right: 0; /* right-0 */
+            transform: translate(33.333333%, -50%); /* translate-x-1/3 */
+            /* Adicionando limites de segurança */
+            max-width: calc(100vw - 50px); /* Evitar ultrapassar muito */
+        }
+        .blob.absolute.bottom-0.left-1\/3 { /* Blob 3 */
+            bottom: 0; /* bottom-0 */
+            left: 33.333333%; /* left-1/3 */
+            transform: translateY(50%); /* translate-y-1/2 */
+             /* Adicionando limites de segurança */
+            max-width: calc(100vw - 50px); 
+        }
+
+
+        /* --- Estilos Originais (mantidos) --- */
         * {
             font-family: 'Inter', sans-serif;
         }
@@ -115,13 +115,24 @@
         .text-shadow {
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
-        /* .blob { ... } - Removido daqui, já definido acima */
+        
         @keyframes blob {
             0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(10px, -20px) scale(1.05); } /* Movimento reduzido */
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        /* Ajustar animação dos blobs para não ultrapassar */
+        .blob:not(.blob.absolute.top-0.left-0) { /* Aplicar aos blobs 2 e 3 */
+            animation: blob-contained 7s infinite;
+        }
+        @keyframes blob-contained {
+             0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(15px, -25px) scale(1.05); } /* Movimento reduzido */
             66% { transform: translate(-10px, 10px) scale(0.95); } /* Movimento reduzido */
             100% { transform: translate(0px, 0px) scale(1); }
         }
+
         .stats-counter {
             animation: countUp 2s ease-out;
         }
@@ -135,6 +146,7 @@
         .status-approved { background-color: #d4edda; color: #155724; } /* bg-green-100 text-green-800 */
         .status-rejected { background-color: #f8d7da; color: #721c24; } /* bg-red-100 text-red-800 */
         .status-analise { background-color: #fff3cd; color: #856404; } /* bg-yellow-100 text-yellow-800 */
+
         /* Correção específica para o texto do logo */
         .logo-text-fix {
             overflow: visible !important;
@@ -171,9 +183,9 @@
         /* Melhorias para mobile */
         @media (max-width: 768px) {
             .blob {
-                width: 150px !important; /* Reduzido */
-                height: 150px !important;
-                max-width: calc(100vw - 20px) !important;
+                width: 200px !important;
+                height: 200px !important;
+                 max-width: calc(100vw - 20px) !important; /* Ajuste mais forte */
             }
             .floating {
                 animation: none; /* Remove animação em mobile para performance */
@@ -190,17 +202,25 @@
             .text-sm { font-size: 0.75rem; }
         }
     </style>
+    /* --- DIAGNÓSTICO TEMPORÁRIO - REMOVER DEPOIS --- */
+/* Isso vai pintar de vermelho qualquer elemento que esteja saindo da tela */
+body * {
+    outline: 1px solid red;
+}
+/* --- FIM DO DIAGNÓSTICO --- */
 </head>
-<!-- Reforçando overflow-x-hidden no body -->
+<!-- Adicionado overflow-x-hidden à tag body também -->
 <body class="antialiased bg-gray-50 overflow-x-hidden">
-    <!-- Reforçando contenção no contêiner de fundo -->
+    <!-- Blobs de fundo - ajustados -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <!-- Blobs com tamanhos limitados -->
+        <!-- Blob 1 - Canto superior esquerdo -->
         <div class="blob absolute top-0 left-0 w-48 sm:w-72 h-48 sm:h-72 opacity-20 -translate-x-1/2 -translate-y-1/2"></div>
+        <!-- Blob 2 - Meio direito -->
         <div class="blob absolute top-1/2 right-0 w-64 sm:w-96 h-64 sm:h-96 opacity-15 translate-x-1/3 -translate-y-1/2" style="animation-delay: 2s;"></div>
+        <!-- Blob 3 - Canto inferior esquerdo -->
         <div class="blob absolute bottom-0 left-1/3 w-56 sm:w-80 h-56 sm:h-80 opacity-10 translate-y-1/2" style="animation-delay: 4s;"></div>
     </div>
-    <!-- Reforçando contenção no contêiner principal -->
+    <!-- Este é o div principal que agora tem overflow-x-hidden -->
     <div class="relative min-h-screen z-10 overflow-x-hidden">
         <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -286,8 +306,8 @@
                 </div>
             </div>
         </header>
-        <main>
-            @yield('content')
+        <main> {{-- ✅ ESTA É A ÁREA ONDE O CONTEÚDO ESPECÍFICO DE CADA PÁGINA SERÁ INJETADO --}}
+            @yield('content') {{-- Esta linha é o ponto de injeção --}}
         </main>
         <footer class="bg-gray-900 text-white py-8 sm:py-12">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
