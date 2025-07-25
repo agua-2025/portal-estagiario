@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\TipoDeAtividadeController;
 use App\Http\Controllers\Admin\CandidatoController; 
 use App\Http\Controllers\Admin\AtividadeAnaliseController; 
 use App\Http\Controllers\Admin\PageController; 
+use App\Http\Controllers\Admin\UserController;
 
 
 /*
@@ -83,11 +84,13 @@ Route::get('/api/cidades/{estado}', function (Estado $estado) {
 | Rotas de Usuário Logado (Candidato ou Admin)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->group(function () {
+// ✅ ADICIONADO: 'verified' middleware para exigir verificação de e-mail
+Route::middleware(['auth', 'verified'])->group(function () {
     
     // Rota de dashboard inteligente
-    Route::get('/dashboard', function () {
-        if (Auth::user()->role === 'admin') {
+Route::get('/dashboard', function () {
+        // ✅ ADICIONADO: Verifica se o usuário tem o papel 'admin' via Spatie
+        if (Auth::user()->hasRole('admin')) {
             return redirect()->route('admin.dashboard');
         }
         // Aponta para o painel do candidato
@@ -128,7 +131,8 @@ Route::middleware('auth')->group(function () {
 | Rotas do Painel Administrativo
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', \App\Http\Middleware\CheckAdminRole::class]) 
+// ✅ ADICIONADO: 'verified' middleware para exigir verificação de e-mail também para admins
+Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckAdminRole::class]) 
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -141,6 +145,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckAdminRole::class])
         Route::resource('candidatos', CandidatoController::class);
         Route::resource('pages', PageController::class);
 
+        Route::resource('users', UserController::class); 
         
         Route::post('/atividades/{atividade}/aprovar', [AtividadeAnaliseController::class, 'aprovar'])->name('atividades.aprovar');
         Route::post('/atividades/{atividade}/rejeitar', [AtividadeAnaliseController::class, 'rejeitar'])->name('atividades.rejeitar');

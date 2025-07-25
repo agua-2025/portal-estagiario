@@ -44,7 +44,12 @@
         <div class="block mt-4">
             <label for="terms" class="inline-flex items-center">
                 <input id="terms" type="checkbox" name="terms" x-model="terms" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"/>
-                <span class="ms-2 text-sm text-gray-600">Eu li e concordo com os <a href="#" class="underline hover:text-gray-900">Termos de Uso e Política de Privacidade</a>.</span>
+                <span class="ms-2 text-sm text-gray-600">
+                    Eu li e concordo com os 
+                    <a target="_blank" href="{{ route('termos-de-uso') }}" class="underline hover:text-gray-900">Termos de Uso</a> 
+                    e 
+                    <a target="_blank" href="{{ route('politica-privacidade') }}" class="underline hover:text-gray-900">Política de Privacidade</a>.
+                </span>
             </label>
             {{-- Mostra erro se o utilizador tentar submeter sem marcar --}}
             <x-input-error :messages="$errors->get('terms')" class="mt-2" />

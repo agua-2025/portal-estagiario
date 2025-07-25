@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,18 +11,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Chama nossos seeders customizados primeiro
+        // Chama nossos seeders customizados
         $this->call([
             EstadosSeeder::class,
             CidadesSeeder::class,
             AdminUserSeeder::class,
+            RolesAndPermissionsSeeder::class,
         ]);
 
-        // O código abaixo é o padrão do Laravel para criar um usuário de teste.
-        // É útil para testes e podemos mantê-lo.
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // O User::factory()->create() para 'test@example.com' foi removido aqui
+        // para evitar a criação duplicada do usuário de teste.
+        // Se precisar de um usuário de teste no futuro, considere User::firstOrCreate().
     }
 }

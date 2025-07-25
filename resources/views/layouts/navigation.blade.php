@@ -29,6 +29,13 @@
                             <x-nav-link :href="route('admin.candidatos.index')" :active="request()->routeIs('admin.candidatos.*')">
                                 {{ __('Candidatos') }}
                             </x-nav-link>
+                            {{-- ✅ ADICIONADO: Link para Gerenciar Usuários --}}
+{{-- Use a diretiva @can do Spatie para mostrar o link apenas para quem tem a permissão --}}
+@can('gerenciar_usuarios') {{-- Ou @role('admin') se quiser limitar apenas ao papel admin --}}
+    <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+        {{ __('Gerenciar Usuários') }}
+    </x-nav-link>
+@endcan
                              {{-- ✅ ADICIONADO: Link para Gerenciar Páginas (apenas para Admin) --}}
                             <x-nav-link :href="route('admin.pages.index')" :active="request()->routeIs('admin.pages.*')">
                                 {{ __('Páginas') }}
