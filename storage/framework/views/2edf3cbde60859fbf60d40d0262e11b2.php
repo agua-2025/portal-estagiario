@@ -1,3 +1,6 @@
+
+
+
 <?php $__env->startSection('title', 'Gerenciar Páginas'); ?>
 
 <?php $__env->startSection('content'); ?>

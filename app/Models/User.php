@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Candidato;
+use Spatie\Permission\Traits\HasRoles; // <-- ADICIONE ESTA LINHA
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles; // <-- ADICIONE 'HasRoles' AQUI
 
     protected $fillable = [
         'name',
@@ -34,7 +36,4 @@ class User extends Authenticatable
     {
         return $this->hasOne(Candidato::class);
     }
-
-    // ✅ AJUSTE: As relações 'documentos()' e 'candidatoAtividades()' foram removidas
-    // pois agora pertencem ao Model 'Candidato'.
 }
