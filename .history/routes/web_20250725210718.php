@@ -97,24 +97,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rotas do Perfil do Candidato
     Route::get('/meu-perfil', [CandidatoProfileController::class, 'edit'])->name('candidato.profile.edit');
-    Route::put('/meu-perfil', [CandidatoProfileController::class, 'update'])->name('candidato.profile.update');
+    Route.put('/meu-perfil', [CandidatoProfileController::class, 'update'])->name('candidato.profile.update');
 
     // Rotas de Documentos do Candidato
     Route::get('/meus-documentos', [DocumentoController::class, 'index'])->name('candidato.documentos.index'); 
     Route::post('/meus-documentos', [DocumentoController::class, 'store'])->name('candidato.documentos.store');
-    Route::get('/documentos/{documento}', [DocumentoController::class, 'show'])->name('candidato.documentos.show');
+    Route.get('/documentos/{documento}', [DocumentoController::class, 'show'])->name('candidato.documentos.show');
     
     // Rotas de Atividades do Candidato
     Route::delete('/candidato/atividades/{atividade}', [AtividadeController::class, 'destroy'])->name('candidato.atividades.destroy'); 
     Route::get('/minhas-atividades', [AtividadeController::class, 'index'])->name('candidato.atividades.index'); 
     Route::post('/minhas-atividades', [AtividadeController::class, 'store'])->name('candidato.atividades.store');
-    Route::get('/candidato/atividades/{atividade}/edit', [AtividadeController::class, 'edit'])->name('candidato.atividades.edit');
-    Route::put('/candidato/atividades/{atividade}', [AtividadeController::class, 'update'])->name('candidato.atividades.update');
-    Route::get('/atividades/{atividade}/visualizar', [AtividadeController::class, 'show'])->name('candidato.atividades.show');
+    Route.get('/candidato/atividades/{atividade}/edit', [AtividadeController::class, 'edit'])->name('candidato.atividades.edit');
+    Route.put('/candidato/atividades/{atividade}', [AtividadeController::class, 'update'])->name('candidato.atividades.update');
+    Route.get('/atividades/{atividade}/visualizar', [AtividadeController::class, 'show'])->name('candidato.atividades.show');
 
     // Rotas de Recurso do Candidato
     Route::get('/meu-recurso', [RecursoController::class, 'create'])->name('candidato.recurso.create');
-    Route::post('/meu-recurso', [RecursoController::class, 'store'])->name('candidato.recurso.store');
+    Route.post('/meu-recurso', [RecursoController::class, 'store'])->name('candidato.recurso.store');
 });
 
 
@@ -123,8 +123,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 | Rotas do Painel Administrativo
 |--------------------------------------------------------------------------
 */
-// CORREÇÃO: Removido 'role:admin' e usando verificação manual
-Route::middleware(['auth', 'verified']) 
+// Usamos o middleware 'role:admin' do Spatie para proteger todo o grupo
+Route::middleware(['auth', 'verified', 'role:admin']) 
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -133,28 +133,28 @@ Route::middleware(['auth', 'verified'])
         
         Route::resource('instituicoes', InstituicaoController::class);
         Route::resource('cursos', AdminCursoController::class); // CORRIGIDO AQUI!
-        Route::resource('tipos-de-atividade', TipoDeAtividadeController::class); // CORRIGIDO AQUI!
-        Route::resource('candidatos', CandidatoController::class);
-        Route::resource('pages', PageController::class);
+        Route.resource('tipos-de-atividade', TipoDeAtividadeController::class); // CORRIGIDO AQUI!
+        Route.resource('candidatos', CandidatoController::class);
+        Route.resource('pages', PageController::class);
 
         // Rotas para Gerenciamento de Usuários (com o novo UserController)
-        Route::resource('users', UserController::class); // Importado no topo
+        Route.resource('users', UserController::class); // Importado no topo
        // Rota para reenviar email de verificação
-        Route::post('users/{user}/resend-verification', [UserController::class, 'resendVerificationEmail'])
+        Route.post('users/{user}/resend-verification', [UserController::class, 'resendVerificationEmail'])
             ->name('users.resend-verification');
 
         Route::post('/atividades/{atividade}/aprovar', [AtividadeAnaliseController::class, 'aprovar'])->name('atividades.aprovar');
-        Route::post('/atividades/{atividade}/rejeitar', [AtividadeAnaliseController::class, 'rejeitar'])->name('atividades.rejeitar');
+        Route.post('/atividades/{atividade}/rejeitar', [AtividadeAnaliseController::class, 'rejeitar'])->name('atividades.rejeitar');
 
         // Rota de atualização de status de documentos (para o admin)
-        Route::put('/documentos/{documento}/status', [CandidatoController::class, 'updateDocumentStatus'])->name('documentos.updateStatus');
+        Route.put('/documentos/{documento}/status', [CandidatoController::class, 'updateDocumentStatus'])->name('documentos.updateStatus');
         
         // NOVA ROTA PARA HOMOLOGAR O CANDIDATO
-        Route::post('candidatos/{candidato}/homologar', [CandidatoController::class, 'homologar'])->name('candidatos.homologar');
+        Route.post('candidatos/{candidato}/homologar', [CandidatoController::class, 'homologar'])->name('candidatos.homologar');
         
         // Rotas para decisão do recurso
-        Route::post('recursos/{candidato}/deferir', [CandidatoController::class, 'deferirRecurso'])->name('recursos.deferir');
-        Route::post('recursos/{candidato}/indeferir', [CandidatoController::class, 'indeferirRecurso'])->name('recursos.indeferir'); // CORRIGIDO AQUI!
+        Route.post('recursos/{candidato}/deferir', [CandidatoController::class, 'deferirRecurso'])->name('recursos.deferir');
+        Route.post('recursos/{candidato}/indeferir', [CandidatoController::class, 'indeferirRecurso'])->name('recursos.indeferir'); // CORRIGIDO AQUI!
 });
 
 // ✅ ROTA DE TESTE - RESTAURADA

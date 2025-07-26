@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User; // Importa o modelo User
-use App\Models\Candidato; // Importa o modelo Candidato
 use Spatie\Permission\Models\Role; // Importa o modelo Role do Spatie
 use Spatie\Permission\Models\Permission; // Importa o modelo Permission do Spatie
 use Illuminate\Support\Facades\DB; // Para transações
@@ -78,9 +77,32 @@ class RolesAndPermissionsSeeder extends Seeder
             ]);
             $this->command->info('Permissões específicas atribuídas ao papel "estagiario".');
 
-            // --- ATRIBUINDO PAPÉIS AOS USUÁRIOS EXISTENTES (APENAS CANDIDATOS AQUI) ---
+            // --- ATRIBUINDO PAPÉIS AOS USUÁRIOS EXISTENTES ---
 
-            // Atribui o papel 'estagiario' a todos os usuários que têm um perfil de candidato
+            // 1. Encontra e atribui o papel 'admin' ao seu usuário administrador
+            // ✅ EMAIL DO SEU ADMIN DE TESTE AQUI!
+            $adminUser = User::where('email', 'marcio@mirassoldoeste.com.br')->first(); // <-- AGORA ESTÁ CORRETO
+
+            if ($adminUser) {
+                // Marca o e-mail do admin como verificado
+                // Isso é essencial para ambientes de desenvolvimento e para que a verificação de e-mail funcione.
+                if (is_null($adminUser->email_verified_at)) {
+                    $adminUser->email_verified_at = Carbon::now();
+                    $adminUser->save();
+                    $this->command->warn('E-mail do admin ' . $adminUser->email . ' marcado como verificado.');
+                }
+                
+                if (!$adminUser->hasRole('admin')) {
+                    $adminUser->assignRole('admin');
+                    $this->command->info('Papel "admin" atribuído ao usuário admin: ' . $adminUser->email);
+                } else {
+                    $this->command->info('Usuário admin com email \'' . $adminUser->email . '\' já possui o papel \'admin\'.');
+                }
+            } else {
+                $this->command->error('Usuário admin com email \'marcio@mirassoldoeste.com.br\' não encontrado. Não foi possível atribuir o papel \'admin\'.');
+            }
+
+            // 2. Atribui o papel 'estagiario' a todos os usuários que têm um perfil de candidato
             $candidatoUsers = User::whereHas('candidato')->get(); // Pega todos os Users que têm um Candidato associado
 
             foreach ($candidatoUsers as $candidatoUser) {

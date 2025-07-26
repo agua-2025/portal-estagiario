@@ -23,7 +23,7 @@ class AdminUserSeeder extends Seeder
         $adminUser = User::firstOrCreate(
             ['email' => 'marcio@mirassoldoeste.mt.gov.br'], // <-- NOVO EMAIL AQUI
             [
-                'name' => 'Márcio',
+                'name' => 'Márcio Admin',
                 'password' => Hash::make('password'), // Altere 'password' para uma senha segura em desenvolvimento
                 'role' => 'admin', // Mantém a coluna role por enquanto, conforme nossa discussão
                 'email_verified_at' => now(), // Marca como verificado para facilitar login em dev

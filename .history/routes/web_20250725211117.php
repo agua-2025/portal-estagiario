@@ -123,8 +123,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 | Rotas do Painel Administrativo
 |--------------------------------------------------------------------------
 */
-// CORREÇÃO: Removido 'role:admin' e usando verificação manual
-Route::middleware(['auth', 'verified']) 
+// Usamos o middleware 'role:admin' do Spatie para proteger todo o grupo
+Route::middleware(['auth', 'verified', 'role:admin']) 
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
