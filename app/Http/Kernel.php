@@ -55,5 +55,11 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin' => \App\Http\Middleware\CheckAdminRole::class,
+        // ✅ ADICIONADO: Middlewares do Spatie Laravel-Permission - MOVIDOS PARA CÁ!
+        'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
+        'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
+        'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
+        'abilities' => \Spatie\Permission\Middlewares\CheckAbilities::class, // Para Passport, se estiver usando
+        // Opcional: 'role_or_permission_strict' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class, 
     ];
 }

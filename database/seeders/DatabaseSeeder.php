@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -11,16 +12,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Chama nossos seeders customizados
         $this->call([
+            // Seeders que NÃO dependem de roles/permissions primeiro
             EstadosSeeder::class,
             CidadesSeeder::class,
-            AdminUserSeeder::class,
-            RolesAndPermissionsSeeder::class,
+            
+            // CRUCIAL: RolesAndPermissionsSeeder DEVE ser chamado ANTES de qualquer seeder que ATRIBUA roles
+            RolesAndPermissionsSeeder::class, // <-- ESTE DEVE VIR PRIMEIRO PARA ROLES/PERMISSIONS
+
+            // Seeders que dependem de roles/permissions ou atribuem roles
+            AdminUserSeeder::class, // <-- ESTE VEM DEPOIS QUE AS ROLES FORAM CRIADAS
         ]);
 
-        // O User::factory()->create() para 'test@example.com' foi removido aqui
-        // para evitar a criação duplicada do usuário de teste.
-        // Se precisar de um usuário de teste no futuro, considere User::firstOrCreate().
+        // Removido o Test User aqui conforme sua preferência
     }
 }
+

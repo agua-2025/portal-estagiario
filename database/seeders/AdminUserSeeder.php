@@ -21,9 +21,9 @@ class AdminUserSeeder extends Seeder
         // garantindo que, independentemente da ordem de execução dos seeders,
         // o admin sempre terá o papel correto.
         $adminUser = User::firstOrCreate(
-            ['email' => 'marcio@mirassoldoeste.com.br'], // <-- NOVO EMAIL AQUI
+            ['email' => 'marcio@mirassoldoeste.mt.gov.br'], // <-- NOVO EMAIL AQUI
             [
-                'name' => 'Márcio Admin',
+                'name' => 'Márcio',
                 'password' => Hash::make('password'), // Altere 'password' para uma senha segura em desenvolvimento
                 'role' => 'admin', // Mantém a coluna role por enquanto, conforme nossa discussão
                 'email_verified_at' => now(), // Marca como verificado para facilitar login em dev

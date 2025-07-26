@@ -4,188 +4,199 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Candidato; // Para associar candidatos ao criar novos usuários
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
-use Spatie\Permission\Models\Role; // Importar o modelo Role do Spatie
-use Illuminate\Support\Facades\DB; // Para transações
-use Illuminate\Support\Facades\Log; // Para log de erros
+use Illuminate\Support\Facades\Hash; // Para hashing de senhas
+use Illuminate\Validation\Rules;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Role; // Para Spatie Roles
+use App\Models\Candidato; // Para criar o Candidato associado
+use Illuminate\Support\Facades\Log; // Para logs de aviso
 
 class UserController extends Controller
 {
     /**
-     * Exibe uma lista de todos os usuários do sistema.
+     * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Carrega todos os usuários com seus papéis Spatie
-        $users = User::with('roles')->paginate(15);
-        return view('admin.users.index', compact('users'));
+        // Filtros da requisição
+        $search = $request->input('search');
+        $roleFilter = $request->input('role_filter');
+
+        $query = User::query();
+
+        // Aplicar filtro de busca por nome ou e-mail
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // Aplicar filtro por papel (role)
+        if ($roleFilter) {
+            $query->role($roleFilter); // Método do Spatie para filtrar por papel
+        }
+
+        // Ordenar e paginar resultados
+        $users = $query->orderBy('name')->paginate(15)->withQueryString(); // Adiciona query string para manter filtros na paginação
+
+        // Obter todos os papéis disponíveis para o filtro de dropdown (Spatie)
+        $roles = Role::orderBy('name')->get();
+
+        return view('admin.users.index', compact('users', 'search', 'roleFilter', 'roles'));
     }
 
     /**
-     * Mostra o formulário para criar um novo usuário.
+     * Show the form for creating a new resource.
      */
     public function create()
     {
-        // Pega todos os papéis disponíveis para exibição no formulário
-        $roles = Role::pluck('name', 'id'); // Retorna um array de 'nome_papel' => 'id'
+        $roles = Role::all(); // Obtém todos os papéis do Spatie
         return view('admin.users.create', compact('roles'));
     }
 
     /**
-     * Armazena um novo usuário criado no armazenamento.
+     * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        // Regras de validação para a criação de um novo usuário
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|confirmed', // 'confirmed' exige password_confirmation
-            'roles' => 'array', // Deve ser um array de IDs de papéis
-            'roles.*' => 'exists:roles,id', // Cada ID no array deve existir na tabela roles
-            'is_candidato' => 'boolean', // Flag para indicar se o usuário é um candidato
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'roles' => ['array'], // Deve ser um array de roles (checkboxes)
+            'roles.*' => ['exists:roles,name'], // Cada role no array deve existir na tabela roles
         ]);
 
-        DB::beginTransaction(); // Inicia uma transação de banco de dados
-        try {
-            // Cria o novo usuário
-            $user = User::create([
-                'name' => $validatedData['name'],
-                'email' => $validatedData['email'],
-                'password' => Hash::make($validatedData['password']),
-                // A coluna 'role' legada ainda será preenchida aqui
-                'role' => in_array(Role::where('name', 'admin')->first()->id ?? null, $validatedData['roles'] ?? []) ? 'admin' : 'candidato',
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => in_array('admin', $request->input('roles', [])) ? 'admin' : 'candidato', // Lógica para compatibilidade com a coluna 'role' legada
+            'terms_accepted_at' => now(), // Assume que ao criar pelo admin, ele aceita os termos
+        ]);
+
+        // Atribuir papéis Spatie
+        $user->assignRole($request->input('roles', []));
+
+        // Se o usuário tiver o papel 'estagiario', cria um registro na tabela 'candidatos'
+        if ($user->hasRole('estagiario')) {
+            Candidato::create([
+                'user_id' => $user->id,
+                'nome_completo' => $user->name,
+                'cpf' => '000.000.000-00', // ✅ ATENÇÃO: Placeholder! Você precisará coletar o CPF no formulário
+                'status' => 'Inscrição Incompleta',
+                // Outros campos obrigatórios de Candidato se houver
             ]);
-
-            // Sincroniza os papéis Spatie para o novo usuário
-            if (isset($validatedData['roles'])) {
-                $user->syncRoles($validatedData['roles']);
-            } else {
-                // Se nenhum papel foi selecionado, atribui 'estagiario' por padrão para não admin
-                // Ou você pode optar por não atribuir nenhum papel por padrão
-                if (!($user->hasRole('admin'))) {
-                    $user->assignRole('estagiario');
-                }
-            }
-            
-            // Se o usuário foi marcado como candidato, cria um perfil de Candidato
-            if (isset($validatedData['is_candidato']) && $validatedData['is_candidato']) {
-                $user->assignRole('estagiario'); // Garante que o User tenha o papel 'estagiario'
-                Candidato::create([
-                    'user_id' => $user->id,
-                    'nome_completo' => $user->name,
-                    'cpf' => '000.000.000-00', // CPF placeholder, deve ser preenchido pelo candidato
-                    // Outros campos obrigatórios do Candidato precisam de valores padrão ou serem coletados no formulário
-                ]);
-            }
-
-
-            DB::commit(); // Confirma a transação
-            return redirect()->route('admin.users.index')->with('success', 'Usuário criado com sucesso!');
-
-        } catch (\Exception $e) {
-            DB::rollBack(); // Reverte a transação em caso de erro
-            Log::error("Erro ao criar usuário: " . $e->getMessage(), ['request_data' => $request->all()]);
-            return redirect()->back()->with('error', 'Ocorreu um erro ao criar o usuário.')->withInput();
         }
+
+        event(new Registered($user)); // Dispara evento para enviar e-mail de verificação
+
+        return redirect()->route('admin.users.index')->with('success', 'Usuário criado com sucesso!');
     }
 
     /**
-     * Exibe o perfil de um usuário específico.
+     * Display the specified resource.
      */
     public function show(User $user)
     {
-        $user->load('roles'); // Carrega os papéis do Spatie
-        $user->load('candidato'); // Carrega o perfil do candidato se existir
+        // Carrega os papéis do usuário para exibição
+        $user->load('roles');
         return view('admin.users.show', compact('user'));
     }
 
     /**
-     * Mostra o formulário para editar o usuário especificado.
+     * Show the form for editing the specified resource.
      */
     public function edit(User $user)
     {
-        $roles = Role::pluck('name', 'id');
-        $userRoles = $user->roles->pluck('id')->toArray(); // Pega os IDs dos papéis atuais do usuário
-        return view('admin.users.edit', compact('user', 'roles', 'userRoles'));
+        $roles = Role::all(); // Obtém todos os papéis para o formulário de edição
+        $user->load('roles'); // Carrega os papéis atuais do usuário para marcar no formulário
+        return view('admin.users.edit', compact('user', 'roles'));
     }
 
     /**
-     * Atualiza o usuário especificado no armazenamento.
+     * Update the specified resource in storage.
      */
     public function update(Request $request, User $user)
     {
-        // Regras de validação para a atualização de um usuário
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'password' => 'nullable|string|min:8|confirmed', // Senha opcional para atualização
-            'roles' => 'array',
-            'roles.*' => 'exists:roles,id',
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'roles' => ['array'],
+            'roles.*' => ['exists:roles,name'],
         ]);
 
-        DB::beginTransaction();
+        $user->fill([
+            'name' => $request->name,
+            'email' => $request->email,
+            'role' => in_array('admin', $request->input('roles', [])) ? 'admin' : 'candidato', // Manter compatibilidade
+        ]);
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        // Sincronizar papéis Spatie: remove os antigos e anexa os novos
+        $user->syncRoles($request->input('roles', []));
+
+        // Se o usuário tiver o papel 'estagiario', cria um registro na tabela 'candidatos' se ainda não existir
+        if ($user->hasRole('estagiario') && !$user->candidato) {
+            Candidato::create([
+                'user_id' => $user->id,
+                'nome_completo' => $user->name,
+                'cpf' => '000.000.000-00', // ✅ ATENÇÃO: Placeholder!
+                'status' => 'Inscrição Incompleta',
+            ]);
+        } 
+        // Se o usuário deixar de ser 'estagiario' e tiver um perfil de Candidato, podemos desativá-lo ou pensar em outra lógica
+        // else if (!$user->hasRole('estagiario') && $user->candidato) {
+        //     // Opcional: Desativar ou desvincular o perfil Candidato
+        // }
+
+
+        return redirect()->route('admin.users.index')->with('success', 'Usuário atualizado com sucesso!');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(User $user)
+    {
+        // Impede que o próprio admin logado se exclua
+        if (Auth::id() === $user->id) {
+            return redirect()->back()->with('error', 'Você não pode excluir sua própria conta de administrador.');
+        }
+
         try {
-            // Atualiza os dados básicos do usuário
-            $user->name = $validatedData['name'];
-            $user->email = $validatedData['email'];
-
-            if (!empty($validatedData['password'])) {
-                $user->password = Hash::make($validatedData['password']);
+            // Se o usuário tiver um perfil de Candidato, exclua-o primeiro
+            if ($user->candidato) {
+                $user->candidato->delete();
             }
-
-            // Atualiza a coluna 'role' legada baseada nos papéis Spatie
-            $user->role = in_array(Role::where('name', 'admin')->first()->id ?? null, $validatedData['roles'] ?? []) ? 'admin' : ($user->candidato ? 'candidato' : null);
-            
-            $user->save();
-
-            // Sincroniza os papéis Spatie para o usuário
-            $user->syncRoles($validatedData['roles'] ?? []); // Se nenhum papel for selecionado, remove todos
-
-            // Se o usuário não tiver papel de admin e tiver perfil de candidato, garanta que ele seja 'estagiario'
-            if (!$user->hasRole('admin') && $user->candidato && !$user->hasRole('estagiario')) {
-                 $user->assignRole('estagiario');
-            }
-            // Se o usuário não for mais admin, mas era estagiario, e o papel estagiario nao foi selecionado, garantir que ele ainda o tenha
-            else if (!$user->hasRole('admin') && $user->candidato && !in_array(Role::where('name', 'estagiario')->first()->id ?? null, $validatedData['roles'] ?? [])) {
-                $user->assignRole('estagiario');
-            }
-
-
-            DB::commit();
-            return redirect()->route('admin.users.index')->with('success', 'Usuário atualizado com sucesso!');
-
+            $user->delete();
+            return redirect()->route('admin.users.index')->with('success', 'Usuário excluído com sucesso!');
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Erro ao atualizar usuário ID {$user->id}: " . $e->getMessage());
-            return redirect()->back()->with('error', 'Ocorreu um erro ao atualizar o usuário.')->withInput();
+            Log::error("Erro ao excluir usuário ID {$user->id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocorreu um erro ao excluir o usuário.');
         }
     }
 
     /**
-     * Remove o usuário especificado do armazenamento.
+     * Reenvia o e-mail de verificação para o usuário.
      */
-    public function destroy(User $user)
+    public function resendVerificationEmail(Request $request, User $user)
     {
-        DB::beginTransaction();
-        try {
-            // Se o usuário tiver um perfil de candidato, apague-o primeiro
-            if ($user->candidato) {
-                $user->candidato->delete();
-            }
-            // Então, apague o próprio usuário
-            $user->delete();
-
-            DB::commit();
-            return redirect()->route('admin.users.index')->with('success', 'Usuário e seus dados associados apagados com sucesso!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Erro ao apagar usuário ID {$user->id}: " . $e->getMessage());
-            return redirect()->back()->with('error', 'Ocorreu um erro ao apagar o usuário.');
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->back()->with('info', 'O e-mail deste usuário já está verificado.');
         }
+
+        $user->sendEmailVerificationNotification();
+
+        return redirect()->back()->with('success', 'E-mail de verificação reenviado para ' . $user->email . '.');
     }
 }
