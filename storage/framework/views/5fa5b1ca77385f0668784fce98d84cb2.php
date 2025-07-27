@@ -25,7 +25,57 @@
             </div>
         </div>
      <?php $__env->endSlot(); ?>
+<!-- Mensagens de Sucesso e Erro -->
+<?php if(session('success')): ?>
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-4">
+        <div class="bg-green-50 border border-green-200 rounded-md p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-green-800"><?php echo e(session('success')); ?></p>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
 
+<?php if(session('error')): ?>
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-4">
+        <div class="bg-red-50 border border-red-200 rounded-md p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-red-800"><?php echo e(session('error')); ?></p>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php if(session('info')): ?>
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-800"><?php echo e(session('info')); ?></p>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Card Principal -->
@@ -76,12 +126,11 @@
                                     <?php echo e(__('Filtrar por Papel')); ?>
 
                                 </label>
-                                <select name="role_filter" id="role_filter" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200">
-                                    <option value=""><?php echo e(__('Todos os Papéis')); ?></option>
-                                    <?php $__currentLoopData = $roles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $role): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($role->name); ?>" <?php if(request('role_filter') == $role->name): echo 'selected'; endif; ?>>
-                                            <?php echo e(ucfirst($role->name)); ?>
-
+                                <select name="role" id="role_filter" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200">
+                                    <option value="all"><?php echo e(__('Todos os Papéis')); ?></option>
+                                    <?php $__currentLoopData = $roles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $roleName => $roleLabel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> 
+                                        <option value="<?php echo e($roleName); ?>" <?php echo e(request('role') == $roleName ? 'selected' : ''); ?>>
+                                            <?php echo e(ucfirst($roleLabel)); ?> 
                                         </option>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
@@ -95,11 +144,13 @@
                                         <?php echo e(__('Filtrar')); ?>
 
                                     </button>
-                                    <?php if(request('search') || request('role_filter')): ?>
+                                    <?php if(request('search') || request('role')): ?>
                                         <a href="<?php echo e(route('admin.users.index')); ?>" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg font-medium text-sm text-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                             </svg>
+                                            <?php echo e(__('Limpar')); ?>
+
                                         </a>
                                     <?php endif; ?>
                                 </div>
@@ -232,7 +283,7 @@
                                         <td colspan="4" class="px-6 py-12 text-center">
                                             <div class="flex flex-col items-center">
                                                 <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                                 </svg>
                                                 <h3 class="text-lg font-medium text-gray-900 mb-2"><?php echo e(__('Nenhum usuário encontrado')); ?></h3>
                                                 <p class="text-gray-500 text-sm"><?php echo e(__('Não há usuários correspondentes aos filtros aplicados.')); ?></p>
@@ -243,22 +294,22 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
 
-                <!-- Footer com Paginação -->
-                <?php if($users->hasPages()): ?>
-                <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <div class="text-sm text-gray-600">
-                            Mostrando <?php echo e($users->firstItem()); ?> até <?php echo e($users->lastItem()); ?> de <?php echo e($users->total()); ?> usuários
-                        </div>
-                        <div>
-                            <?php echo e($users->links()); ?>
+                    <!-- Paginação -->
+                    <?php if($users->hasPages()): ?>
+                    <div class="bg-white px-6 py-4 border-t border-gray-200 sm:rounded-b-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-600">
+                                Mostrando <?php echo e($users->firstItem()); ?> até <?php echo e($users->lastItem()); ?> de <?php echo e($users->total()); ?> usuários
+                            </div>
+                            <div>
+                                <?php echo e($users->links()); ?>
 
+                            </div>
                         </div>
                     </div>
+                    <?php endif; ?>
                 </div>
-                <?php endif; ?>
             </div>
         </div>
     </div>
