@@ -14,9 +14,9 @@
                     </x-nav-link>
 
                     {{-- Lógica para mostrar menus diferentes para Admin e Candidato --}}
-                    @auth 
+                    @auth
                         @if (auth()->user()->role === 'admin')
-                            
+
                             <x-nav-link :href="route('admin.instituicoes.index')" :active="request()->routeIs('admin.instituicoes.*')">
                                 {{ __('Instituições') }}
                             </x-nav-link>
@@ -29,14 +29,13 @@
                             <x-nav-link :href="route('admin.candidatos.index')" :active="request()->routeIs('admin.candidatos.*')">
                                 {{ __('Candidatos') }}
                             </x-nav-link>
-                            {{-- ✅ ADICIONADO: Link para Gerenciar Usuários --}}
-{{-- Use a diretiva @can do Spatie para mostrar o link apenas para quem tem a permissão --}}
-@can('gerenciar_usuarios') {{-- Ou @role('admin') se quiser limitar apenas ao papel admin --}}
-    <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
-        {{ __('Gerenciar Usuários') }}
-    </x-nav-link>
-@endcan
-                             {{-- ✅ ADICIONADO: Link para Gerenciar Páginas (apenas para Admin) --}}
+                            {{-- Link para Gerenciar Usuários --}}
+                            @can('gerenciar_usuarios')
+                                <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                                    {{ __('Gerenciar Usuários') }}
+                                </x-nav-link>
+                            @endcan
+                             {{-- Link para Gerenciar Páginas (apenas para Admin) --}}
                             <x-nav-link :href="route('admin.pages.index')" :active="request()->routeIs('admin.pages.*')">
                                 {{ __('Páginas') }}
                             </x-nav-link>
@@ -63,37 +62,23 @@
                                         </x-dropdown-link>
                                         <x-dropdown-link :href="route('candidato.documentos.index')">Enviar Documentos</x-dropdown-link>
                                         <x-dropdown-link :href="route('candidato.atividades.index')">Anexar Atividades</x-dropdown-link>
-                                        
-                                        {{-- ✅ INÍCIO DO AJUSTE CIRÚRGICO --}}
-                                        @php
-                                            $candidato = Auth::user()->candidato;
-                                            $showRecursoLink = false;
-                                            if ($candidato) {
-                                                $isRejeitado = $candidato->status === 'Rejeitado';
-                                                $isHomologadoEmPrazo = $candidato->status === 'Homologado' && $candidato->recurso_tipo === 'classificacao' && $candidato->recurso_prazo_ate && now()->lt($candidato->recurso_prazo_ate);
-                                                if ($isRejeitado || $isHomologadoEmPrazo) {
-                                                    $showRecursoLink = true;
-                                                }
-                                            }
-                                        @endphp
 
-                                        @if($showRecursoLink)
+                                        @if (Auth::user()->candidato?->pode_interpor_recurso)
                                             <div class="border-t border-gray-200"></div>
                                             <x-dropdown-link :href="route('candidato.recurso.create')" class="font-bold text-red-600">
                                                 {{ __('Interpor Recurso') }}
                                             </x-dropdown-link>
                                         @endif
-                                        {{-- ✅ FIM DO AJUSTE --}}
                                     </x-slot>
                                 </x-dropdown>
                             </div>
-                            
+
                         @endif
                     @endauth
                 </div>
 
                 <div class="hidden sm:flex sm:items-center sm:ms-6">
-                    @auth 
+                    @auth
                         <x-dropdown align="right" width="48">
                             <x-slot name="trigger">
                                 <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
@@ -174,26 +159,24 @@
                         {{ __('Candidatos') }}
                     </x-responsive-nav-link>
                 @else {{-- Usuário logado que NÃO é admin (candidato) --}}
-                    {{-- ✅ INÍCIO DO AJUSTE RESPONSIVO --}}
                     <div class="border-t border-gray-200 pt-2">
                         <x-responsive-nav-link :href="route('candidato.profile.edit')">
                             Preencher/Editar Dados
                         </x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('candidato.documentos.index')">
                             Enviar Documentos
-                        </x-responsive-nav-link>
+                        </x--responsive-nav-link>
                         <x-responsive-nav-link :href="route('candidato.atividades.index')">
                             Anexar Atividades
                         </x-responsive-nav-link>
-                        
+
                         {{-- A mesma lógica do menu desktop é aplicada aqui --}}
-                        @if(isset($showRecursoLink) && $showRecursoLink)
+                        @if (Auth::user()->candidato?->pode_interpor_recurso)
                             <x-responsive-nav-link :href="route('candidato.recurso.create')" class="font-bold text-red-600">
                                 {{ __('Interpor Recurso') }}
                             </x-responsive-nav-link>
                         @endif
                     </div>
-                    {{-- ✅ FIM DO AJUSTE RESPONSIVO --}}
                 @endif
             @endauth
         </div>

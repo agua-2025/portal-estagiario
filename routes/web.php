@@ -153,8 +153,8 @@ Route::middleware(['auth', 'verified'])
         Route::post('candidatos/{candidato}/homologar', [CandidatoController::class, 'homologar'])->name('candidatos.homologar');
         
         // Rotas para decisão do recurso
-        Route::post('recursos/{candidato}/deferir', [CandidatoController::class, 'deferirRecurso'])->name('recursos.deferir');
-        Route::post('recursos/{candidato}/indeferir', [CandidatoController::class, 'indeferirRecurso'])->name('recursos.indeferir'); // CORRIGIDO AQUI!
+        Route::post('recursos/{candidato}/deferir/{recurso_index}', [CandidatoController::class, 'deferirRecurso'])->name('recursos.deferir');
+        Route::post('recursos/{candidato}/indeferir/{recurso_index}', [CandidatoController::class, 'indeferirRecurso'])->name('recursos.indeferir');
 });
 
 // ✅ ROTA DE TESTE - RESTAURADA

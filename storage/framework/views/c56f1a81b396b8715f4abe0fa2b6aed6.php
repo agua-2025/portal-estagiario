@@ -52,9 +52,9 @@
 <?php endif; ?>
 
                     
-                    <?php if(auth()->guard()->check()): ?> 
+                    <?php if(auth()->guard()->check()): ?>
                         <?php if(auth()->user()->role === 'admin'): ?>
-                            
+
                             <?php if (isset($component)) { $__componentOriginalc295f12dca9d42f28a259237a5724830 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalc295f12dca9d42f28a259237a5724830 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.nav-link','data' => ['href' => route('admin.instituicoes.index'),'active' => request()->routeIs('admin.instituicoes.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -144,9 +144,8 @@
 <?php unset($__componentOriginalc295f12dca9d42f28a259237a5724830); ?>
 <?php endif; ?>
                             
-
-<?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('gerenciar_usuarios')): ?> 
-    <?php if (isset($component)) { $__componentOriginalc295f12dca9d42f28a259237a5724830 = $component; } ?>
+                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('gerenciar_usuarios')): ?>
+                                <?php if (isset($component)) { $__componentOriginalc295f12dca9d42f28a259237a5724830 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalc295f12dca9d42f28a259237a5724830 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.nav-link','data' => ['href' => route('admin.users.index'),'active' => request()->routeIs('admin.users.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('nav-link'); ?>
@@ -156,9 +155,9 @@
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes(['href' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(route('admin.users.index')),'active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('admin.users.*'))]); ?>
-        <?php echo e(__('Gerenciar Usuários')); ?>
+                                    <?php echo e(__('Gerenciar Usuários')); ?>
 
-     <?php echo $__env->renderComponent(); ?>
+                                 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalc295f12dca9d42f28a259237a5724830)): ?>
 <?php $attributes = $__attributesOriginalc295f12dca9d42f28a259237a5724830; ?>
@@ -168,7 +167,7 @@
 <?php $component = $__componentOriginalc295f12dca9d42f28a259237a5724830; ?>
 <?php unset($__componentOriginalc295f12dca9d42f28a259237a5724830); ?>
 <?php endif; ?>
-<?php endif; ?>
+                            <?php endif; ?>
                              
                             <?php if (isset($component)) { $__componentOriginalc295f12dca9d42f28a259237a5724830 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalc295f12dca9d42f28a259237a5724830 = $attributes; } ?>
@@ -278,21 +277,8 @@
 <?php $component = $__componentOriginal68cb1971a2b92c9735f83359058f7108; ?>
 <?php unset($__componentOriginal68cb1971a2b92c9735f83359058f7108); ?>
 <?php endif; ?>
-                                        
-                                        
-                                        <?php
-                                            $candidato = Auth::user()->candidato;
-                                            $showRecursoLink = false;
-                                            if ($candidato) {
-                                                $isRejeitado = $candidato->status === 'Rejeitado';
-                                                $isHomologadoEmPrazo = $candidato->status === 'Homologado' && $candidato->recurso_tipo === 'classificacao' && $candidato->recurso_prazo_ate && now()->lt($candidato->recurso_prazo_ate);
-                                                if ($isRejeitado || $isHomologadoEmPrazo) {
-                                                    $showRecursoLink = true;
-                                                }
-                                            }
-                                        ?>
 
-                                        <?php if($showRecursoLink): ?>
+                                        <?php if(Auth::user()->candidato?->pode_interpor_recurso): ?>
                                             <div class="border-t border-gray-200"></div>
                                             <?php if (isset($component)) { $__componentOriginal68cb1971a2b92c9735f83359058f7108 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal68cb1971a2b92c9735f83359058f7108 = $attributes; } ?>
@@ -317,7 +303,6 @@
 <?php unset($__componentOriginal68cb1971a2b92c9735f83359058f7108); ?>
 <?php endif; ?>
                                         <?php endif; ?>
-                                        
                                      <?php $__env->endSlot(); ?>
                                  <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
@@ -330,13 +315,13 @@
 <?php unset($__componentOriginaldf8083d4a852c446488d8d384bbc7cbe); ?>
 <?php endif; ?>
                             </div>
-                            
+
                         <?php endif; ?>
                     <?php endif; ?>
                 </div>
 
                 <div class="hidden sm:flex sm:items-center sm:ms-6">
-                    <?php if(auth()->guard()->check()): ?> 
+                    <?php if(auth()->guard()->check()): ?>
                         <?php if (isset($component)) { $__componentOriginaldf8083d4a852c446488d8d384bbc7cbe = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginaldf8083d4a852c446488d8d384bbc7cbe = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.dropdown','data' => ['align' => 'right','width' => '48']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -568,7 +553,6 @@
 <?php unset($__componentOriginald69b52d99510f1e7cd3d80070b28ca18); ?>
 <?php endif; ?>
                 <?php else: ?> 
-                    
                     <div class="border-t border-gray-200 pt-2">
                         <?php if (isset($component)) { $__componentOriginald69b52d99510f1e7cd3d80070b28ca18 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginald69b52d99510f1e7cd3d80070b28ca18 = $attributes; } ?>
@@ -633,9 +617,9 @@
 <?php $component = $__componentOriginald69b52d99510f1e7cd3d80070b28ca18; ?>
 <?php unset($__componentOriginald69b52d99510f1e7cd3d80070b28ca18); ?>
 <?php endif; ?>
+
                         
-                        
-                        <?php if(isset($showRecursoLink) && $showRecursoLink): ?>
+                        <?php if(Auth::user()->candidato?->pode_interpor_recurso): ?>
                             <?php if (isset($component)) { $__componentOriginald69b52d99510f1e7cd3d80070b28ca18 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginald69b52d99510f1e7cd3d80070b28ca18 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.responsive-nav-link','data' => ['href' => route('candidato.recurso.create'),'class' => 'font-bold text-red-600']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -660,7 +644,6 @@
 <?php endif; ?>
                         <?php endif; ?>
                     </div>
-                    
                 <?php endif; ?>
             <?php endif; ?>
         </div>
@@ -777,5 +760,4 @@
             <?php endif; ?>
         </div>
     </div>
-</nav>
-<?php /**PATH C:\laragon\www\portal-estagiario\resources\views/layouts/navigation.blade.php ENDPATH**/ ?>
+</nav><?php /**PATH C:\laragon\www\portal-estagiario\resources\views/layouts/navigation.blade.php ENDPATH**/ ?>

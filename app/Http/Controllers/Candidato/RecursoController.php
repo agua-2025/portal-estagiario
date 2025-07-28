@@ -10,14 +10,14 @@ use Carbon\Carbon;
 class RecursoController extends Controller
 {
     /**
-     * Mostra a página com o formulário para o candidato interpor um recurso.
+     * Mostra o formulário para o candidato interpor um recurso de CLASSIFICAÇÃO.
      */
     public function create()
     {
         $candidato = Auth::user()->candidato;
 
-        // Medida de segurança: só permite acesso se a inscrição estiver de fato rejeitada.
-        if (!$candidato || $candidato->status !== 'Rejeitado') {
+        // A lógica de segurança continua a funcionar perfeitamente.
+        if (!$candidato || !$candidato->pode_interpor_recurso) {
             return redirect()->route('dashboard')->with('error', 'Não há recurso disponível para sua inscrição no momento.');
         }
 
@@ -25,7 +25,7 @@ class RecursoController extends Controller
     }
 
     /**
-     * Armazena o recurso enviado pelo candidato.
+     * Armazena o recurso de CLASSIFICAÇÃO enviado pelo candidato num HISTÓRICO.
      */
     public function store(Request $request)
     {
@@ -33,24 +33,38 @@ class RecursoController extends Controller
             'recurso_texto' => 'required|string|min:50',
         ]);
 
-        $user = Auth::user();
-        $candidato = $user->candidato;
+        $candidato = Auth::user()->candidato;
 
-        // Validações de segurança
-        if (!$candidato || $candidato->status !== 'Rejeitado') {
-            return redirect()->route('dashboard')->with('error', 'Não há recurso pendente para esta inscrição.');
+        // Validação de segurança unificada.
+        if (!$candidato || !$candidato->pode_interpor_recurso) {
+            return redirect()->route('dashboard')->with('error', 'O prazo para enviar o recurso já encerrou ou a condição não é mais válida.');
         }
 
-        if (Carbon::now()->gt($candidato->recurso_prazo_ate)) {
-            return redirect()->route('dashboard')->with('error', 'O prazo para enviar o recurso já encerrou.');
-        }
+        // Pega o histórico existente ou inicia um array vazio.
+        $historico = $candidato->recurso_historico ?? [];
 
-        // Salva o recurso e atualiza os status
-        $candidato->recurso_texto = $request->input('recurso_texto');
-        $candidato->recurso_status = 'em_analise';
-        $candidato->status = 'Em Análise'; // Devolve para a fila de análise do admin
+        // Cria a nova entrada para o histórico.
+        $novoRecurso = [
+            'data_envio'          => now()->toDateTimeString(),
+            'tipo'                => 'classificacao',
+            'argumento_candidato' => $request->input('recurso_texto'),
+            'decisao_admin'       => null, // Será preenchido pelo administrador
+            'justificativa_admin' => null, // Será preenchido pelo administrador
+        ];
+
+        // Adiciona o novo recurso ao início do histórico (array_unshift).
+        array_unshift($historico, $novoRecurso);
+
+        // Atualiza os campos do candidato.
+        $candidato->recurso_historico = $historico;
+        $candidato->recurso_status    = 'em_analise';
+        
+        // Limpa os campos antigos para evitar confusão futura.
+        $candidato->recurso_texto = null;
+        $candidato->recurso_tipo  = null;
+        
         $candidato->save();
 
-        return redirect()->route('dashboard')->with('success', 'Seu recurso foi enviado com sucesso e será analisado pela Comissão.');
+        return redirect()->route('candidato.recurso.create')->with('success', 'Seu recurso foi enviado com sucesso e será analisado pela Comissão.');
     }
 }

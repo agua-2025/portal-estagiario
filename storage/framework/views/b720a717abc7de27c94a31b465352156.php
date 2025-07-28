@@ -1,23 +1,33 @@
-<x-app-layout>
-    <x-slot name="header">
+<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
+<?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('app-layout'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+     <?php $__env->slot('header', null, []); ?> 
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
+            <?php echo e(__('Dashboard')); ?>
+
         </h2>
-    </x-slot>
+     <?php $__env->endSlot(); ?>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            {{-- Cabeçalho e Quadro de Avisos --}}
+            
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 space-y-8">
                     <div class="border-b border-gray-200 pb-6">
-                        <h3 class="text-2xl font-bold text-gray-900">Bem-vindo, {{ $user->name }}!</h3>
+                        <h3 class="text-2xl font-bold text-gray-900">Bem-vindo, <?php echo e($user->name); ?>!</h3>
                         <p class="text-gray-600 mt-2">Este é o seu Centro de Controle. Siga os passos abaixo para completar a sua inscrição.</p>
                     </div>
 
-                    {{-- Alerta de Status para o Candidato --}}
-                    @if(auth()->user()->candidato && auth()->user()->candidato->status === 'Inscrição Incompleta')
+                    
+                    <?php if(auth()->user()->candidato && auth()->user()->candidato->status === 'Inscrição Incompleta'): ?>
                         <div class="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-lg shadow-sm">
                             <div class="flex items-start">
                                 <div class="flex-shrink-0">
@@ -28,7 +38,7 @@
                                 <div class="ml-3">
                                     <p class="text-sm text-yellow-800">
                                         <span class="font-semibold">Atenção!</span> Sua inscrição está aguardando documentos obrigatórios!
-                                        <a href="{{ route('candidato.documentos.index') }}" class="inline-flex items-center font-semibold text-yellow-700 hover:text-yellow-600 underline decoration-2 underline-offset-2">
+                                        <a href="<?php echo e(route('candidato.documentos.index')); ?>" class="inline-flex items-center font-semibold text-yellow-700 hover:text-yellow-600 underline decoration-2 underline-offset-2">
                                             Acesse a seção "Meus Documentos" para completar.
                                             <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
@@ -38,7 +48,7 @@
                                 </div>
                             </div>
                         </div>
-                    @elseif(auth()->user()->candidato && strtolower(auth()->user()->candidato->status) === 'homologado')
+                    <?php elseif(auth()->user()->candidato && strtolower(auth()->user()->candidato->status) === 'homologado'): ?>
                         <div class="p-4 bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg shadow-sm">
                             <div class="flex items-start">
                                 <div class="flex-shrink-0">
@@ -50,29 +60,29 @@
                                     <p class="text-sm text-purple-800">
                                         <span class="font-semibold">Parabéns!</span> Sua inscrição foi oficialmente **Homologada** pela Prefeitura!
                                         <br>Você está apto(a) para a próxima etapa do processo de contratação.
-                                        @if(auth()->user()->candidato->ato_homologacao)
-                                            <span class="block mt-1 text-xs text-purple-700">Ato de Homologação: {{ auth()->user()->candidato->ato_homologacao }}</span>
-                                        @endif
+                                        <?php if(auth()->user()->candidato->ato_homologacao): ?>
+                                            <span class="block mt-1 text-xs text-purple-700">Ato de Homologação: <?php echo e(auth()->user()->candidato->ato_homologacao); ?></span>
+                                        <?php endif; ?>
                                     </p>
 
-                                    {{-- ✅ INÍCIO DO AJUSTE: MENSAGEM DE PRAZO SEM BOTÃO --}}
-                                    @if(Auth::user()->candidato?->pode_interpor_recurso)
+                                    
+                                    <?php if(Auth::user()->candidato?->pode_interpor_recurso): ?>
                                         <div class="mt-3 pt-3 border-t border-purple-200">
                                             <p class="text-xs text-purple-700">
                                                 <span class="font-semibold">Prazo para recurso aberto:</span> Caso discorde da sua pontuação, o prazo para interpor um recurso através do menu "Meu Currículo" encerra-se em 
-                                                <strong class="text-purple-800">{{ Auth::user()->candidato->homologado_em->addDays(2)->format('d/m/Y \à\s H:i') }}</strong>.
+                                                <strong class="text-purple-800"><?php echo e(Auth::user()->candidato->homologado_em->addDays(2)->format('d/m/Y \à\s H:i')); ?></strong>.
                                             </p>
                                         </div>
-                                    @endif
-                                    {{-- ✅ FIM DO AJUSTE --}}
+                                    <?php endif; ?>
+                                    
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
-                    {{-- Atalhos Rápidos --}}
+                    
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <a href="{{ route('candidato.profile.edit') }}" class="group block p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 hover:from-blue-100 hover:to-blue-200 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
+                        <a href="<?php echo e(route('candidato.profile.edit')); ?>" class="group block p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 hover:from-blue-100 hover:to-blue-200 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 bg-blue-500 rounded-full h-10 w-10 flex items-center justify-center text-white font-bold text-base shadow-md">1</div>
                                 <div class="ml-4">
@@ -80,18 +90,18 @@
                                     <p class="text-sm text-blue-700">Preencha seus dados</p>
                                 </div>
                             </div>
-                            @if(auth()->user()->candidato)
-                                @php
+                            <?php if(auth()->user()->candidato): ?>
+                                <?php
                                     $completionPercentage = auth()->user()->candidato->completion_percentage;
-                                @endphp
+                                ?>
                                 <div class="w-full bg-blue-200 rounded-full h-2 mt-4">
-                                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {{ $completionPercentage }}%"></div>
+                                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: <?php echo e($completionPercentage); ?>%"></div>
                                 </div>
-                                <p class="text-xs text-right text-blue-600 mt-2 font-medium">{{ $completionPercentage }}% completo</p>
-                            @endif
+                                <p class="text-xs text-right text-blue-600 mt-2 font-medium"><?php echo e($completionPercentage); ?>% completo</p>
+                            <?php endif; ?>
                         </a>
                         
-                        <a href="{{ route('candidato.documentos.index') }}" class="group block p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 hover:from-green-100 hover:to-green-200 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md">
+                        <a href="<?php echo e(route('candidato.documentos.index')); ?>" class="group block p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 hover:from-green-100 hover:to-green-200 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 bg-green-500 rounded-full h-10 w-10 flex items-center justify-center text-white font-bold text-base shadow-md">2</div>
                                 <div class="ml-4">
@@ -106,7 +116,7 @@
                             </div>
                         </a>
                         
-                        <a href="{{ route('candidato.atividades.index') }}" class="group block p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 hover:from-purple-100 hover:to-purple-200 hover:border-purple-300 transition-all duration-200 shadow-sm hover:shadow-md">
+                        <a href="<?php echo e(route('candidato.atividades.index')); ?>" class="group block p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 hover:from-purple-100 hover:to-purple-200 hover:border-purple-300 transition-all duration-200 shadow-sm hover:shadow-md">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 bg-purple-500 rounded-full h-10 w-10 flex items-center justify-center text-white font-bold text-base shadow-md">3</div>
                                 <div class="ml-4">
@@ -122,15 +132,15 @@
                         </a>
                     </div>
 
-                    {{-- Seção de Classificação Refinada --}}
+                    
                     <div class="mt-8">
                         <div class="mb-6">
                             <h3 class="text-2xl font-bold text-gray-900 mb-2">Sua Classificação</h3>
                             <p class="text-gray-600">Veja a sua posição na lista de aprovados para o seu curso.</p>
                         </div>
 
-                        {{-- Lógica de busca e cálculo dos pontos --}}
-                        @php
+                        
+                        <?php
                             $candidatoLogado = auth()->user()->candidato;
                             $classificacaoDoCurso = collect(); 
                             $regrasDePontuacao = collect(); 
@@ -165,11 +175,11 @@
                                     return $cand->curso_id === $candidatoLogado->curso_id;
                                 })->values();
                             }
-                        @endphp
+                        ?>
 
                         <div class="bg-white overflow-hidden shadow-lg sm:rounded-xl border border-gray-200">
                             <div class="p-6">
-                                @if($candidatoLogado && $candidatoLogado->curso)
+                                <?php if($candidatoLogado && $candidatoLogado->curso): ?>
                                     <div class="mb-6">
                                         <div class="flex items-center space-x-3">
                                             <div class="flex-shrink-0">
@@ -177,90 +187,94 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                                 </svg>
                                             </div>
-                                            <h4 class="text-lg font-semibold text-gray-800">{{ $candidato->curso->nome }}</h4>
+                                            <h4 class="text-lg font-semibold text-gray-800"><?php echo e($candidato->curso->nome); ?></h4>
                                         </div>
                                     </div>
 
-                                    @if($classificacaoDoCurso->isEmpty())
+                                    <?php if($classificacaoDoCurso->isEmpty()): ?>
                                         <div class="text-center py-12">
                                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                             </svg>
                                             <p class="mt-4 text-gray-500">A classificação para o seu curso ainda não foi divulgada.</p>
                                         </div>
-                                    @else
-                                        @if(Auth::user()->candidato && !in_array(Auth::user()->candidato->status, ['Aprovado', 'Homologado']))
+                                    <?php else: ?>
+                                        <?php if(Auth::user()->candidato && !in_array(Auth::user()->candidato->status, ['Aprovado', 'Homologado'])): ?>
                                             <div class="mb-4 p-3 bg-blue-50 text-blue-700 text-sm rounded-lg border border-blue-200">
                                                 <p>Esta é a classificação atual dos candidatos aprovados. A sua posição aparecerá aqui assim que a sua inscrição for aprovada pela comissão.</p>
                                             </div>
-                                        @endif
+                                        <?php endif; ?>
                                         <div class="overflow-x-auto">
                                             <table class="min-w-full">
                                                 <thead>
                                                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                                                         <th class="px-3 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Posição</th>
                                                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Candidato</th>
-                                                        @foreach($regrasDePontuacao as $regra)
-                                                            <th class="px-3 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">{{ $regra->nome }}</th>
-                                                        @endforeach
+                                                        <?php $__currentLoopData = $regrasDePontuacao; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $regra): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <th class="px-3 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider"><?php echo e($regra->nome); ?></th>
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                         <th class="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Total</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="bg-white divide-y divide-gray-100">
-                                                    @foreach($classificacaoDoCurso as $index => $classificado)
-                                                        <tr class="hover:bg-gray-50 transition-colors duration-150 {{ $classificado->user_id === Auth::id() ? 'bg-blue-50 border-l-4 border-blue-400' : '' }}">
+                                                    <?php $__currentLoopData = $classificacaoDoCurso; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $classificado): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <tr class="hover:bg-gray-50 transition-colors duration-150 <?php echo e($classificado->user_id === Auth::id() ? 'bg-blue-50 border-l-4 border-blue-400' : ''); ?>">
                                                             <td class="px-3 py-3 text-center">
-                                                                <span class="inline-flex items-center justify-center h-8 w-8 rounded-full text-xs font-bold {{ $classificado->user_id === Auth::id() ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700' }}">
-                                                                    {{ $index + 1 }}
+                                                                <span class="inline-flex items-center justify-center h-8 w-8 rounded-full text-xs font-bold <?php echo e($classificado->user_id === Auth::id() ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'); ?>">
+                                                                    <?php echo e($index + 1); ?>
+
                                                                 </span>
                                                             </td>
                                                             <td class="px-4 py-3 whitespace-nowrap">
                                                                 <div class="flex items-center">
-                                                                    <div class="text-sm font-medium {{ $classificado->user_id === Auth::id() ? 'text-blue-900' : 'text-gray-900' }}">
-                                                                        {{ $classificado->user->name }}
-                                                                        @if($classificado->user_id === Auth::id())
+                                                                    <div class="text-sm font-medium <?php echo e($classificado->user_id === Auth::id() ? 'text-blue-900' : 'text-gray-900'); ?>">
+                                                                        <?php echo e($classificado->user->name); ?>
+
+                                                                        <?php if($classificado->user_id === Auth::id()): ?>
                                                                             <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                                                 Você
                                                                             </span>
-                                                                        @endif
+                                                                        <?php endif; ?>
                                                                     </div>
                                                                 </div>
                                                             </td>
-                                                            @foreach($regrasDePontuacao as $regra)
-                                                                <td class="px-3 py-3 text-center text-xs {{ $classificado->user_id === Auth::id() ? 'text-blue-900' : 'text-gray-700' }}">
+                                                            <?php $__currentLoopData = $regrasDePontuacao; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $regra): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                <td class="px-3 py-3 text-center text-xs <?php echo e($classificado->user_id === Auth::id() ? 'text-blue-900' : 'text-gray-700'); ?>">
                                                                     <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
-                                                                        {{ number_format($classificado->boletim_pontos[$regra->nome] ?? 0, 2, ',', '.') }}
+                                                                        <?php echo e(number_format($classificado->boletim_pontos[$regra->nome] ?? 0, 2, ',', '.')); ?>
+
                                                                     </span>
                                                                 </td>
-                                                            @endforeach
+                                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                             <td class="px-4 py-3 text-center">
-                                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold {{ $classificado->user_id === Auth::id() ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white' }}">
-                                                                    {{ number_format($classificado->pontuacao_final, 2, ',', '.') }}
+                                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold <?php echo e($classificado->user_id === Auth::id() ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white'); ?>">
+                                                                    <?php echo e(number_format($classificado->pontuacao_final, 2, ',', '.')); ?>
+
                                                                 </span>
                                                             </td>
                                                         </tr>
-                                                    @endforeach
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </tbody>
                                             </table>
                                         </div>
 
-                                        @if($classificacaoDoCurso->count() > 10)
+                                        <?php if($classificacaoDoCurso->count() > 10): ?>
                                             <div class="mt-4 text-center">
-                                                <p class="text-xs text-gray-500">Mostrando {{ $classificacaoDoCurso->count() }} candidatos classificados</p>
+                                                <p class="text-xs text-gray-500">Mostrando <?php echo e($classificacaoDoCurso->count()); ?> candidatos classificados</p>
                                             </div>
-                                        @endif
-                                    @endif
-                                @else
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                <?php else: ?>
                                     <div class="text-center py-12">
                                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                         </svg>
                                         <p class="mt-4 text-gray-500">Complete o seu perfil e selecione um curso para ver a classificação.</p>
-                                        <a href="{{ route('candidato.profile.edit') }}" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
+                                        <a href="<?php echo e(route('candidato.profile.edit')); ?>" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
                                             Completar Perfil
                                         </a>
                                     </div>
-                                @endif
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -269,4 +283,13 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $attributes = $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $component = $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?><?php /**PATH C:\laragon\www\portal-estagiario\resources\views/dashboard.blade.php ENDPATH**/ ?>

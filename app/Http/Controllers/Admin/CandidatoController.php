@@ -76,7 +76,6 @@ class CandidatoController extends Controller
      */
     public function show(Candidato $candidato)
     {
-        // ✅ AJUSTE: Carrega as relações a partir do candidato, não do user
         $candidato->load([
             'documentos', 
             'atividades.tipoDeAtividade', 
@@ -97,7 +96,6 @@ class CandidatoController extends Controller
             $documentosNecessarios['LAUDO_MEDICO'] = 'Laudo Médico (PCD)';
         }
 
-        // ✅ AJUSTE: Busca os documentos a partir da nova relação do candidato
         $documentosEnviados = $candidato->documentos->keyBy('tipo_documento');
 
         $pontuacaoDetalhada = method_exists($candidato, 'calcularPontuacaoDetalhada') 
@@ -129,11 +127,10 @@ class CandidatoController extends Controller
     public function update(Request $request, Candidato $candidato)
     {
         if ($request->input('status') === 'Aprovado') {
-            // ✅ AJUSTE: Verifica os prazos a partir da nova relação do candidato
             $prazosAtivos = $candidato->atividades()
-                                ->where('status', 'Rejeitada')
-                                ->where('prazo_recurso_ate', '>', now())
-                                ->exists();
+                                     ->where('status', 'Rejeitada')
+                                     ->where('prazo_recurso_ate', '>', now())
+                                     ->exists();
 
             if ($prazosAtivos) {
                 return redirect()->back()->with('error', 'Não é possível aprovar. O candidato possui atividades com prazo de recurso em andamento.');
@@ -210,7 +207,6 @@ class CandidatoController extends Controller
             if ($documento->status === 'rejeitado') {
                 $documento->motivo_rejeicao = $validated['motivo_rejeicao'];
                 
-                // ✅ AJUSTE: Acede ao candidato através da nova relação
                 $candidato = $documento->candidato;
                 if ($candidato) {
                     $candidato->status = 'Inscrição Incompleta';
@@ -238,11 +234,10 @@ class CandidatoController extends Controller
      */
     public function homologar(Request $request, Candidato $candidato)
     {
-        // ✅ AJUSTE: Verifica os prazos a partir da nova relação do candidato
         $prazosAtivos = $candidato->atividades()
-                            ->where('status', 'Rejeitada')
-                            ->where('prazo_recurso_ate', '>', now())
-                            ->exists();
+                                ->where('status', 'Rejeitada')
+                                ->where('prazo_recurso_ate', '>', now())
+                                ->exists();
 
         if ($prazosAtivos) {
             return redirect()->back()->with('error', 'Não é possível homologar. O candidato possui atividades com prazo de recurso em andamento.');
@@ -265,11 +260,86 @@ class CandidatoController extends Controller
             $candidato->homologado_em = now();
             $candidato->homologacao_observacoes = $request->input('homologacao_observacoes');
             $candidato->revert_reason = null;
+            
+            $candidato->recurso_prazo_ate = $this->calcularDiasUteis(2);
+            $candidato->recurso_status = 'pendente';
+            $candidato->recurso_tipo = 'classificacao';
+
             $candidato->save();
-            return redirect()->back()->with('success', 'Candidato homologado com sucesso!');
+            return redirect()->back()->with('success', 'Candidato homologado com sucesso! O prazo para recurso de classificação foi aberto.');
         } catch (\Exception $e) {
             Log::error("Erro ao homologar candidato ID {$candidato->id}: " . $e->getMessage());
             return redirect()->back()->with('error', 'Ocorreu um erro ao homologar o candidato.');
         }
+    }
+
+    /**
+     * Defere (aceita) um recurso específico do histórico do candidato.
+     */
+    public function deferirRecurso(Request $request, Candidato $candidato, $recurso_index)
+    {
+        $historico = $candidato->recurso_historico ?? [];
+
+        if (!isset($historico[$recurso_index])) {
+            return back()->with('error', 'Recurso não encontrado no histórico.');
+        }
+
+        // Não permite uma nova decisão se uma já foi tomada.
+        if (!empty($historico[$recurso_index]['decisao_admin'])) {
+            return back()->with('error', 'Este recurso já foi decidido.');
+        }
+
+        $historico[$recurso_index]['decisao_admin'] = 'deferido';
+        $historico[$recurso_index]['justificativa_admin'] = $request->input('justificativa_admin');
+        $historico[$recurso_index]['data_decisao_admin'] = now()->toDateTimeString();
+        $historico[$recurso_index]['admin_id'] = auth()->id();
+
+        $candidato->recurso_historico = $historico;
+        
+        $candidato->save();
+
+        return redirect()->route('admin.candidatos.show', $candidato)->with('success', 'Recurso deferido com sucesso! Lembre-se de reavaliar os itens do candidato.');
+    }
+
+    /**
+     * Indefere (nega) um recurso específico do histórico do candidato.
+     */
+    public function indeferirRecurso(Request $request, Candidato $candidato, $recurso_index)
+    {
+        $request->validate(['justificativa_admin' => 'required|string|min:10'], 
+        ['justificativa_admin.required' => 'A justificativa para indeferir o recurso é obrigatória.']);
+
+        $historico = $candidato->recurso_historico ?? [];
+
+        if (!isset($historico[$recurso_index])) {
+            return back()->with('error', 'Recurso não encontrado no histórico.');
+        }
+        
+        if (!empty($historico[$recurso_index]['decisao_admin'])) {
+            return back()->with('error', 'Este recurso já foi decidido.');
+        }
+
+        $historico[$recurso_index]['decisao_admin'] = 'indeferido';
+        $historico[$recurso_index]['justificativa_admin'] = $request->input('justificativa_admin');
+        $historico[$recurso_index]['data_decisao_admin'] = now()->toDateTimeString();
+        $historico[$recurso_index]['admin_id'] = auth()->id();
+
+        $candidato->recurso_historico = $historico;
+        $candidato->save();
+
+        return redirect()->route('admin.candidatos.show', $candidato)->with('success', 'Recurso indeferido com sucesso.');
+    }
+
+    private function calcularDiasUteis(int $diasUteisParaAdicionar): Carbon
+    {
+        $data = Carbon::now();
+        $diasAdicionados = 0;
+        while ($diasAdicionados < $diasUteisParaAdicionar) {
+            $data->addDay();
+            if ($data->isWeekday()) {
+                $diasAdicionados++;
+            }
+        }
+        return $data->endOfDay(); 
     }
 }

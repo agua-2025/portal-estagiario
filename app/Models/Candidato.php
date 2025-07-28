@@ -9,7 +9,8 @@ use App\Models\Curso;
 use App\Models\Instituicao;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage; // ✅ ADICIONADO: Essencial para apagar ficheiros
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Casts\Attribute; 
 
 class Candidato extends Model
 {
@@ -56,6 +57,8 @@ class Candidato extends Model
         'recurso_prazo_ate',
         'recurso_status',
         'recurso_tipo',
+        // ✅ ADICIONE A NOVA COLUNA AQUI TAMBÉM
+        'recurso_historico',
     ];
 
     /**
@@ -72,11 +75,11 @@ class Candidato extends Model
         'homologado_em' => 'datetime', 
         'revert_reason' => 'array', 
         'recurso_prazo_ate' => 'datetime',
+        'recurso_historico' => 'array', // ✅ AJUSTE: Adicione esta linha para o histórico de recursos.
     ];
 
     protected $appends = ['completion_percentage']; 
 
-    // ✅ INÍCIO DO AJUSTE: Lógica de exclusão em cascata
     /**
      * O método "booted" do modelo.
      */
@@ -103,7 +106,34 @@ class Candidato extends Model
             }
         });
     }
-    // ✅ FIM DO AJUSTE
+    
+    /**
+     * Determina se o candidato pode interpor recurso após a homologação.
+     * Acessível via: $candidato->pode_interpor_recurso
+     */
+    protected function podeInterporRecurso(): Attribute
+    {
+        return Attribute::make(
+            get: function (): bool {
+                // ✅ AJUSTE: Usamos strtolower() para que a verificação não se importe com maiúsculas/minúsculas.
+                if (strtolower($this->status) !== 'homologado' || is_null($this->homologado_em)) {
+                    return false;
+                }
+
+                // Verifica se já existe um recurso pendente no histórico.
+                if (!empty($this->recurso_historico)) {
+                    $recursoMaisRecente = $this->recurso_historico[0];
+                    if (empty($recursoMaisRecente['decisao_admin'])) {
+                        return false; // Já existe um recurso em análise, não pode criar outro.
+                    }
+                }
+
+                $prazoFinal = $this->homologado_em->addDays(2);
+
+                return now()->lessThanOrEqualTo($prazoFinal);
+            }
+        );
+    }
 
     public function user()
     {
@@ -120,7 +150,6 @@ class Candidato extends Model
         return $this->belongsTo(Instituicao::class);
     }
 
-    // ✅ NOVAS RELAÇÕES
     public function documentos()
     {
         return $this->hasMany(Documento::class);
@@ -211,11 +240,11 @@ class Candidato extends Model
 
     public function calcularPontuacaoDetalhada()
     {
+        // ... (resto da sua função de cálculo de pontos continua aqui, sem alterações)
         Log::debug('Iniciando cálculo de pontuação detalhada para Candidato ID: ' . $this->id);
         $pontuacaoTotal = 0;
         $detalhes = [];
 
-        // ✅ AJUSTE: Usa a nova relação direta com as atividades
         $atividadesAprovadas = $this->atividades()->where('status', 'Aprovada')->with('tipoDeAtividade')->get();
 
         foreach ($atividadesAprovadas as $atividade) {
@@ -226,7 +255,6 @@ class Candidato extends Model
                 Log::debug("Atividade ID {$atividade->id} sem regra de pontuação associada. Pulando.");
                 continue;
             }
-
             $nomeDaRegra = $regra->nome;
             $pontosPorUnidade = abs($regra->pontos_por_unidade ?? 0);
             
