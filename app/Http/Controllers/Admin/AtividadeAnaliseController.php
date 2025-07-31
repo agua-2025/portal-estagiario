@@ -71,6 +71,6 @@ class AtividadeAnaliseController extends Controller
         }
         
         // Define o horário final do prazo para o final do dia.
-        return $data->endOfDay(); 
+        return $data->setTime(17, 0, 0); // Define às 17h00
     }
 }

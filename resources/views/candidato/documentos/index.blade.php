@@ -1,6 +1,6 @@
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
 
@@ -8,124 +8,90 @@
                         <h2 class="text-xl font-semibold text-gray-800">Meus Documentos</h2>
                         <p class="mt-1 text-sm text-gray-600">Envie os documentos necessários para validar a sua inscrição.</p>
                     </div>
-
-                    {{-- Verificação de Perfil Completo --}}
-                    @if (!$candidato->isProfileComplete())
-                        
-                        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
-                            <p class="font-bold">Ação Necessária</p>
-                            <p>Por favor, complete 100% do seu perfil de dados cadastrais na página "Meu Currículo" antes de enviar os seus documentos.</p>
-                            
-                            <div class="mt-3 p-2 border border-red-300 bg-red-50 text-red-900 text-xs rounded">
-                                <strong>Informação de Debug:</strong>
-                                <p>O sistema identificou que o campo "<strong>{{ $candidato->getFirstIncompleteField() ?? 'Não foi possível identificar' }}</strong>" está em falta.</p>
-                                <p>Por favor, volte ao seu perfil e verifique se este campo está preenchido corretamente.</p>
-                            </div>
-
-                            <a href="{{ route('candidato.profile.edit') }}" class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                Completar Meu Perfil
-                            </a>
+                    
+                    {{-- Alertas e outras mensagens podem continuar aqui --}}
+                    @if(session('success'))
+                        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-lg" role="alert">
+                            <p>{{ session('success') }}</p>
                         </div>
+                    @endif
+                    @if($candidato->status === 'Inscrição Incompleta' && !empty($candidato->admin_observacao))
+                        <div class="p-4 mb-6 border-l-4 border-red-500 bg-red-50 text-red-800 rounded-r-lg" role="alert">
+                            <h3 class="font-bold">Correção Necessária!</h3>
+                            <p class="mt-1 text-sm">A Comissão Organizadora solicitou uma correção no seu cadastro. O andamento do seu processo seletivo permanecerá suspenso até que o ajuste seja devidamente realizado.</p>
+                        </div>
+                    @endif
 
-                    @else
 
-                        {{-- ✅ INÍCIO DO AJUSTE CIRÚRGICO: Mensagem de alerta simplificada --}}
-                        @if($candidato->status === 'Inscrição Incompleta' && !empty($candidato->admin_observacao))
-                            <div class="p-4 mb-6 border-l-4 border-red-500 bg-red-50 text-red-800 rounded-lg" role="alert">
-                                <h3 class="font-bold text-lg">Correção Necessária!</h3>
-                                <p class="mt-1">A Comissão Organizadora solicitou uma correção no seu cadastro, conforme descrito abaixo. O andamento do seu processo seletivo permanecerá suspenso até que o ajuste seja devidamente realizado.</p>
-                            </div>
-                        @endif
-                        {{-- ✅ FIM DO AJUSTE --}}
+                    {{-- Lista de Documentos --}}
+                    <div class="space-y-4">
+                        @foreach ($documentosNecessarios as $tipo => $nome)
+                            @php
+                                $documentoEnviado = $documentosEnviados->get($tipo);
+                            @endphp
 
-                        {{-- Mensagens de Sucesso e Erro --}}
-                        @if (session('success'))
-                            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
-                                <p>{{ session('success') }}</p>
-                            </div>
-                        @endif
-                        @if ($errors->any())
-                            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
-                                <p class="font-bold">Opa! Algo deu errado.</p>
-                                <ul class="mt-2 list-disc list-inside text-sm">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
+                            {{-- ✅ AJUSTE 1: Estrutura alterada de "card" para "linha com borda inferior", como na tela de Atividades --}}
+                            <div class="py-4 border-b last:border-b-0">
+                                <div class="flex justify-between items-start gap-4">
+                                    {{-- Informações do Documento --}}
+                                    <div class="flex-grow">
+                                        <p class="font-semibold text-gray-800">{{ $nome }}</p>
 
-                        {{-- A lista de documentos --}}
-                        <div class="space-y-4">
-                            @foreach ($documentosNecessarios as $tipo => $nome)
-                                <div class="p-4 border rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4">
-                                    {{-- Seção de Informações do Documento --}}
-                                    <div class="flex-grow text-center sm:text-left w-full">
-                                        <p class="font-semibold">{{ $nome }}</p>
-                                        @php
-                                            $documentoEnviado = $documentosEnviados->get($tipo);
-                                        @endphp
-
-                                        @if($documentoEnviado)
-                                            <span class="text-xs font-medium capitalize px-2.5 py-0.5 rounded-full
-                                                @if($documentoEnviado->status == 'aprovado') bg-green-100 text-green-800 @endif
-                                                @if($documentoEnviado->status == 'enviado') bg-blue-100 text-blue-800 @endif
-                                                @if($documentoEnviado->status == 'rejeitado') bg-red-100 text-red-800 @endif
-                                            ">
-                                                Status: {{ $documentoEnviado->status }}
-                                            </span>
-
-                                            @if($documentoEnviado->status === 'rejeitado' && !empty($documentoEnviado->motivo_rejeicao))
-                                                <div class="mt-2 p-2 text-xs text-red-800 bg-red-50 rounded-md border border-red-200">
-                                                    <strong class="font-bold">Motivo da Rejeição:</strong> {{ $documentoEnviado->motivo_rejeicao }}
-                                                    <p class="mt-1">Por favor, substitua o arquivo com as correções solicitadas.</p>
-                                                </div>
-                                            @elseif($documentoEnviado->status === 'enviado')
-                                                <p class="text-xs text-blue-700 mt-1 italic">Aguardando análise pela comissão.</p>
-                                            @endif
-
-                                        @else
-                                            <span class="text-xs font-medium capitalize px-2.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
-                                                Status: Pendente
-                                            </span>
+                                        @if($documentoEnviado && $documentoEnviado->status === 'rejeitado' && !empty($documentoEnviado->motivo_rejeicao))
+                                            {{-- Motivo da Rejeição com quebra de linha --}}
+                                            <div class="mt-2 p-2 text-xs text-red-800 bg-red-50 rounded-md border border-red-200 break-all">
+                                                <strong class="font-bold">Motivo da Rejeição:</strong> {{ $documentoEnviado->motivo_rejeicao }}
+                                            </div>
                                         @endif
                                     </div>
-                                    
-                                    {{-- Seção de Ações --}}
-                                    <div class="w-full sm:w-auto">
+
+                                    {{-- Ações e Status --}}
+                                    <div class="flex items-center flex-shrink-0 gap-x-2">
+                                        {{-- ✅ AJUSTE 2: Badge de status retangular e com cores leves --}}
                                         @if($documentoEnviado)
-                                            <div x-data="{ showUpload: false }" class="flex items-center justify-center sm:justify-end space-x-2 flex-wrap gap-2">
-                                                <a href="{{ route('candidato.documentos.show', $documentoEnviado->id) }}" target="_blank" class="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700 whitespace-nowrap">
-                                                    Visualizar
-                                                </a>
-                                                <button type="button" @click="showUpload = !showUpload" class="px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm hover:bg-yellow-600 whitespace-nowrap">Substituir</button>
-                                                
-                                                <div x-show="showUpload" x-transition class="mt-2 w-full basis-full">
-                                                    <form action="{{ route('candidato.documentos.store') }}" method="POST" enctype="multipart/form-data" class="flex items-center space-x-2">
-                                                        @csrf
-                                                        <input type="hidden" name="tipo_documento" value="{{ $tipo }}">
-                                                        <input type="file" name="documento" class="text-sm text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required/>
-                                                        <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Enviar</button>
-                                                    </form>
-                                                </div>
-                                            </div>
+                                            <span class="font-semibold capitalize px-3 py-1.5 rounded-md text-xs
+                                                @if($documentoEnviado->status == 'aprovado') bg-green-100 text-green-800 @endif
+                                                @if($documentoEnviado->status == 'enviado' || $documentoEnviado->status == 'Em Análise') bg-purple-100 text-purple-800 @endif
+                                                @if($documentoEnviado->status == 'rejeitado') bg-red-100 text-red-800 @endif
+                                            ">{{ $documentoEnviado->status }}</span>
                                         @else
-                                            <form action="{{ route('candidato.documentos.store') }}" method="POST" enctype="multipart/form-data" class="flex items-center justify-center sm:justify-end space-x-2">
-                                                @csrf
-                                                <input type="hidden" name="tipo_documento" value="{{ $tipo }}">
-                                                <input type="file" name="documento" class="text-sm text-slate-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required/>
-                                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 whitespace-nowrap">
-                                                    Enviar
-                                                </button>
-                                            </form>
+                                            <span class="font-semibold capitalize px-3 py-1.5 rounded-md text-xs bg-yellow-100 text-yellow-800">Pendente</span>
+                                        @endif
+                                        
+                                        {{-- ✅ AJUSTE 3: Botões de ação com estilo leve --}}
+                                        @if($documentoEnviado)
+                                             <a href="{{ route('candidato.documentos.show', $documentoEnviado->id) }}" target="_blank" class="px-3 py-1.5 bg-gray-200 text-gray-800 rounded-md text-xs font-semibold hover:bg-gray-300">Visualizar</a>
                                         @endif
                                     </div>
                                 </div>
-                            @endforeach
-                        </div>
 
-                    @endif
-
+                                {{-- Formulário de Upload (quando necessário) --}}
+                                <div class="mt-3 pl-4">
+                                    @if(!$documentoEnviado)
+                                        <form action="{{ route('candidato.documentos.store') }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-x-3">
+                                            @csrf
+                                            <input type="hidden" name="tipo_documento" value="{{ $tipo }}">
+                                            <input type="file" name="documento" required class="text-sm text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+                                            <button type="submit" class="px-4 py-1.5 border border-blue-600 text-blue-700 rounded-md text-sm font-semibold hover:bg-blue-600 hover:text-white ml-auto transition-colors duration-200">Enviar Correção</button>
+                                        </form>
+{{-- Trecho dentro do @foreach, para o caso de documento rejeitado --}}
+@elseif($documentoEnviado->status === 'rejeitado')
+    <form action="{{ route('candidato.documentos.store') }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-x-3">
+        @csrf
+        <input type="hidden" name="tipo_documento" value="{{ $tipo }}">
+        <span class="text-sm text-gray-600">Substituir arquivo:</span>
+        <input type="file" name="documento" required class="text-sm text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+        
+        {{-- ✅ BOTÃO AJUSTADO --}}
+        <button type="submit" class="px-4 py-1.5 border border-blue-600 text-blue-700 rounded-md text-sm font-semibold hover:bg-blue-600 hover:text-white ml-auto transition-colors duration-200">
+            Enviar Correção
+        </button>
+    </form>
+@endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>

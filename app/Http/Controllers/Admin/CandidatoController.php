@@ -193,8 +193,20 @@ class CandidatoController extends Controller
     /**
      * Atualiza o status de um documento específico (Aprovado/Rejeitado).
      */
-    public function updateDocumentStatus(Request $request, Documento $documento)
-    {
+/**
+     * Atualiza o status de um documento específico (Aprovado/Rejeitado).
+     */
+   public function updateDocumentStatus(Request $request, Documento $documento)
+{
+    $validated = $request->validate([
+        'status' => 'required|in:aprovado,rejeitado',
+        'motivo_rejeicao' => 'required_if:status,rejeitado|nullable|string|min:10',
+    ]);
+
+    // ✅ BLOQUEIO: Não permite aprovar documento rejeitado
+    if ($documento->status === 'rejeitado' && $validated['status'] === 'aprovado') {
+        return back()->with('error', 'Documento rejeitado não pode ser aprovado. O candidato deve reenviar o documento corrigido.');
+    }
         $validated = $request->validate([
             'status' => 'required|in:aprovado,rejeitado',
             'motivo_rejeicao' => 'required_if:status,rejeitado|nullable|string|min:10',
@@ -215,7 +227,40 @@ class CandidatoController extends Controller
                 }
 
             } else {
+                // ✅ QUANDO APROVADO
                 $documento->motivo_rejeicao = null;
+                
+                // ✅ VERIFICAR SE PODE VOLTAR PARA "EM ANÁLISE"
+                $candidato = $documento->candidato;
+                if ($candidato && $candidato->status === 'Inscrição Incompleta') {
+                    
+                    // Lista de documentos obrigatórios
+                    $documentosObrigatorios = ['HISTORICO_ESCOLAR', 'DECLARACAO_MATRICULA', 'DECLARACAO_ELEITORAL'];
+                    if ($candidato->sexo === 'Masculino') {
+                        $documentosObrigatorios[] = 'RESERVISTA';
+                    }
+                    if ($candidato->possui_deficiencia) {
+                        $documentosObrigatorios[] = 'LAUDO_MEDICO';
+                    }
+                    
+                    // Verifica se todos os documentos obrigatórios estão aprovados
+                    $todosAprovados = true;
+                    foreach ($documentosObrigatorios as $tipo) {
+                        $doc = $candidato->documentos()->where('tipo_documento', $tipo)->first();
+                        if (!$doc || $doc->status !== 'aprovado') {
+                            $todosAprovados = false;
+                            break;
+                        }
+                    }
+                    
+                    // Se todos estão aprovados, volta para "Em Análise"
+                    if ($todosAprovados) {
+                        $candidato->status = 'Em Análise';
+                        $candidato->admin_observacao = null; // Limpa a mensagem de correção
+                        $candidato->save();
+                        Log::info("Candidato ID {$candidato->id} voltou para 'Em Análise' - todos os documentos aprovados.");
+                    }
+                }
             }
             
             $documento->save();
@@ -330,16 +375,16 @@ class CandidatoController extends Controller
         return redirect()->route('admin.candidatos.show', $candidato)->with('success', 'Recurso indeferido com sucesso.');
     }
 
-    private function calcularDiasUteis(int $diasUteisParaAdicionar): Carbon
-    {
-        $data = Carbon::now();
-        $diasAdicionados = 0;
-        while ($diasAdicionados < $diasUteisParaAdicionar) {
-            $data->addDay();
-            if ($data->isWeekday()) {
-                $diasAdicionados++;
-            }
+private function calcularDiasUteis(int $diasUteisParaAdicionar): Carbon
+{
+    $data = Carbon::now();
+    $diasAdicionados = 0;
+    while ($diasAdicionados < $diasUteisParaAdicionar) {
+        $data->addDay();
+        if ($data->isWeekday()) {
+            $diasAdicionados++;
         }
-        return $data->endOfDay(); 
     }
+    // A única alteração é nesta linha abaixo
+    return $data->setTime(17, 0, 0); 
 }

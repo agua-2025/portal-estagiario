@@ -16,8 +16,67 @@
                         <p class="text-gray-600 mt-2">Este é o seu Centro de Controle. Siga os passos abaixo para completar a sua inscrição.</p>
                     </div>
 
+                    {{-- PAINEL ELEGANTE DE PENDÊNCIAS --}}
+                    @php
+                        $candidato = auth()->user()->candidato;
+                        $documentosRejeitados = collect();
+                        $atividadesRejeitadas = collect();
+                        
+                        if ($candidato) {
+                            $documentosRejeitados = $candidato->documentos()->where('status', 'rejeitado')->get();
+                            $atividadesRejeitadas = $candidato->atividades()->where('status', 'Rejeitada')->get();
+                        }
+                        
+                        $temItensRejeitados = $documentosRejeitados->count() > 0 || $atividadesRejeitadas->count() > 0;
+                    @endphp
+
+                    @if($candidato && $temItensRejeitados)
+                        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div class="flex items-start space-x-3">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-base font-semibold text-red-800 mb-2">
+                                        AÇÃO NECESSÁRIA 
+                                    </h3>
+                                    
+                                    <p class="text-base text-red-700 mb-3">
+                                        Sua inscrição possui itens que foram rejeitados pela Comissão Organizadora e precisam ser corrigidos urgentemente:
+                                    </p>
+                                    
+                                    <ul class="text-base text-red-600 space-y-1 list-disc list-inside mb-3">
+                                        @if($documentosRejeitados->count() > 0)
+                                            <li><strong>{{ $documentosRejeitados->count() }} documento(s) rejeitado(s)</strong> - precisam ser reenviados</li>
+                                        @endif
+                                        @if($atividadesRejeitadas->count() > 0)
+                                            <li><strong>{{ $atividadesRejeitadas->count() }} atividade(s) rejeitada(s)</strong> - verifique se ainda há prazo para recurso</li>
+                                        @endif
+                                    </ul>
+                                    
+                                    <div class="flex space-x-3 text-base">
+                                        @if($documentosRejeitados->count() > 0)
+                                            <a href="{{ route('candidato.documentos.index') }}" class="text-red-600 hover:text-red-800 underline font-medium">
+                                                Corrigir documentos
+                                            </a>
+                                        @endif
+                                        @if($atividadesRejeitadas->count() > 0)
+                                            <a href="{{ route('candidato.atividades.index') }}" class="text-red-600 hover:text-red-800 underline font-medium">
+                                                Verificar atividades
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Alerta de Status para o Candidato --}}
-                    @if(auth()->user()->candidato && auth()->user()->candidato->status === 'Inscrição Incompleta')
+                    @if(auth()->user()->candidato && 
+                    auth()->user()->candidato->status === 'Inscrição Incompleta' && 
+                    !$temItensRejeitados)
                         <div class="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-lg shadow-sm">
                             <div class="flex items-start">
                                 <div class="flex-shrink-0">
@@ -26,7 +85,7 @@
                                     </svg>
                                 </div>
                                 <div class="ml-3">
-                                    <p class="text-sm text-yellow-800">
+                                    <p class="text-base text-yellow-800">
                                         <span class="font-semibold">Atenção!</span> Sua inscrição está aguardando documentos obrigatórios!
                                         <a href="{{ route('candidato.documentos.index') }}" class="inline-flex items-center font-semibold text-yellow-700 hover:text-yellow-600 underline decoration-2 underline-offset-2">
                                             Acesse a seção "Meus Documentos" para completar.
@@ -38,38 +97,51 @@
                                 </div>
                             </div>
                         </div>
-                    @elseif(auth()->user()->candidato && strtolower(auth()->user()->candidato->status) === 'homologado')
-                        <div class="p-4 bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg shadow-sm">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-purple-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.857a.75.75 0 00-1.06-1.06l-3.25 3.25a.75.75 0 01-1.06 0l-1.75-1.75a.75.75 0 10-1.06 1.06L8.22 12.22a2.25 2.25 0 003.18 0l3.5-3.5z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="ml-3 flex-grow">
-                                    <p class="text-sm text-purple-800">
-                                        <span class="font-semibold">Parabéns!</span> Sua inscrição foi oficialmente **Homologada** pela Prefeitura!
-                                        <br>Você está apto(a) para a próxima etapa do processo de contratação.
-                                        @if(auth()->user()->candidato->ato_homologacao)
-                                            <span class="block mt-1 text-xs text-purple-700">Ato de Homologação: {{ auth()->user()->candidato->ato_homologacao }}</span>
-                                        @endif
-                                    </p>
-
-                                    {{-- ✅ INÍCIO DO AJUSTE: MENSAGEM DE PRAZO SEM BOTÃO --}}
-                                    @if(Auth::user()->candidato?->pode_interpor_recurso)
-                                        <div class="mt-3 pt-3 border-t border-purple-200">
-                                            <p class="text-xs text-purple-700">
-                                                <span class="font-semibold">Prazo para recurso aberto:</span> Caso discorde da sua pontuação, o prazo para interpor um recurso através do menu "Meu Currículo" encerra-se em 
-                                                <strong class="text-purple-800">{{ Auth::user()->candidato->homologado_em->addDays(2)->format('d/m/Y \à\s H:i') }}</strong>.
-                                            </p>
-                                        </div>
-                                    @endif
-                                    {{-- ✅ FIM DO AJUSTE --}}
-                                </div>
-                            </div>
-                        </div>
+@elseif(auth()->user()->candidato && strtolower(auth()->user()->candidato->status) === 'homologado')
+    <div class="p-4 bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg shadow-sm">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-purple-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.857a.75.75 0 00-1.06-1.06l-3.25 3.25a.75.75 0 01-1.06 0l-1.75-1.75a.75.75 0 10-1.06 1.06L8.22 12.22a2.25 2.25 0 003.18 0l3.5-3.5z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3 flex-grow">
+                <p class="text-base text-purple-800">
+                    <span class="font-semibold text-lg">Parabéns!</span> Sua inscrição foi Homologada!
+                    <br>Você está apto(a) para a próxima etapa do processo de contratação.
+                    @if(auth()->user()->candidato->ato_homologacao)
+                        <span class="block mt-1 text-sm text-purple-700">Ato de Homologação: {{ auth()->user()->candidato->ato_homologacao }}</span>
                     @endif
+                </p>
 
+                @if(Auth::user()->candidato?->pode_interpor_recurso)
+                    <div class="mt-3 pt-3 border-t border-purple-200">
+                        <p class="text-sm text-purple-700">
+                            <span class="font-semibold">Prazo para recurso aberto:</span> Caso discorde da sua pontuação, o prazo para interpor recurso através do menu "Meu Currículo" encerra-se em 
+                            
+                            @php
+                                $dataFinal = auth()->user()->candidato->homologado_em->copy();
+                                $diasUteisParaAdicionar = 2;
+                                
+                                while ($diasUteisParaAdicionar > 0) {
+                                    $dataFinal->addDay();
+                                    if (!$dataFinal->isWeekend()) {
+                                        $diasUteisParaAdicionar--;
+                                    }
+                                }
+                                
+                                // ✅ AJUSTE FINAL: Define o horário do prazo para 17:00:00
+                                $dataFinal->setTime(17, 0, 0);
+                            @endphp
+                            
+                            <strong class="text-purple-800">{{ $dataFinal->format('d/m/Y \à\s H:i') }}</strong>.
+                        </p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+@endif
                     {{-- Atalhos Rápidos --}}
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <a href="{{ route('candidato.profile.edit') }}" class="group block p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 hover:from-blue-100 hover:to-blue-200 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
@@ -77,7 +149,7 @@
                                 <div class="flex-shrink-0 bg-blue-500 rounded-full h-10 w-10 flex items-center justify-center text-white font-bold text-base shadow-md">1</div>
                                 <div class="ml-4">
                                     <h4 class="font-semibold text-blue-900 text-lg">Meu Currículo</h4>
-                                    <p class="text-sm text-blue-700">Preencha seus dados</p>
+                                    <p class="text-base text-blue-700">Preencha seus dados</p>
                                 </div>
                             </div>
                             @if(auth()->user()->candidato)
@@ -87,7 +159,7 @@
                                 <div class="w-full bg-blue-200 rounded-full h-2 mt-4">
                                     <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {{ $completionPercentage }}%"></div>
                                 </div>
-                                <p class="text-xs text-right text-blue-600 mt-2 font-medium">{{ $completionPercentage }}% completo</p>
+                                <p class="text-sm text-right text-blue-600 mt-2 font-medium">{{ $completionPercentage }}% completo</p>
                             @endif
                         </a>
                         
@@ -96,7 +168,7 @@
                                 <div class="flex-shrink-0 bg-green-500 rounded-full h-10 w-10 flex items-center justify-center text-white font-bold text-base shadow-md">2</div>
                                 <div class="ml-4">
                                     <h4 class="font-semibold text-green-900 text-lg">Documentos</h4>
-                                    <p class="text-sm text-green-700">Anexe os comprovantes</p>
+                                    <p class="text-base text-green-700">Anexe os comprovantes</p>
                                 </div>
                             </div>
                             <div class="mt-4 text-center">
@@ -111,7 +183,7 @@
                                 <div class="flex-shrink-0 bg-purple-500 rounded-full h-10 w-10 flex items-center justify-center text-white font-bold text-base shadow-md">3</div>
                                 <div class="ml-4">
                                     <h4 class="font-semibold text-purple-900 text-lg">Saia na Frente</h4>
-                                    <p class="text-sm text-purple-700">Adicione seus pontos</p>
+                                    <p class="text-base text-purple-700">Adicione seus pontos</p>
                                 </div>
                             </div>
                             <div class="mt-4 text-center">
@@ -123,147 +195,155 @@
                     </div>
 
                     {{-- Seção de Classificação Refinada --}}
-                    <div class="mt-8">
-                        <div class="mb-6">
-                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Sua Classificação</h3>
-                            <p class="text-gray-600">Veja a sua posição na lista de aprovados para o seu curso.</p>
+<div class="mt-8">
+    <div class="mb-6">
+        <h3 class="text-2xl font-bold text-gray-900 mb-2">Sua Classificação</h3>
+        <p class="text-gray-600">Veja a sua posição na lista de aprovados para o seu curso.</p>
+    </div>
+
+    {{-- Lógica de busca e cálculo dos pontos (sem alteração) --}}
+    @php
+        $candidatoLogado = auth()->user()->candidato;
+        $classificacaoDoCurso = collect(); 
+        $regrasDePontuacao = collect(); 
+
+        if ($candidatoLogado && $candidatoLogado->curso) {
+            $regrasDePontuacao = \App\Models\TipoDeAtividade::orderBy('nome')->get();
+            
+            $todosCandidatosClassificacao = \App\Models\Candidato::whereIn('status', ['Aprovado', 'Homologado'])
+                ->with(['user', 'curso', 'instituicao', 'atividades.tipoDeAtividade'])
+                ->get()
+                ->map(function($cand) use ($regrasDePontuacao) {
+                    $resultado = $cand->calcularPontuacaoDetalhada();
+                    $cand->pontuacao_final = $resultado['total'];
+                    
+                    $boletim = [];
+                    foreach($regrasDePontuacao as $regra) {
+                        $boletim[$regra->nome] = 0;
+                    }
+                    foreach($resultado['detalhes'] as $detalhe) {
+                        if (isset($boletim[$detalhe['nome']])) {
+                            $boletim[$detalhe['nome']] += $detalhe['pontos'];
+                        }
+                    }
+                    $cand->boletim_pontos = $boletim;
+                    
+                    return $cand;
+                })
+                ->sortByDesc('pontuacao_final')
+                ->sortBy(function($cand) { return strtotime($cand->data_nascimento); });
+            
+            $classificacaoDoCurso = $todosCandidatosClassificacao->filter(function($cand) use ($candidatoLogado) {
+                return $cand->curso_id === $candidatoLogado->curso_id;
+            })->values();
+        }
+    @endphp
+
+    <div class="bg-white overflow-hidden shadow-lg sm:rounded-xl border border-gray-200">
+        <div class="p-6">
+            @if($candidatoLogado && $candidatoLogado->curso)
+                <div class="mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
                         </div>
-
-                        {{-- Lógica de busca e cálculo dos pontos --}}
-                        @php
-                            $candidatoLogado = auth()->user()->candidato;
-                            $classificacaoDoCurso = collect(); 
-                            $regrasDePontuacao = collect(); 
-
-                            if ($candidatoLogado && $candidatoLogado->curso) {
-                                $regrasDePontuacao = \App\Models\TipoDeAtividade::orderBy('nome')->get();
-                                
-                                $todosCandidatosClassificacao = \App\Models\Candidato::whereIn('status', ['Aprovado', 'Homologado'])
-                                    ->with(['user', 'curso', 'instituicao', 'atividades.tipoDeAtividade'])
-                                    ->get()
-                                    ->map(function($cand) use ($regrasDePontuacao) {
-                                        $resultado = $cand->calcularPontuacaoDetalhada();
-                                        $cand->pontuacao_final = $resultado['total'];
-                                        
-                                        $boletim = [];
-                                        foreach($regrasDePontuacao as $regra) {
-                                            $boletim[$regra->nome] = 0;
-                                        }
-                                        foreach($resultado['detalhes'] as $detalhe) {
-                                            if (isset($boletim[$detalhe['nome']])) {
-                                                $boletim[$detalhe['nome']] += $detalhe['pontos'];
-                                            }
-                                        }
-                                        $cand->boletim_pontos = $boletim;
-                                        
-                                        return $cand;
-                                    })
-                                    ->sortByDesc('pontuacao_final')
-                                    ->sortBy(function($cand) { return strtotime($cand->data_nascimento); });
-                                
-                                $classificacaoDoCurso = $todosCandidatosClassificacao->filter(function($cand) use ($candidatoLogado) {
-                                    return $cand->curso_id === $candidatoLogado->curso_id;
-                                })->values();
-                            }
-                        @endphp
-
-                        <div class="bg-white overflow-hidden shadow-lg sm:rounded-xl border border-gray-200">
-                            <div class="p-6">
-                                @if($candidatoLogado && $candidatoLogado->curso)
-                                    <div class="mb-6">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="flex-shrink-0">
-                                                <svg class="h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                                                </svg>
-                                            </div>
-                                            <h4 class="text-lg font-semibold text-gray-800">{{ $candidato->curso->nome }}</h4>
-                                        </div>
-                                    </div>
-
-                                    @if($classificacaoDoCurso->isEmpty())
-                                        <div class="text-center py-12">
-                                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                            </svg>
-                                            <p class="mt-4 text-gray-500">A classificação para o seu curso ainda não foi divulgada.</p>
-                                        </div>
-                                    @else
-                                        @if(Auth::user()->candidato && !in_array(Auth::user()->candidato->status, ['Aprovado', 'Homologado']))
-                                            <div class="mb-4 p-3 bg-blue-50 text-blue-700 text-sm rounded-lg border border-blue-200">
-                                                <p>Esta é a classificação atual dos candidatos aprovados. A sua posição aparecerá aqui assim que a sua inscrição for aprovada pela comissão.</p>
-                                            </div>
-                                        @endif
-                                        <div class="overflow-x-auto">
-                                            <table class="min-w-full">
-                                                <thead>
-                                                    <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                                                        <th class="px-3 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Posição</th>
-                                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Candidato</th>
-                                                        @foreach($regrasDePontuacao as $regra)
-                                                            <th class="px-3 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">{{ $regra->nome }}</th>
-                                                        @endforeach
-                                                        <th class="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Total</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="bg-white divide-y divide-gray-100">
-                                                    @foreach($classificacaoDoCurso as $index => $classificado)
-                                                        <tr class="hover:bg-gray-50 transition-colors duration-150 {{ $classificado->user_id === Auth::id() ? 'bg-blue-50 border-l-4 border-blue-400' : '' }}">
-                                                            <td class="px-3 py-3 text-center">
-                                                                <span class="inline-flex items-center justify-center h-8 w-8 rounded-full text-xs font-bold {{ $classificado->user_id === Auth::id() ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700' }}">
-                                                                    {{ $index + 1 }}
-                                                                </span>
-                                                            </td>
-                                                            <td class="px-4 py-3 whitespace-nowrap">
-                                                                <div class="flex items-center">
-                                                                    <div class="text-sm font-medium {{ $classificado->user_id === Auth::id() ? 'text-blue-900' : 'text-gray-900' }}">
-                                                                        {{ $classificado->user->name }}
-                                                                        @if($classificado->user_id === Auth::id())
-                                                                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                                                Você
-                                                                            </span>
-                                                                        @endif
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            @foreach($regrasDePontuacao as $regra)
-                                                                <td class="px-3 py-3 text-center text-xs {{ $classificado->user_id === Auth::id() ? 'text-blue-900' : 'text-gray-700' }}">
-                                                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
-                                                                        {{ number_format($classificado->boletim_pontos[$regra->nome] ?? 0, 2, ',', '.') }}
-                                                                    </span>
-                                                                </td>
-                                                            @endforeach
-                                                            <td class="px-4 py-3 text-center">
-                                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold {{ $classificado->user_id === Auth::id() ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white' }}">
-                                                                    {{ number_format($classificado->pontuacao_final, 2, ',', '.') }}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        @if($classificacaoDoCurso->count() > 10)
-                                            <div class="mt-4 text-center">
-                                                <p class="text-xs text-gray-500">Mostrando {{ $classificacaoDoCurso->count() }} candidatos classificados</p>
-                                            </div>
-                                        @endif
-                                    @endif
-                                @else
-                                    <div class="text-center py-12">
-                                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                        </svg>
-                                        <p class="mt-4 text-gray-500">Complete o seu perfil e selecione um curso para ver a classificação.</p>
-                                        <a href="{{ route('candidato.profile.edit') }}" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
-                                            Completar Perfil
-                                        </a>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800">{{ $candidato->curso->nome }}</h4>
                     </div>
+                </div>
+
+                @if($classificacaoDoCurso->isEmpty())
+                    <div class="text-center py-12">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="mt-4 text-gray-500">A classificação para o seu curso ainda não foi divulgada.</p>
+                    </div>
+                @else
+                    @if(Auth::user()->candidato && !in_array(Auth::user()->candidato->status, ['Aprovado', 'Homologado']))
+                        {{-- ✅ AJUSTE: Fonte retornada para 'text-sm' para ser mais sutil --}}
+                        <div class="mb-4 p-3 bg-blue-50 text-blue-700 text-sm rounded-lg border border-blue-200">
+                            <p>Esta é a classificação atual dos candidatos aprovados. A sua posição aparecerá aqui assim que a sua inscrição for aprovada pela comissão.</p>
+                        </div>
+                    @endif
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                                    {{-- ✅ AJUSTE: Cabeçalho da tabela retornado para 'text-xs' para compactar --}}
+                                    <th class="px-3 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Posição</th>
+                                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Candidato</th>
+                                    @foreach($regrasDePontuacao as $regra)
+                                        <th class="px-3 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">{{ $regra->nome }}</th>
+                                    @endforeach
+                                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                @foreach($classificacaoDoCurso as $index => $classificado)
+                                    <tr class="hover:bg-gray-50 transition-colors duration-150 {{ $classificado->user_id === Auth::id() ? 'bg-blue-50 border-l-4 border-blue-400' : '' }}">
+                                        <td class="px-3 py-3 text-center">
+                                            {{-- ✅ AJUSTE: Fonte do número da posição retornada para 'text-xs' --}}
+                                            <span class="inline-flex items-center justify-center h-8 w-8 rounded-full text-xs font-bold {{ $classificado->user_id === Auth::id() ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700' }}">
+                                                {{ $index + 1 }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                 {{-- ✅ AJUSTE: Fonte do nome retornada para 'text-sm' (padrão de tabela) --}}
+                                                <div class="text-sm font-medium {{ $classificado->user_id === Auth::id() ? 'text-blue-900' : 'text-gray-900' }}">
+                                                    {{ $classificado->user->name }}
+                                                    @if($classificado->user_id === Auth::id())
+                                                         {{-- ✅ AJUSTE: Badge "Você" retornado para 'text-xs' --}}
+                                                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                            Você
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </td>
+                                        @foreach($regrasDePontuacao as $regra)
+                                             {{-- ✅ AJUSTE: Pontos retornados para 'text-xs' para serem mais compactos --}}
+                                            <td class="px-3 py-3 text-center text-xs {{ $classificado->user_id === Auth::id() ? 'text-blue-900' : 'text-gray-700' }}">
+                                                <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                                                    {{ number_format($classificado->boletim_pontos[$regra->nome] ?? 0, 2, ',', '.') }}
+                                                </span>
+                                            </td>
+                                        @endforeach
+                                        <td class="px-4 py-3 text-center">
+                                             {{-- ✅ AJUSTE: Total retornado para 'text-sm' para um leve destaque --}}
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold {{ $classificado->user_id === Auth::id() ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white' }}">
+                                                {{ number_format($classificado->pontuacao_final, 2, ',', '.') }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if($classificacaoDoCurso->count() > 10)
+                        <div class="mt-4 text-center">
+                            {{-- ✅ AJUSTE: Nota de rodapé da tabela retornada para 'text-xs' --}}
+                            <p class="text-xs text-gray-500">Mostrando {{ $classificacaoDoCurso->count() }} candidatos classificados</p>
+                        </div>
+                    @endif
+                @endif
+            @else
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <p class="mt-4 text-gray-500">Complete o seu perfil e selecione um curso para ver a classificação.</p>
+                    <a href="{{ route('candidato.profile.edit') }}" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
+                        Completar Perfil
+                    </a>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
 
                 </div>
             </div>

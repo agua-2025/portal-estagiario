@@ -1,6 +1,7 @@
 <x-app-layout>
-    <div class="py-6"> 
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+    {{-- ✅ AJUSTE 1: Contêiner principal para limitar a largura e centralizar a página --}}
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 @php
                     $initialRegraSelecionada = (string) (old('tipo_de_atividade_id') ?? '');
@@ -24,7 +25,7 @@
                     ];
                 @endphp
 
-                <div class="p-4 text-gray-900" x-data="alpineFormData()" x-init="initializeForm()">
+                <div class="p-6 text-gray-900" x-data="alpineFormData()" x-init="initializeForm()">
 
                     <div class="mb-4 border-b pb-3">
                         <h2 class="text-xl font-semibold text-gray-800">Anexar Itens para Pontuação</h2>
@@ -48,19 +49,20 @@
                         </div>
                     @endif
 
-                    <div class="text-center p-3 border-2 border-dashed rounded-lg">
-                        <button @click="showForm = !showForm" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
-                            [+] Adicionar Novo Item
-                        </button>
-                    </div>
+                    <div class="text-center py-2 border-2 border-dashed rounded-lg">
+    <button @click="showForm = !showForm" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold">
+        <span x-show="!showForm">[+] Adicionar Novo Item</span>
+        <span x-show="showForm">[-] Ocultar Formulário</span>
+    </button>
+</div>
 
-                    <div x-show="showForm" x-transition class="border-2 border-dashed rounded-lg p-3 my-3">
+                    <div x-show="showForm" x-transition class="border-2 border-dashed rounded-lg p-4 my-4">
                         <form x-ref="activityAddForm" action="{{ route('candidato.atividades.store') }}" method="POST" enctype="multipart/form-data" @submit.prevent="attemptSave()">
                             @csrf
-                            <div class="space-y-2"> 
+                            <div class="space-y-4"> 
                                 <div>
                                     <label for="tipo_de_atividade_id" class="block text-sm font-medium text-gray-700">Qual item de pontuação você quer adicionar?</label>
-                                    <select name="tipo_de_atividade_id" x-model="regraSelecionada" class="mt-0.5 block w-full rounded-md border-gray-300 shadow-sm" 
+                                    <select name="tipo_de_atividade_id" x-model="regraSelecionada" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
                                             :class="{'border-red-500': isFieldInvalid('tipo_de_atividade_id')}" required>
                                         <option value="">Selecione...</option>
                                         <template x-for="regra in regras" :key="regra.id">
@@ -72,7 +74,7 @@
                                 <div x-show="regraSelecionada && !isSemestresCursadosRule()">
                                     <label for="descricao_customizada" class="block text-sm font-medium text-gray-700" x-text="descricaoLabel"></label>
                                     <input type="text" name="descricao_customizada" x-model="fields.descricao_customizada" 
-                                           class="mt-0.5 block w-full rounded-md border-gray-300 shadow-sm" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
                                            :class="{'border-red-500': isFieldInvalid('descricao_customizada')}" 
                                            :required="!isSemestresCursadosRule()" 
                                            :placeholder="isSemestresCursadosRule() ? 'Ex: Semestre atual, nome da disciplina, etc.' : (isAproveitamentoAcademicoRule() ? 'Ex: Histórico escolar, certificado de curso, etc.' : '')">
@@ -82,7 +84,7 @@
                                 <div x-show="isSemestresCursadosRule()" class="sm:w-1/2">
                                     <label for="semestres_declarados" class="block text-sm font-medium text-gray-700">Número de Semestres Declarados</label>
                                     <input type="number" name="semestres_declarados" x-model="fields.semestres_declarados" 
-                                           class="mt-0.5 block w-full rounded-md border-gray-300 shadow-sm" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
                                            :class="{'border-red-500': isFieldInvalid('semestres_declarados')}" 
                                            :required="isSemestresCursadosRule()" min="1">
                                 </div>
@@ -91,7 +93,7 @@
                                 <div x-show="isAproveitamentoAcademicoRule()" class="sm:w-1/2">
                                     <label for="media_declarada_atividade" class="block text-sm font-medium text-gray-700">Média de Aproveitamento</label>
                                     <input type="number" step="0.01" name="media_declarada_atividade" x-model="fields.media_declarada_atividade" 
-                                           class="mt-0.5 block w-full rounded-md border-gray-300 shadow-sm" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
                                            :class="{'border-red-500': isFieldInvalid('media_declarada_atividade')}" 
                                            :required="isAproveitamentoAcademicoRule()" min="0" max="10">
                                 </div>
@@ -100,7 +102,7 @@
                                 <div x-show="regraSelecionada && selectedRegra && selectedRegra.unidade_medida === 'horas' && !isSemestresCursadosRule() && !isAproveitamentoAcademicoRule()">
                                     <label for="carga_horaria" class="block text-sm font-medium text-gray-700">Carga Horária Total</label>
                                     <input type="number" name="carga_horaria" x-model="fields.carga_horaria" 
-                                           class="mt-0.5 block w-full rounded-md border-gray-300 shadow-sm" 
+                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
                                            :class="{'border-red-500': isFieldInvalid('carga_horaria')}"
                                            :required="selectedRegra && selectedRegra.unidade_medida === 'horas' && !isSemestresCursadosRule() && !isAproveitamentoAcademicoRule()"
                                            min="1">
@@ -108,18 +110,18 @@
 
                                 {{-- Datas --}}
                                 <div x-show="regraSelecionada && selectedRegra && selectedRegra.unidade_medida === 'meses' && !isSemestresCursadosRule() && !isAproveitamentoAcademicoRule()">
-                                    <div class="grid grid-cols-2 gap-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label for="data_inicio" class="block text-sm font-medium text-gray-700">Data de Início</label>
                                             <input type="date" name="data_inicio" x-model="fields.data_inicio" 
-                                                   class="mt-0.5 block w-full rounded-md border-gray-300 shadow-sm" 
+                                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
                                                    :class="{'border-red-500': isFieldInvalid('data_inicio')}"
                                                    :required="selectedRegra && selectedRegra.unidade_medida === 'meses' && !isSemestresCursadosRule() && !isAproveitamentoAcademicoRule()">
                                         </div>
                                         <div>
                                             <label for="data_fim" class="block text-sm font-medium text-gray-700">Data de Fim</label>
                                             <input type="date" name="data_fim" x-model="fields.data_fim" 
-                                                   class="mt-0.5 block w-full rounded-md border-gray-300 shadow-sm" 
+                                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
                                                    :class="{'border-red-500': isFieldInvalid('data_fim')}"
                                                    :required="selectedRegra && selectedRegra.unidade_medida === 'meses' && !isSemestresCursadosRule() && !isAproveitamentoAcademicoRule()">
                                         </div>
@@ -127,14 +129,14 @@
                                 </div>
 
                                 <div x-show="regraSelecionada">
-                                    <label for="comprovativo" class="block text-sm font-medium text-gray-700">Anexar Comprovativo</label>
-                                    <input type="file" name="comprovativo" id="comprovativo" class="mt-0.5 block w-full text-sm" 
-                                           :class="{'border-red-500': isFieldInvalid('comprovativo')}" required>
+                                    <label for="comprovativo" class="block text-sm font-medium text-gray-700">Anexar Comprovativo (PDF, JPG, PNG)</label>
+                                    <input type="file" name="comprovativo" id="comprovativo" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+                                           :class="{'border-red-500 ring-red-500 ring-1 rounded-lg': isFieldInvalid('comprovativo')}" required>
                                 </div>
                             </div>
-                            <div class="flex justify-end items-center mt-3 space-x-3">
-                                <button type="button" @click="showForm = false" class="text-sm text-gray-600">Cancelar</button>
-                                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm" 
+                            <div class="flex justify-end items-center mt-6 space-x-4">
+                                <button type="button" @click="showForm = false" class="text-sm text-gray-600 hover:text-gray-900">Cancelar</button>
+                                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold" 
                                         :disabled="validationAttempted && !isFormValid()"> 
                                     Salvar Item
                                 </button>
@@ -142,23 +144,21 @@
                         </form>
                     </div>
 
-                    <div class="mt-6 pt-4 border-t">
+                    <div class="mt-8 pt-6 border-t">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Meus Itens Enviados</h3>
-                        <div class="space-y-1.5">
+                        <div class="space-y-3">
                             @forelse ($atividadesEnviadas as $atividade)
-                                <div class="p-2.5 border rounded-lg flex justify-between items-center text-sm">
-                                    <div>
-                                        <p class="font-semibold">{{ $atividade->tipoDeAtividade->nome }}</p>
+                                <div class="p-3 border rounded-lg flex justify-between items-start text-sm">
+                                    <div class="flex-grow">
+                                        <p class="font-semibold text-gray-800">{{ $atividade->tipoDeAtividade->nome }}</p>
                                         <p class="text-xs text-gray-600">{{ $atividade->descricao_customizada }}</p>
                                         
-                                        {{-- ✅ INÍCIO DO AJUSTE: Bloco para exibir motivo e prazo da rejeição --}}
                                         @if($atividade->status === 'Rejeitada')
-                                            <div class="mt-2 p-2 text-xs text-red-800 bg-red-50 rounded-md border border-red-200">
+                                            {{-- ✅ AJUSTE 2: Adicionada a classe "break-all" para forçar a quebra de linha do texto --}}
+                                            <div class="mt-2 p-2 text-xs text-red-800 bg-red-50 rounded-md border border-red-200 break-all">
                                                 <strong class="font-bold">Motivo da Rejeição:</strong> {{ $atividade->motivo_rejeicao }}
                                                 
-                                                {{-- Verifica se existe um prazo de recurso --}}
                                                 @if($atividade->prazo_recurso_ate)
-                                                    {{-- Verifica se o prazo ainda está ativo --}}
                                                     @if(\Carbon\Carbon::now()->lt($atividade->prazo_recurso_ate))
                                                         <p class="mt-1 font-bold">
                                                             Você pode corrigir e reenviar este item até: 
@@ -170,7 +170,6 @@
                                                 @endif
                                             </div>
                                         @endif
-                                        {{-- ✅ FIM DO AJUSTE --}}
 
                                     </div>
                                     
@@ -195,12 +194,15 @@
                                     </div>
                                 </div>
                             @empty
-                                <p class="text-sm text-gray-500 text-center py-4">Nenhum item para pontuação adicionado.</p>
+                                <div class="text-center border-2 border-dashed rounded-lg py-6">
+                                    <p class="text-sm text-gray-500">Nenhum item para pontuação adicionado.</p>
+                                </div>
                             @endforelse
                         </div>
                     </div>
 
                 </div>
+
             </div>
         </div>
     </div>
@@ -208,14 +210,11 @@
     <script>
         function alpineFormData() {
             return {
-                // Dados iniciais do PHP
                 ...@json($alpineData),
                 
-                // Computed properties
                 get selectedRegra() {
-                    const selectedRegraId = parseInt(this.regraSelecionada);
-                    if (isNaN(selectedRegraId) || selectedRegraId === 0) return null; 
-                    return this.regras.find(r => r.id === selectedRegraId);
+                    if (!this.regraSelecionada) return null;
+                    return this.regras.find(r => r.id == this.regraSelecionada);
                 },
                 
                 get descricaoLabel() {
@@ -229,20 +228,16 @@
                     return 'Descrição / Nome Específico';
                 },
                 
-                // Métodos de verificação
                 isSemestresCursadosRule() {
                     if (!this.selectedRegra) return false; 
-                    const nomeRegra = this.selectedRegra.nome.toLowerCase();
-                    return nomeRegra.includes('semestres cursados');
+                    return this.selectedRegra.nome.toLowerCase().includes('semestres cursados');
                 },
                 
                 isAproveitamentoAcademicoRule() { 
                     if (!this.selectedRegra) return false;
-                    const nomeRegra = this.selectedRegra.nome.toLowerCase();
-                    return nomeRegra.includes('aproveitamento acadêmico');
+                    return this.selectedRegra.nome.toLowerCase().includes('aproveitamento acadêmico');
                 },
                 
-                // Validações
                 isFormValid() {
                     if (!this.regraSelecionada) return false;
                     
@@ -316,11 +311,12 @@
                     }
                 },
                 
-                // Métodos de ação
                 initializeForm() {
-                    this.regraSelecionada = parseInt(this.regraSelecionada); 
-                    if (isNaN(this.regraSelecionada)) {
-                        this.regraSelecionada = '';
+                    if (this.regraSelecionada) {
+                        this.regraSelecionada = parseInt(this.regraSelecionada); 
+                        if (isNaN(this.regraSelecionada)) {
+                            this.regraSelecionada = '';
+                        }
                     }
                     
                     this.clearUnusedFields();
@@ -352,19 +348,17 @@
                 attemptSave() {
                     this.validationAttempted = true;
                     
-                    if (this.isFormValid()) {
-                        this.$refs.activityAddForm.submit();
-                    } else {
-                        setTimeout(() => {
-                            const form = this.$refs.activityAddForm;
-                            if (form) {
-                                const firstInvalidField = form.querySelector(':invalid, .border-red-500');
-                                if (firstInvalidField) {
-                                    firstInvalidField.focus();
-                                }
+                    this.$nextTick(() => {
+                        if (this.isFormValid()) {
+                            this.$refs.activityAddForm.submit();
+                        } else {
+                            const firstInvalidField = this.$el.querySelector('[name]:invalid, .border-red-500');
+                            if (firstInvalidField) {
+                                firstInvalidField.focus();
+                                firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             }
-                        }, 100);
-                    }
+                        }
+                    });
                 }
             }
         }
