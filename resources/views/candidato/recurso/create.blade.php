@@ -11,14 +11,12 @@
                 <div class="p-6 md:p-8 text-gray-900">
 
                     @php
-                        // Para simplificar a lógica abaixo, obtemos o candidato e verificamos o recurso pendente.
                         $candidato = Auth::user()->candidato;
                         $recursoPendente = false;
                         $recursoMaisRecente = null;
 
-                        // Verifica se há um histórico e se o recurso mais recente ainda não foi decidido.
                         if (!empty($candidato->recurso_historico)) {
-                            $recursoMaisRecente = $candidato->recurso_historico[0]; // Pega o último enviado
+                            $recursoMaisRecente = $candidato->recurso_historico[0];
                             if (empty($recursoMaisRecente['decisao_admin'])) {
                                 $recursoPendente = true;
                             }
@@ -37,7 +35,7 @@
                             <a href="{{ route('dashboard') }}" class="mt-4 inline-block text-sm font-semibold text-blue-600 hover:underline">Voltar ao Painel</a>
                         </div>
 
-                    {{-- CASO 2: Candidato pode interpor recurso (Homologado, dentro do prazo e sem recurso pendente) --}}
+                    {{-- CASO 2: Candidato pode interpor recurso --}}
                     @elseif($candidato && $candidato->pode_interpor_recurso)
                         
                         <div>
@@ -53,7 +51,9 @@
                         <div class="border-t border-gray-200 mt-6 pt-6">
                             <p class="text-sm text-gray-800 mb-4">
                                 <span class="font-bold">Prazo Final para Recurso:</span> 
-                                {{ \Carbon\Carbon::parse($candidato->homologado_em)->addDays(2)->format('d/m/Y \à\s H:i') }}
+                                
+                                {{-- ✅ LINHA CORRIGIDA: Agora usa a variável $prazoFinal que veio do Controller --}}
+                                {{ $prazoFinal->format('d/m/Y \à\s H:i') }}
                             </p>
 
                             <form action="{{ route('candidato.recurso.store') }}" method="POST">

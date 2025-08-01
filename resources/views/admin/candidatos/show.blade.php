@@ -201,65 +201,84 @@
                         {{-- SEÇÃO DE ATIVIDADES --}}
                         <div class="mb-6">
                             <h3 class="text-base font-semibold text-gray-800 mb-3">Atividades Complementares</h3>
-                            <div class="space-y-2">
-                                @foreach($candidato->atividades as $atividade)
-                                    <div class="p-3 border rounded bg-gray-50 text-sm">
-                                        <div class="flex justify-between items-start">
-                                            <div class="flex-1 min-w-0">
-                                                <div class="flex items-center gap-2 mb-1">
-                                                    @php
-                                                        $statusClassAtividade = 'bg-yellow-100 text-yellow-800';
-                                                        if ($atividade->status === 'Aprovada') $statusClassAtividade = 'bg-green-100 text-green-800';
-                                                        elseif ($atividade->status === 'Rejeitada') $statusClassAtividade = 'bg-red-100 text-red-800';
-                                                        elseif ($atividade->status === 'enviado') $statusClassAtividade = 'bg-blue-100 text-blue-800';
-                                                        elseif ($atividade->status === 'Em Análise') $statusClassAtividade = 'bg-purple-100 text-purple-800';
-                                                    @endphp
-                                                    <span class="font-medium px-2 py-0.5 rounded-full text-xs {{ $statusClassAtividade }}">{{ $atividade->status }}</span>
-                                                    <p class="font-medium truncate">{{ $atividade->tipoDeAtividade->nome ?? 'Regra não encontrada' }}</p>
-                                                </div>
-                                                <p class="text-xs text-gray-600 mb-2">{{ $atividade->descricao_customizada }}</p>
-                                                
-                                                <div class="text-xs text-gray-700 pl-2 border-l-2 border-gray-200">
-                                                    @if (str_contains(strtolower($atividade->tipoDeAtividade->nome), 'aproveitamento acadêmico'))
-                                                        <p><strong>Média:</strong> {{ $candidato->media_aproveitamento ?? 'N/A' }}</p>
-                                                    @elseif($atividade->tipoDeAtividade->unidade_medida === 'horas')
-                                                        <p><strong>Horas:</strong> {{ $atividade->carga_horaria ?? 'N/A' }}</p>
-                                                    @elseif($atividade->tipoDeAtividade->unidade_medida === 'meses')
-                                                        <p><strong>Período:</strong> {{ optional($atividade->data_inicio)->format('d/m/Y') ?? 'N/A' }} a {{ optional($atividade->data_fim)->format('d/m/Y') ?? 'N/A' }}</p>
-                                                    @elseif(str_contains(strtolower($atividade->tipoDeAtividade->nome), 'semestres cursados') || $atividade->tipoDeAtividade->unidade_medida === 'semestre')
-                                                        <p><strong>Semestres:</strong> {{ $atividade->semestres_declarados ?? 'N/A' }}</p>
-                                                    @endif
-                                                </div>
+                            {{-- =============================================================== --}}
+{{-- COLE ESTE BLOCO INTEIRO NO LUGAR DO SEU LOOP DE ATIVIDADES     --}}
+{{-- =============================================================== --}}
+<div class="space-y-2">
+    @foreach($candidato->atividades as $atividade)
+        <div class="p-3 border rounded bg-gray-50 text-sm">
+            <div class="flex justify-between items-start">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        @php
+                            $statusClassAtividade = 'bg-yellow-100 text-yellow-800';
+                            if ($atividade->status === 'Aprovada') $statusClassAtividade = 'bg-green-100 text-green-800';
+                            elseif ($atividade->status === 'Rejeitada') $statusClassAtividade = 'bg-red-100 text-red-800';
+                            elseif ($atividade->status === 'enviado') $statusClassAtividade = 'bg-blue-100 text-blue-800';
+                            elseif ($atividade->status === 'Em Análise') $statusClassAtividade = 'bg-purple-100 text-purple-800';
+                        @endphp
+                        <span class="font-medium px-2 py-0.5 rounded-full text-xs {{ $statusClassAtividade }}">{{ $atividade->status }}</span>
+                        <p class="font-medium truncate">{{ $atividade->tipoDeAtividade->nome ?? 'Regra não encontrada' }}</p>
+                    </div>
+                    <p class="text-xs text-gray-600 mb-2">{{ $atividade->descricao_customizada }}</p>
+                    
+                    <div class="text-xs text-gray-700 pl-2 border-l-2 border-gray-200">
+                        @if (str_contains(strtolower($atividade->tipoDeAtividade->nome), 'aproveitamento acadêmico'))
+                            <p><strong>Média:</strong> {{ $candidato->media_aproveitamento ?? 'N/A' }}</p>
+                        @elseif($atividade->tipoDeAtividade->unidade_medida === 'horas')
+                            <p><strong>Horas:</strong> {{ $atividade->carga_horaria ?? 'N/A' }}</p>
+                        @elseif($atividade->tipoDeAtividade->unidade_medida === 'meses')
+                            <p><strong>Período:</strong> {{ optional($atividade->data_inicio)->format('d/m/Y') ?? 'N/A' }} a {{ optional($atividade->data_fim)->format('d/m/Y') ?? 'N/A' }}</p>
+                        @elseif(str_contains(strtolower($atividade->tipoDeAtividade->nome), 'semestres cursados') || $atividade->tipoDeAtividade->unidade_medida === 'semestre')
+                            <p><strong>Semestres:</strong> {{ $atividade->semestres_declarados ?? 'N/A' }}</p>
+                        @endif
+                    </div>
 
-                                                @if($atividade->status === 'Rejeitada' && $atividade->motivo_rejeicao)
-                                                    <div class="text-xs text-red-700 mt-2 p-2 bg-red-50 rounded">
-                                                        <p class="break-words"><strong>Motivo:</strong> {{ $atividade->motivo_rejeicao }}</p>
-                                                        @if($atividade->prazo_recurso_ate)
-                                                            @if(\Carbon\Carbon::now()->lt($atividade->prazo_recurso_ate))
-                                                                <p class="mt-1 text-blue-700"><strong>Prazo para Recurso:</strong> até {{ \Carbon\Carbon::parse($atividade->prazo_recurso_ate)->format('d/m/Y') }} às 17h00 (2 dias úteis)</p>
-                                                            @else
-                                                                <p class="mt-1 text-gray-600"><strong>Prazo Encerrado</strong></p>
-                                                            @endif
-                                                        @endif
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <div class="flex items-center gap-1 ml-3 flex-shrink-0">
-                                                <a href="{{ route('candidato.atividades.show', $atividade) }}" target="_blank" class="px-3 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700">Ver</a>
-                                                @if ($atividade->status !== 'Aprovada')
-                                                    <form action="{{ route('admin.atividades.aprovar', $atividade->id) }}" method="POST" onsubmit="return confirm('Aprovar item?');" class="inline">
-                                                        @csrf
-                                                        <button type="submit" class="py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 w-[70px] text-center">Aprovar</button>
-                                                    </form>
-                                                @endif
-                                                @if ($atividade->status !== 'Rejeitada')
-                                                    <button @click="showRejectionModal = true; rejectionAction = '{{ route('admin.atividades.rejeitar', $atividade->id) }}'" type="button" class="py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 w-[70px] text-center">Rejeitar</button>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
+                    @if($atividade->status === 'Rejeitada' && $atividade->motivo_rejeicao)
+                        <div class="text-xs text-red-700 mt-2 p-2 bg-red-50 rounded">
+                            <p class="break-words"><strong>Motivo:</strong> {{ $atividade->motivo_rejeicao }}</p>
+                            @if($atividade->prazo_recurso_ate)
+                                @if(\Carbon\Carbon::now()->lt($atividade->prazo_recurso_ate))
+                                    <p class="mt-1 text-blue-700"><strong>Prazo para Recurso:</strong> até {{ \Carbon\Carbon::parse($atividade->prazo_recurso_ate)->format('d/m/Y') }} às 17h00 (2 dias úteis)</p>
+                                @else
+                                    <p class="mt-1 text-gray-600"><strong>Prazo Encerrado</strong></p>
+                                @endif
+                            @endif
+                        </div>
+                    @endif
+                </div>
+               <div class="flex items-center gap-1 ml-3 flex-shrink-0">
+    @php
+        $prazoExpirado = false;
+        if ($atividade->status === 'Rejeitada' && $atividade->prazo_recurso_ate && \Carbon\Carbon::now()->gt($atividade->prazo_recurso_ate)) {
+            $prazoExpirado = true;
+        }
+    @endphp
+
+    <a href="{{ route('candidato.atividades.show', $atividade) }}" target="_blank" class="px-3 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700">Ver</a>
+    
+    @if (!$prazoExpirado)
+        @if ($atividade->status !== 'Aprovada')
+            <form action="{{ route('admin.atividades.aprovar', $atividade->id) }}" method="POST" onsubmit="return confirm('Aprovar item?');" class="inline">
+                @csrf
+                {{-- ✅ AJUSTE DE ALINHAMENTO --}}
+                <button type="submit" class="py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 w-[70px] flex justify-center items-center">Aprovar</button>
+            </form>
+        @endif
+        @if ($atividade->status !== 'Rejeitada')
+            {{-- ✅ AJUSTE DE ALINHAMENTO --}}
+            <button @click="showRejectionModal = true; rejectionAction = '{{ route('admin.atividades.rejeitar', $atividade->id) }}'" type="button" class="py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 w-[70px] flex justify-center items-center">Rejeitar</button>
+        @endif
+    @else
+        {{-- ✅ AJUSTE DE ALINHAMENTO --}}
+        <span class="px-3 py-1 bg-gray-400 text-white rounded text-xs w-[70px] cursor-not-allowed flex justify-center items-center" title="O prazo para o candidato recorrer já encerrou.">Bloqueado</span>
+    @endif
+</div>
+            </div>
+        </div>
+    @endforeach
+</div>
+{{-- =============================================================== --}}
                         </div>
                     </div>
 
@@ -297,13 +316,15 @@
                                                
                                                <div class="mt-2">
                                                    <p class="text-xs font-medium text-gray-700">Argumento:</p>
-                                                   <div class="mt-1 text-xs text-gray-800 bg-white p-2 rounded border whitespace-pre-wrap">{{ $recurso['argumento_candidato'] }}</div>
+                                                   <div class="mt-1 text-xs text-gray-800 bg-white p-2 rounded border whitespace-pre-wrap break-all">{{ $recurso['argumento_candidato'] }}</div>
                                                </div>
 
                                                @if(!empty($recurso['decisao_admin']))
                                                    <div class="mt-2">
                                                        <p class="text-xs font-medium text-gray-700">Justificativa:</p>
-                                                       <div class="mt-1 text-xs text-gray-800 bg-white p-2 rounded border whitespace-pre-wrap">{{ $recurso['justificativa_admin'] ?? 'Não fornecida.' }}</div>
+                                                       <div class="mt-1 text-xs text-gray-800 bg-white p-2 rounded border whitespace-pre-wrap break-all">{{ $recurso['justificativa_admin'] ?? 'Não fornecida.' }}</div>
+
+
                                                    </div>
                                                @else
                                                    <div class="mt-3 pt-2 border-t border-purple-200">

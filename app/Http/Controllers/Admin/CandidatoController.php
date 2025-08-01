@@ -385,6 +385,7 @@ private function calcularDiasUteis(int $diasUteisParaAdicionar): Carbon
             $diasAdicionados++;
         }
     }
-    // A única alteração é nesta linha abaixo
-    return $data->setTime(17, 0, 0); 
+   // ✅ AQUI ESTÁ A CORREÇÃO FINAL
+        return $data->setTime(17, 0, 0); 
+    }
 }

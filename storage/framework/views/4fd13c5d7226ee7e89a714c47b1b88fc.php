@@ -59,11 +59,11 @@
                     <?php endif; ?>
 
                     <div class="text-center py-2 border-2 border-dashed rounded-lg">
-    <button @click="showForm = !showForm" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold">
-        <span x-show="!showForm">[+] Adicionar Novo Item</span>
-        <span x-show="showForm">[-] Ocultar Formulário</span>
-    </button>
-</div>
+                        <button @click="showForm = !showForm" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold">
+                            <span x-show="!showForm">[+] Adicionar Novo Item</span>
+                            <span x-show="showForm">[-] Ocultar Formulário</span>
+                        </button>
+                    </div>
 
                     <div x-show="showForm" x-transition class="border-2 border-dashed rounded-lg p-4 my-4">
                         <form x-ref="activityAddForm" action="<?php echo e(route('candidato.atividades.store')); ?>" method="POST" enctype="multipart/form-data" @submit.prevent="attemptSave()">
@@ -163,7 +163,6 @@
                                         <p class="text-xs text-gray-600"><?php echo e($atividade->descricao_customizada); ?></p>
                                         
                                         <?php if($atividade->status === 'Rejeitada'): ?>
-                                            
                                             <div class="mt-2 p-2 text-xs text-red-800 bg-red-50 rounded-md border border-red-200 break-all">
                                                 <strong class="font-bold">Motivo da Rejeição:</strong> <?php echo e($atividade->motivo_rejeicao); ?>
 
@@ -184,6 +183,9 @@
 
                                     </div>
                                     
+                                    
+                                    
+                                    
                                     <div class="flex items-center space-x-3 flex-shrink-0 ml-4">
                                         <?php
                                             $statusClass = 'bg-gray-100 text-gray-800';
@@ -191,9 +193,22 @@
                                             elseif ($atividade->status === 'Rejeitada') $statusClass = 'bg-red-100 text-red-800';
                                             elseif ($atividade->status === 'enviado') $statusClass = 'bg-blue-100 text-blue-800';
                                             elseif ($atividade->status === 'Em Análise') $statusClass = 'bg-purple-100 text-purple-800';
+
+                                            $podeEditar = true; 
+                                            if ($atividade->status === 'Rejeitada' && $atividade->prazo_recurso_ate) {
+                                                // Compara a data/hora UTC de agora com a data/hora UTC do prazo.
+                                                // O Laravel já trata os dois valores como objetos Carbon em UTC por padrão.
+                                                if (\Carbon\Carbon::now()->gt($atividade->prazo_recurso_ate)) {
+                                                    $podeEditar = false;
+                                                }
+                                            }
                                         ?>
+
                                         <span class="font-medium capitalize px-2 py-1 rounded-full text-xs <?php echo e($statusClass); ?>"><?php echo e($atividade->status); ?></span>
-                                        <a href="<?php echo e(route('candidato.atividades.edit', $atividade)); ?>" class="px-3 py-1 bg-gray-200 text-gray-800 rounded-md text-xs hover:bg-gray-300">Editar</a>
+                                        
+                                        <?php if($podeEditar): ?>
+                                            <a href="<?php echo e(route('candidato.atividades.edit', $atividade)); ?>" class="px-3 py-1 bg-gray-200 text-gray-800 rounded-md text-xs hover:bg-gray-300">Editar</a>
+                                        <?php endif; ?>
                                         
                                         <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('delete', $atividade)): ?>
                                             <form method="POST" action="<?php echo e(route('candidato.atividades.destroy', $atividade)); ?>" onsubmit="return confirm('Tem a certeza que deseja excluir este item? Esta ação não pode ser desfeita.');">

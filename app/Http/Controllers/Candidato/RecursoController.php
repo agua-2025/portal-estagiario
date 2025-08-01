@@ -16,12 +16,26 @@ class RecursoController extends Controller
     {
         $candidato = Auth::user()->candidato;
 
-        // A lógica de segurança continua a funcionar perfeitamente.
+        // A verificação de segurança continua aqui, usando o accessor do Model.
         if (!$candidato || !$candidato->pode_interpor_recurso) {
             return redirect()->route('dashboard')->with('error', 'Não há recurso disponível para sua inscrição no momento.');
         }
 
-        return view('candidato.recurso.create', compact('candidato'));
+        // ✅ LÓGICA ADICIONADA: Calcular o prazo final para exibir na tela.
+        // Esta lógica é uma cópia da que está no Model, garantindo consistência.
+        $prazoFinal = $candidato->homologado_em->copy();
+        $diasUteisParaAdicionar = 2;
+        
+        while ($diasUteisParaAdicionar > 0) {
+            $prazoFinal->addDay();
+            if (!$prazoFinal->isWeekend()) {
+                $diasUteisParaAdicionar--;
+            }
+        }
+        $prazoFinal->setTime(17, 0, 0);
+
+        // Passa tanto o candidato quanto o prazo final para a view.
+        return view('candidato.recurso.create', compact('candidato', 'prazoFinal'));
     }
 
     /**
@@ -35,7 +49,7 @@ class RecursoController extends Controller
 
         $candidato = Auth::user()->candidato;
 
-        // Validação de segurança unificada.
+        // Validação de segurança unificada. Perfeita, sem alterações.
         if (!$candidato || !$candidato->pode_interpor_recurso) {
             return redirect()->route('dashboard')->with('error', 'O prazo para enviar o recurso já encerrou ou a condição não é mais válida.');
         }
@@ -48,8 +62,8 @@ class RecursoController extends Controller
             'data_envio'          => now()->toDateTimeString(),
             'tipo'                => 'classificacao',
             'argumento_candidato' => $request->input('recurso_texto'),
-            'decisao_admin'       => null, // Será preenchido pelo administrador
-            'justificativa_admin' => null, // Será preenchido pelo administrador
+            'decisao_admin'       => null,
+            'justificativa_admin' => null,
         ];
 
         // Adiciona o novo recurso ao início do histórico (array_unshift).

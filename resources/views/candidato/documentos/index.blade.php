@@ -18,7 +18,7 @@
                     @if($candidato->status === 'Inscrição Incompleta' && !empty($candidato->admin_observacao))
                         <div class="p-4 mb-6 border-l-4 border-red-500 bg-red-50 text-red-800 rounded-r-lg" role="alert">
                             <h3 class="font-bold">Correção Necessária!</h3>
-                            <p class="mt-1 text-sm">A Comissão Organizadora solicitou uma correção no seu cadastro. O andamento do seu processo seletivo permanecerá suspenso até que o ajuste seja devidamente realizado.</p>
+                            <p class="mt-1 text-sm">A Comissão Organizadora solicitou uma correção no seu cadastro. O andamento do seu processo permanecerá suspenso até que o ajuste seja devidamente realizado.</p>
                         </div>
                     @endif
 
