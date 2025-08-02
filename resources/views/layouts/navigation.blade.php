@@ -29,6 +29,9 @@
                             <x-nav-link :href="route('admin.candidatos.index')" :active="request()->routeIs('admin.candidatos.*')">
                                 {{ __('Candidatos') }}
                             </x-nav-link>
+                            <x-nav-link :href="route('admin.candidatos.ranking')" :active="request()->routeIs('admin.candidatos.ranking')">
+                            {{ __('Convocação') }}
+                            </x-nav-link>
                             {{-- Link para Gerenciar Usuários --}}
                             @can('gerenciar_usuarios')
                                 <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">

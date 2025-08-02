@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Candidato;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use App\Models\Candidato;
 use App\Models\Instituicao;
@@ -17,10 +18,8 @@ use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
-    /**
-     * Mostra o formulário para o candidato editar seu perfil.
-     * ✅ CORRIGIDO: Removido firstOrCreate que salvava automaticamente
-     */
+    use AuthorizesRequests;
+   
     public function edit(Request $request)
     {
         // SOLUÇÃO 1: Apenas busca, não cria automaticamente
@@ -68,6 +67,9 @@ class ProfileController extends Controller
     {
         // Busca ou cria o candidato apenas no momento do save
         $candidato = $request->user()->candidato ?? new Candidato(['user_id' => Auth::id()]);
+        // ✅ TRAVA DE SEGURANÇA ADICIONADA AQUI
+        // Chama a CandidatoPolicy para verificar se o usuário pode atualizar este perfil.
+        $this->authorize('update', $candidato);
 
         $validatedData = $request->validate([
             'nome_completo' => 'required|string|max:255',

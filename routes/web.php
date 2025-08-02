@@ -136,6 +136,10 @@ Route::middleware(['auth', 'verified'])
         Route::resource('tipos-de-atividade', TipoDeAtividadeController::class); // CORRIGIDO AQUI!
         Route::resource('candidatos', CandidatoController::class);
         Route::resource('pages', PageController::class);
+        Route::get('ranking-convocacao', [CandidatoController::class, 'ranking'])->name('candidatos.ranking');
+        Route::get('candidatos/{candidato}/atribuir-vaga', [CandidatoController::class, 'showAtribuirVagaForm'])->name('candidatos.showAtribuirVagaForm');
+        Route::post('candidatos/{candidato}/convocar', [CandidatoController::class, 'convocar'])->name('candidatos.convocar');
+
 
         // Rotas para Gerenciamento de Usuários (com o novo UserController)
         Route::resource('users', UserController::class); // Importado no topo
@@ -151,6 +155,8 @@ Route::middleware(['auth', 'verified'])
         
         // NOVA ROTA PARA HOMOLOGAR O CANDIDATO
         Route::post('candidatos/{candidato}/homologar', [CandidatoController::class, 'homologar'])->name('candidatos.homologar');
+        Route::get('ranking-convocacao', [CandidatoController::class, 'ranking'])->name('candidatos.ranking');
+        Route::post('candidatos/{candidato}/convocar', [CandidatoController::class, 'convocar'])->name('candidatos.convocar');
         
         // Rotas para decisão do recurso
         Route::post('recursos/{candidato}/deferir/{recurso_index}', [CandidatoController::class, 'deferirRecurso'])->name('recursos.deferir');

@@ -31,9 +31,13 @@ class AtividadeController extends Controller
         return view('candidato.atividades.index', compact('regrasDePontuacao', 'atividadesEnviadas'));
     }
 
-    public function store(Request $request)
-    {
-        Log::debug('Iniciando store de atividade. Request data: ' . json_encode($request->all()));
+   public function store(Request $request)
+{
+    $this->authorize('create', CandidatoAtividade::class);
+
+    Log::debug('Iniciando store de atividade. Request data: ' . json_encode($request->all()));
+
+    $user = Auth::user();
 
         $user = Auth::user();
         $candidato = $user->candidato; 

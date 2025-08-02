@@ -57,8 +57,15 @@ class Candidato extends Model
         'recurso_prazo_ate',
         'recurso_status',
         'recurso_tipo',
-        // ✅ ADICIONE A NOVA COLUNA AQUI TAMBÉM
         'recurso_historico',
+        'convocado_em',
+        'lotacao_local',
+        'lotacao_chefia',
+        'lotacao_observacoes',
+        'contrato_data_inicio',
+        'contrato_data_fim',
+        'prorrogacao_data_inicio',
+        'prorrogacao_data_fim',
     ];
 
     /**
@@ -75,7 +82,12 @@ class Candidato extends Model
         'homologado_em' => 'datetime', 
         'revert_reason' => 'array', 
         'recurso_prazo_ate' => 'datetime',
-        'recurso_historico' => 'array', // ✅ AJUSTE: Adicione esta linha para o histórico de recursos.
+        'recurso_historico' => 'array', 
+        'convocado_em' => 'datetime',
+        'contrato_data_inicio' => 'date',
+        'contrato_data_fim' => 'date',
+        'prorrogacao_data_inicio' => 'date',
+        'prorrogacao_data_fim' => 'date',
     ];
 
     protected $appends = ['completion_percentage']; 

@@ -20,7 +20,6 @@ class CandidatoController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-
         $query = Candidato::query()->with(['user', 'curso', 'instituicao']);
 
         if ($search) {
@@ -29,9 +28,68 @@ class CandidatoController extends Controller
         }
 
         $candidatos = $query->latest()->paginate(15);
-
         return view('admin.candidatos.index', compact('candidatos', 'search'));
     }
+
+    /**
+     * Exibe a lista de candidatos homologados para convocação.
+     */
+    public function ranking()
+    {
+        $candidatosPorCurso = Candidato::where('status', 'Homologado')
+            ->with('curso')
+            ->orderBy('pontuacao_final', 'desc')
+            ->get()
+            ->groupBy('curso.nome');
+
+        return view('admin.candidatos.ranking', compact('candidatosPorCurso'));
+    }
+
+    /**
+     * ✅ NOVO MÉTODO
+     * Mostra o formulário para atribuir a vaga (lotação).
+     */
+    public function showAtribuirVagaForm(Candidato $candidato)
+    {
+        if ($candidato->status !== 'Homologado') {
+            return redirect()->route('admin.candidatos.ranking')->with('error', 'Este candidato não está no status "Homologado" e não pode ser convocado.');
+        }
+        return view('admin.candidatos.atribuir-vaga', compact('candidato'));
+    }
+
+    /**
+     * ✅ MÉTODO ATUALIZADO
+     * Valida os dados do formulário de lotação e altera o status do candidato para Convocado.
+     */
+   public function convocar(Request $request, Candidato $candidato)
+{
+    $validatedData = $request->validate([
+        'lotacao_local'           => 'required|string|max:255',
+        'lotacao_chefia'          => 'required|string|max:255',
+        'contrato_data_inicio'    => 'required|date',
+        'contrato_data_fim'       => 'required|date|after_or_equal:contrato_data_inicio',
+        'prorrogacao_data_inicio' => 'nullable|date',
+        'prorrogacao_data_fim'    => 'nullable|date|after_or_equal:prorrogacao_data_inicio',
+        'lotacao_observacoes'     => 'nullable|string',
+    ]);
+
+    if ($candidato->status !== 'Homologado') {
+        return redirect()->route('admin.candidatos.ranking')->with('error', 'Este candidato não está mais disponível para convocação.');
+    }
+
+    try {
+        $candidato->status = 'Convocado';
+        $candidato->convocado_em = now();
+        $candidato->fill($validatedData);
+        $candidato->save();
+
+        return redirect()->route('admin.candidatos.ranking')->with('success', "Candidato {$candidato->nome_completo} convocado com sucesso!");
+
+    } catch (\Exception $e) {
+        Log::error("Erro ao convocar candidato ID {$candidato->id}: " . $e->getMessage());
+        return redirect()->back()->with('error', 'Ocorreu um erro ao salvar a convocação.');
+    }
+}
 
     /**
      * Show the form for creating a new resource.
@@ -190,9 +248,6 @@ class CandidatoController extends Controller
         }
     }
 
-    /**
-     * Atualiza o status de um documento específico (Aprovado/Rejeitado).
-     */
 /**
      * Atualiza o status de um documento específico (Aprovado/Rejeitado).
      */

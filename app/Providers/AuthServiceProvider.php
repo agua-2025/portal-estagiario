@@ -2,10 +2,16 @@
 
 namespace App\Providers;
 
+// ✅ Modelos
+use App\Models\Candidato;
 use App\Models\CandidatoAtividade;
-use App\Models\Documento; // ✅ Adicionar esta linha
+use App\Models\Documento;
+
+// ✅ Policies
+use App\Policies\CandidatoPolicy;
 use App\Policies\CandidatoAtividadePolicy;
-use App\Policies\DocumentoPolicy; // ✅ Adicionar esta linha
+use App\Policies\DocumentoPolicy;
+
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -16,8 +22,11 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
+        // ✅ LINHA QUE FALTAVA
+        Candidato::class => CandidatoPolicy::class,
+        
         CandidatoAtividade::class => CandidatoAtividadePolicy::class,
-        Documento::class => DocumentoPolicy::class, // ✅ Adicionar esta linha
+        Documento::class => DocumentoPolicy::class,
     ];
 
     /**
@@ -28,4 +37,3 @@ class AuthServiceProvider extends ServiceProvider
         //
     }
 }
-
