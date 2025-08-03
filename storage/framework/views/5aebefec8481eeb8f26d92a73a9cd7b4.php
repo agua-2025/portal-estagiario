@@ -129,7 +129,7 @@
                             <p class="text-gray-600 text-center text-sm mb-4"><?php echo e($curso->descricao ?? 'Detalhes sobre o curso e sua área de atuação.'); ?></p>
                             <div class="flex justify-center mt-auto">
                                 <a href="<?php echo e(route('cursos.show', $curso->id)); ?>" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200">
-                                    Saber Mais &rarr;
+                                    Saiba Mais &rarr;
                                 </a>
                             </div>
                         </div>
