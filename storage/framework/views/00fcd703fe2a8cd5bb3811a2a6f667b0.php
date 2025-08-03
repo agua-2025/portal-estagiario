@@ -367,16 +367,7 @@
         easing: 'ease-out-back',
     });
 </script>
-        </footer>
-</div>
-<script>
-    AOS.init({
-        duration: 1000,
-        once: true,
-        easing: 'ease-out-back',
-    });
-</script>
-        </footer>
+ </footer>
 </div>
 
 <!-- Widget WhatsApp Expandível com Horário de Atendimento -->
