@@ -56,6 +56,12 @@ Route::get('/sobre-nos', function () {
     return view('public.sobre-nos', compact('page'));
 })->name('sobre-nos');
 
+Route::get('/perguntas-frequentes', function () {
+    $page = Page::where('slug', 'perguntas-frequentes-faq')->firstOrFail();
+    // AQUI: Adicione 'public.' antes do nome da view
+    return view('public.perguntas-frequentes-faq', compact('page'));
+})->name('perguntas-frequentes');
+
 
 // Rota para exibir detalhes de um curso específico
 Route::get('/cursos/{curso}', [CursoController::class, 'show'])->name('cursos.show');
