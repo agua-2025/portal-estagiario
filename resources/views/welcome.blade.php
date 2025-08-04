@@ -192,7 +192,7 @@
             {{-- SEGUNDO CARD: Top 5 Classificação Geral - COM DESTAQUE --}}
             <div class="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
                 <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
-                    <h3 class="text-2xl font-bold text-gray-900 text-center">🏆 Top 5 - Classificação Geral</h3>
+                    <h3 class="text-2xl font-bold text-gray-900 text-center">Top 5 - Classificação Geral</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full">
