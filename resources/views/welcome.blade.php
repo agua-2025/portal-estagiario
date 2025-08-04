@@ -143,9 +143,6 @@
         </div>
     </section>
 
-{{-- ==================================================================== --}}
-{{-- COLE ESTE BLOCO NO LUGAR DA SUA SEÇÃO "CLASSIFICAÇÃO" ATUAL       --}}
-{{-- ==================================================================== --}}
 <section id="classificacao" class="py-24 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16" data-aos="fade-up">
@@ -156,74 +153,74 @@
             </p>
         </div>
         
-        <div class="space-y-12">
+        {{-- ✅ O space-y-16 APLICA UM ESPAÇAMENTO GRANDE ENTRE OS CARDS --}}
+        <div class="space-y-16">
 
-            <div data-aos="fade-up" data-aos-delay="100">
-                <h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Últimos Convocados</h3>
-                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Candidato</th>
-                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Curso</th>
-                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Data da Convocação</th>
-                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Data de Nasc.</th>
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-2xl font-bold text-gray-900 text-center">Últimos Convocados</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Candidato</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Curso</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Data da Convocação</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Data de Nasc.</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @forelse ($convocados->take(5) as $candidato)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->curso->nome ?? 'N/A' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->convocado_em ? $candidato->convocado_em->format('d/m/Y') : 'N/A' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A' }}</td>
                                 </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                @forelse ($convocados->take(5) as $candidato)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->curso->nome ?? 'N/A' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->convocado_em ? $candidato->convocado_em->format('d/m/Y') : 'N/A' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A' }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Nenhum candidato convocado até o momento.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Nenhum candidato convocado até o momento.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <div data-aos="fade-up" data-aos-delay="200">
-                <h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Top 5 - Classificação Geral</h3>
-                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Pos.</th>
-                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Candidato</th>
-                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Curso</th>
-                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Pontuação</th>
-                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Data de Nasc.</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                @forelse ($homologados->take(5) as $index => $candidato)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $index + 1 }}º</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $candidato->nome_completo }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->curso->nome ?? 'N/A' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">{{ number_format($candidato->pontuacao_final, 2, ',', '.') }}</td>
-                                        {{-- ✅ DADO DA NOVA COLUNA --}}
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A' }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Nenhum candidato homologado aguardando convocação.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up" data-aos-delay="200">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-2xl font-bold text-gray-900 text-center">Top 5 - Classificação Geral (Aguardando Convocação)</h3>
                 </div>
-                <div class="mt-8 text-center">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Pos.</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Candidato</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Curso</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Pontuação</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Data de Nasc.</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @forelse ($homologados->take(5) as $index => $candidato)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $index + 1 }}º</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $candidato->nome_completo }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->curso->nome ?? 'N/A' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">{{ number_format($candidato->pontuacao_final, 2, ',', '.') }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Nenhum candidato homologado aguardando convocação.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-6 text-center bg-gray-50">
                     <a href="{{ route('classificacao.index') }}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-200">
                         Ver Classificação Completa
                         <svg class="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
