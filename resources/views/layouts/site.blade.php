@@ -350,7 +350,7 @@
                     <div data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
                         <h4 class="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Contato</h4>
                         <ul class="space-y-2">
-                            <li class="text-gray-400 text-sm">(65) 9 9800 - 0683</li>
+                            <li class="text-gray-400 text-sm">(65) 99930-6419</li>
                             <li><a href="{{ route('contato.show') }}" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Fale Conosco</a></li>
                             <li><a href="{{ route('perguntas-frequentes') }}" class="text-gray-400 hover:text-white transition-colors duration-200 text-sm">Perguntas Frequentes</a></li>
                         </ul>
@@ -534,7 +534,7 @@
                     <p style="color: #666; font-size: 14px; margin-bottom: 15px; line-height: 1.4;">
                         Olá! 👋 Estamos online e prontos para ajudar!
                     </p>
-                    <a href="https://wa.me/5565998000683?text=Olá!%20Preciso%20de%20ajuda%20com%20o%20Portal%20do%20Estagiário%20-%20Mirassol%20D'Oeste" 
+                    <a href="https://wa.me/556599306419?text=Olá!%20Preciso%20de%20ajuda%20com%20o%20Portal%20do%20Estagiário%20-%20Mirassol%20D'Oeste" 
                         target="_blank" 
                         style="
                             display: block; 
