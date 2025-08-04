@@ -34,16 +34,25 @@ class CandidatoController extends Controller
     /**
      * Exibe a lista de candidatos homologados para convocação.
      */
-    public function ranking()
-    {
-        $candidatosPorCurso = Candidato::where('status', 'Homologado')
-            ->with('curso')
-            ->orderBy('pontuacao_final', 'desc')
-            ->get()
-            ->groupBy('curso.nome');
+public function ranking()
+{
+    // Busca todos os candidatos homologados
+    $candidatosHomologados = Candidato::where('status', 'Homologado')
+        ->with('curso')
+        ->get() // Pega todos primeiro, ANTES de ordenar
+        ->map(function($candidato) {
+            // ✅ CALCULA A PONTUAÇÃO REAL PARA CADA UM
+            $pontuacao = $candidato->calcularPontuacaoDetalhada();
+            $candidato->pontuacao_final = $pontuacao['total'];
+            return $candidato;
+        })
+        ->sortByDesc('pontuacao_final'); // Agora ordena a coleção pela pontuação calculada
 
-        return view('admin.candidatos.ranking', compact('candidatosPorCurso'));
-    }
+    // Agrupa a coleção já ordenada por nome do curso
+    $candidatosPorCurso = $candidatosHomologados->groupBy('curso.nome');
+
+    return view('admin.candidatos.ranking', compact('candidatosPorCurso'));
+}
 
     /**
      * ✅ NOVO MÉTODO

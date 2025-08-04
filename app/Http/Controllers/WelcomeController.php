@@ -4,8 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Curso;
 use App\Models\Candidato;
-use App\Models\Instituicao; // Necessário para o eager loading em Candidato
-use Illuminate\Http\Request; // Manter, mesmo que não seja usado no 'index'
+use Illuminate\Http\Request;
 
 class WelcomeController extends Controller
 {
@@ -14,39 +13,36 @@ class WelcomeController extends Controller
      */
     public function index()
     {
-        // 1. Busca APENAS os candidatos com status 'Homologado'
-        // Carrega as relações 'user', 'curso' e 'instituicao' antecipadamente.
-        $todosCandidatos = Candidato::where('status', 'Homologado') // ✅ ADICIONADO: Filtra apenas por 'Homologado'
-                                     ->with(['user', 'curso', 'instituicao'])
-                                     ->get();
+        // 1. Busca todos os cursos para a seção de 'Áreas de Atuação'
+        $cursos = Curso::orderBy('nome')->get();
 
-        // 2. Mapeia os candidatos para CALCULAR a pontuação final e os detalhes
-        $candidatosClassificacao = $todosCandidatos->map(function ($candidato) {
-            // Assume que calcularPontuacaoDetalhada() existe no Model Candidato
-            // e retorna um array com 'total' e 'detalhes'.
-            $resultadoPontuacao = $candidato->calcularPontuacaoDetalhada();
+        // 2. Busca, calcula a pontuação e ordena os HOMOLOGADOS
+        $homologados = Candidato::where('status', 'Homologado')
+            ->with('curso')
+            ->get()
+            ->map(function($candidato) {
+                // Calcula a pontuação real para cada candidato
+                $pontuacao = $candidato->calcularPontuacaoDetalhada();
+                $candidato->pontuacao_final = $pontuacao['total'];
+                return $candidato;
+            })
+            // Lógica de ordenação correta para múltiplos critérios
+            ->sort(function ($a, $b) {
+                // Critério 1: Compara pela pontuação final (do maior para o menor)
+                if ($a->pontuacao_final !== $b->pontuacao_final) {
+                    return $b->pontuacao_final <=> $a->pontuacao_final;
+                }
+                // Critério 2 (Desempate): Se as pontuações forem iguais, compara pela data de nascimento (do mais velho para o mais novo)
+                return $a->data_nascimento <=> $b->data_nascimento;
+            });
 
-            // Adiciona a pontuação total e os detalhes ao objeto do candidato
-            $candidato->pontuacao_final = $resultadoPontuacao['total'];
-            $candidato->pontuacao_detalhes = $resultadoPontuacao['detalhes'];
-            
-            return $candidato; // Retorna o objeto Candidato modificado
-        })
-        ->sortByDesc('pontuacao_final') // 3. Agora, ordena a coleção pela pontuação calculada
-        ->sortBy(function ($candidato) {
-            // Critério de desempate: data de nascimento (mais velho primeiro)
-            return strtotime($candidato->data_nascimento);
-        })
-        ->take(5) // 4. Pega os 5 primeiros para a página inicial
-        ->values(); // 5. Reseta os índices da coleção
+        // 3. Busca os CONVOCADOS, ordenados pela data em que foram convocados
+        $convocados = Candidato::where('status', 'Convocado')
+            ->with('curso')
+            ->orderBy('convocado_em', 'desc')
+            ->get();
 
-        // 6. Busca todos os cursos para a seção de 'Áreas de Atuação'
-        $cursos = Curso::all();
-
-        // 7. Envia os dados para a view 'welcome'
-        return view('welcome', [
-            'cursos' => $cursos,
-            'candidatosClassificacao' => $candidatosClassificacao
-        ]);
+        // 4. Envia todos os dados para a view
+        return view('welcome', compact('cursos', 'homologados', 'convocados'));
     }
 }

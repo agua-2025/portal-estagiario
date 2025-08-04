@@ -143,94 +143,97 @@
         </div>
     </section>
 
-    
-    <section id="classificacao" class="py-24 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16" data-aos="fade-up">
-                <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Seu Desempenho Importa</h2>
-                <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Acompanhe Sua Classificação</p>
-                <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">Seu perfil é pontuado de forma transparente com base nas suas qualificações e experiências. Acesse seu painel, atualize seu cadastro constantemente e veja sua pontuação e posição no ranking crescerem!
-                </p>
-            </div>
-            <div class="bg-gray-50 rounded-2xl p-8" data-aos="fade-up" data-aos-delay="200">
-                
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead>
-                            <tr class="border-b border-gray-200">
-                                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-900">Posição</th>
-                                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-900">Candidato</th>
-                                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-900">Área de Atuação</th>
-                                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-900">Instituição</th>
-                                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-900">Pontuação</th>
-                                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-900">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php $__empty_1 = true; $__currentLoopData = $candidatosClassificacao; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $candidato): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                <tr class="border-b border-gray-100 hover:bg-white transition-colors duration-200">
-                                    <td class="py-4 px-6">
-                                        <div class="flex items-center">
-                                            <?php
-                                                $positionColor = 'bg-gray-400';
-                                                if ($index == 0) $positionColor = 'bg-yellow-400';
-                                                else if ($index == 1) $positionColor = 'bg-slate-400';
-                                                else if ($index == 2) $positionColor = 'bg-orange-400';
-                                            ?>
-                                            <div class="w-8 h-8 <?php echo e($positionColor); ?> rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                                <?php echo e($index + 1); ?>
 
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="py-4 px-6">
-                                        <div class="text-sm font-medium text-gray-900"><?php echo e($candidato->nome_completo); ?></div>
-                                    </td>
-                                    <td class="py-4 px-6 text-sm text-gray-900">
-                                        <?php echo e($candidato->curso->nome ?? 'Não Informado'); ?>
 
-                                    </td>
-                                    <td class="py-4 px-6 text-sm text-gray-900">
-                                        <?php echo e($candidato->instituicao->nome ?? 'Não Informada'); ?>
 
-                                    </td>
-                                    <td class="py-4 px-6 text-sm text-gray-900">
-                                        <?php echo e(number_format($candidato->pontuacao_final, 1)); ?>
+<section id="classificacao" class="py-24 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16" data-aos="fade-up">
+            <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Transparência</h2>
+            <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Acompanhe o Processo</p>
+            <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">
+                Veja a lista de candidatos já convocados e a classificação em tempo real daqueles que aguardam uma oportunidade.
+            </p>
+        </div>
+        
+        <div class="space-y-12">
 
-                                    </td>
-                                    <td class="py-4 px-6">
-                                        <?php
-                                            $statusClass = 'bg-gray-100 text-gray-800';
-                                            if ($candidato->status == 'Aprovado') $statusClass = 'bg-green-100 text-green-800';
-                                            else if ($candidato->status == 'Em Análise') $statusClass = 'bg-yellow-100 text-yellow-800';
-                                            else if ($candidato->status == 'Rejeitado') $statusClass = 'bg-red-100 text-red-800';
-                                        ?>
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium <?php echo e($statusClass); ?>">
-                                            <?php echo e($candidato->status); ?>
-
-                                        </span>
-                                    </td>
-                                </tr>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+            <div data-aos="fade-up" data-aos-delay="100">
+                <h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Últimos Convocados</h3>
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-100">
                                 <tr>
-                                    <td colspan="6" class="py-8 text-center text-gray-600">Nenhum candidato classificado no momento.</td>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Candidato</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Curso</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Data da Convocação</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Data de Nasc.</th>
                                 </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <?php $__empty_1 = true; $__currentLoopData = $convocados->take(5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $candidato): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><?php echo e($candidato->nome_completo); ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo e($candidato->curso->nome ?? 'N/A'); ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo e($candidato->convocado_em ? $candidato->convocado_em->format('d/m/Y') : 'N/A'); ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo e($candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A'); ?></td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Nenhum candidato convocado até o momento.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="mt-8 flex justify-center">
+            </div>
+
+            <div data-aos="fade-up" data-aos-delay="200">
+                <h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Top 5 - Classificação Geral</h3>
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Pos.</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Candidato</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Curso</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Pontuação</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Data de Nasc.</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <?php $__empty_1 = true; $__currentLoopData = $homologados->take(5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $candidato): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><?php echo e($index + 1); ?>º</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800"><?php echo e($candidato->nome_completo); ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo e($candidato->curso->nome ?? 'N/A'); ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800"><?php echo e(number_format($candidato->pontuacao_final, 2, ',', '.')); ?></td>
+                                        
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo e($candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A'); ?></td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Nenhum candidato homologado aguardando convocação.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="mt-8 text-center">
                     <a href="<?php echo e(route('classificacao.index')); ?>" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-200">
                         Ver Classificação Completa
-                        <svg class="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                        </svg>
+                        <svg class="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                     </a>
                 </div>
             </div>
-        </div>
-    </section>
 
+        </div>
+    </div>
+</section>
     
     <section id="documentos" class="py-24 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -3,51 +3,42 @@
 namespace App\Http\Controllers;
 
 use App\Models\Candidato;
-use App\Models\Curso;     // ✅ Adicionado: Importar Curso para o with()
-use App\Models\Instituicao; // ✅ Adicionado: Importar Instituicao para o with()
 use Illuminate\Http\Request;
 
 class ClassificacaoController extends Controller
 {
     public function index()
     {
-        // 1. Busca APENAS os candidatos com status 'Homologado' para a classificação completa
-        $candidatosAvaliados = Candidato::where('status', 'Homologado') // ✅ CORRIGIDO: Filtra apenas por 'Homologado'
-                                        ->with(['user', 'curso', 'instituicao']) // Incluído 'instituicao' para eager loading
-                                        ->get();
-
-        // 2. Mapeia os candidatos para incluir a pontuação final calculada e outros dados relevantes
-        $candidatosComPontuacao = $candidatosAvaliados->map(function ($candidato) {
-            // Assumimos que calcularPontuacaoDetalhada() é um método no Model Candidato
-            $resultado = $candidato->calcularPontuacaoDetalhada();
-            
-            return (object) [ // Converte para objeto para facilitar o acesso na view
-                'nome' => $candidato->nome_completo, // Usar 'nome_completo' do Candidato
-                'email' => $candidato->email, // Mantenha se quiser exibir na completa
-                'cpf' => $candidato->cpf,
-                'status' => $candidato->status,
-                'curso_nome' => $candidato->curso->nome ?? 'Não Informado', // Garante que não quebre se curso for nulo
-                'instituicao_nome' => $candidato->instituicao->nome ?? 'Não Informada', // Adicionado para a view
-                'data_nascimento' => $candidato->data_nascimento, // Essencial para o critério de desempate
-                'pontuacao_final' => $resultado['total'],
-                'pontuacao_detalhes' => $resultado['detalhes'],
-            ];
-        });
-
-        // 3. Agrupa os candidatos por curso e ordena dentro de cada grupo
-        $classificacaoPorCurso = $candidatosComPontuacao
-            ->groupBy('curso_nome')
-            ->map(function ($candidatosDoCurso) {
-                // ORDENAÇÃO DUPLA: Primeiro por pontos (maior para o menor), depois por idade (mais velho primeiro)
-                return $candidatosDoCurso
-                    ->sortByDesc('pontuacao_final') // Maior pontuação primeiro
-                    ->sortBy(function($candidato) {
-                        return strtotime($candidato->data_nascimento); // Converte para timestamp para ordenação de data
-                    })
-                    ->values(); // Reseta os índices do array
+        // 1. Busca, calcula a pontuação e ordena os HOMOLOGADOS
+        $homologados = Candidato::where('status', 'Homologado')
+            ->with('curso')
+            ->get()
+            ->map(function($candidato) {
+                // Calcula a pontuação real para cada candidato
+                $pontuacao = $candidato->calcularPontuacaoDetalhada();
+                $candidato->pontuacao_final = $pontuacao['total'];
+                return $candidato;
+            })
+            // Lógica de ordenação correta para múltiplos critérios
+            ->sort(function ($a, $b) {
+                // Critério 1: Compara pela pontuação final (do maior para o menor)
+                if ($a->pontuacao_final !== $b->pontuacao_final) {
+                    return $b->pontuacao_final <=> $a->pontuacao_final;
+                }
+                // Critério 2 (Desempate): Se as pontuações forem iguais, compara pela data de nascimento (do mais velho para o mais novo)
+                return $a->data_nascimento <=> $b->data_nascimento;
             });
 
-        // 4. Envia a classificação agrupada para a view
-        return view('classificacao.index', compact('classificacaoPorCurso'));
+        // 2. Busca os CONVOCADOS, ordenados pela data em que foram convocados
+        $convocados = Candidato::where('status', 'Convocado')
+            ->with('curso')
+            ->orderBy('convocado_em', 'desc')
+            ->get();
+
+        // 3. Agrupa os homologados por curso para a view
+        $homologadosAgrupados = $homologados->groupBy('curso.nome');
+
+        // 4. Envia as duas listas para a view
+        return view('classificacao.index', compact('homologadosAgrupados', 'convocados'));
     }
 }
