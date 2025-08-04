@@ -153,8 +153,8 @@
             </p>
         </div>
         
-        {{-- ✅ ESPAÇAMENTO ENTRE OS CARDS CORRIGIDO --}}
-        <div class="space-y-16">
+        {{-- ✅ ESPAÇAMENTO ENTRE OS CARDS OTIMIZADO --}}
+        <div class="space-y-20">
 
             {{-- PRIMEIRO CARD: Últimos Convocados --}}
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up" data-aos-delay="100">
@@ -189,10 +189,10 @@
                 </div>
             </div>
 
-            {{-- SEGUNDO CARD: Top 5 Classificação Geral --}}
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up" data-aos-delay="200">
-                <div class="p-6 border-b border-gray-200">
-                    <h3 class="text-2xl font-bold text-gray-900 text-center">Top 5 - Classificação Geral</h3>
+            {{-- SEGUNDO CARD: Top 5 Classificação Geral - COM DESTAQUE --}}
+            <div class="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
+                <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+                    <h3 class="text-2xl font-bold text-gray-900 text-center">🏆 Top 5 - Classificação Geral</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full">
