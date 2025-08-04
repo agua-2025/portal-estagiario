@@ -153,9 +153,10 @@
             </p>
         </div>
         
-        {{-- ✅ O space-y-16 APLICA UM ESPAÇAMENTO GRANDE ENTRE OS CARDS --}}
+        {{-- ✅ ESPAÇAMENTO ENTRE OS CARDS CORRIGIDO --}}
         <div class="space-y-16">
 
+            {{-- PRIMEIRO CARD: Últimos Convocados --}}
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up" data-aos-delay="100">
                 <div class="p-6 border-b border-gray-200">
                     <h3 class="text-2xl font-bold text-gray-900 text-center">Últimos Convocados</h3>
@@ -188,9 +189,10 @@
                 </div>
             </div>
 
+            {{-- SEGUNDO CARD: Top 5 Classificação Geral --}}
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up" data-aos-delay="200">
-                <div data-aos="fade-up" data-aos-delay="200" class="mt-12">
-                <h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Top 5 - Classificação Geral</h3>
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-2xl font-bold text-gray-900 text-center">Top 5 - Classificação Geral</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full">
