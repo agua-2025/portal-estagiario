@@ -90,7 +90,7 @@ class Candidato extends Model
         'prorrogacao_data_fim' => 'date',
     ];
 
-    protected $appends = ['completion_percentage']; 
+    protected $appends = ['completion_percentage', 'pontuacao_final'];
 
     /**
      * O método "booted" do modelo.
@@ -172,6 +172,15 @@ class Candidato extends Model
         return $this->hasMany(CandidatoAtividade::class);
     }
 
+    public function getPontuacaoFinalAttribute()
+    {
+        if (method_exists($this, 'calcularPontuacaoDetalhada')) {
+            $pontuacaoDetalhada = $this->calcularPontuacaoDetalhada();
+            return $pontuacaoDetalhada['total'] ?? 0;
+        }
+        return $this->attributes['pontuacao'] ?? 0;
+    }
+    
     public static function getCompletableFields(): array
     {
         return [
@@ -252,7 +261,6 @@ class Candidato extends Model
 
     public function calcularPontuacaoDetalhada()
     {
-        // ... (resto da sua função de cálculo de pontos continua aqui, sem alterações)
         Log::debug('Iniciando cálculo de pontuação detalhada para Candidato ID: ' . $this->id);
         $pontuacaoTotal = 0;
         $detalhes = [];

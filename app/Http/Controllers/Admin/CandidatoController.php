@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Candidato; // Modelo do Candidato
-use App\Models\Documento; // Para a função updateDocumentStatus
+use App\Models\Candidato;
+use App\Models\Documento;
 use Illuminate\Http\Request;
-use App\Models\Curso; // Para listas de cursos em create/edit
-use App\Models\Instituicao; // Para listas de instituições em create/edit
-use App\Models\Area; // <<--- Linha adicionada para o relatório
+use App\Models\Curso;
+use App\Models\Instituicao;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB; // Essencial para a transação
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CandidatoController extends Controller
 {
@@ -25,89 +25,130 @@ class CandidatoController extends Controller
 
         if ($search) {
             $query->where('nome_completo', 'like', "%{$search}%")
-                ->orWhere('cpf', 'like', "%{$search}%");
+                  ->orWhere('cpf', 'like', "%{$search}%");
         }
 
         $candidatos = $query->latest()->paginate(15);
         return view('admin.candidatos.index', compact('candidatos', 'search'));
     }
+    
+    // =================================================================
+    // ===== INÍCIO DA SEÇÃO DE RELATÓRIOS (VERSÃO CORRIGIDA) =====
+    // =================================================================
 
-public function relatorios(Request $request)
+    /**
+     * Apenas carrega a página do construtor de relatórios com os dados para os filtros.
+     */
+    public function relatorios(Request $request)
 {
-    // AQUI SÃO BUSCADAS AS OPÇÕES PARA OS FILTROS
-    // A lista de cursos é preenchida a partir da tabela 'cursos'
-    $cursos = Curso::orderBy('nome')->pluck('nome', 'id');
+    $cursos = \App\Models\Curso::orderBy('nome')->pluck('nome', 'id');
+    $instituicoes = \App\Models\Instituicao::orderBy('nome')->pluck('nome', 'id');
+    return view('admin.candidatos.relatorios', compact('cursos', 'instituicoes'));
+}
 
-    // AQUI É ONDE OS CANDIDATOS SÃO FILTRADOS
-    $query = Candidato::query();
 
-    // Filtro por Curso (usando a tabela que já existe)
-    if ($request->has('curso_id') && $request->input('curso_id') != '') {
-        $query->where('curso_id', $request->input('curso_id'));
+    /**
+     * Recebe os filtros via AJAX, consulta o banco e retorna os dados em JSON.
+     */
+    public function filterAdvancedReports(Request $request)
+{
+    try {
+        $query = $this->buildAdvancedReportQuery($request);
+        $query->orderBy('candidatos.nome_completo', 'asc');
+        $candidatos = $query->paginate(20);
+        return response()->json($candidatos);
+
+    } catch (\Exception $e) {
+        Log::error('Erro em filterAdvancedReports: ' . $e->getMessage());
+        return response()->json([
+            'error' => 'Ocorreu um erro no servidor ao processar a sua solicitação.',
+            'message' => $e->getMessage()
+        ], 500);
     }
-
-    // Filtro por Fase (Status)
-    if ($request->has('status') && $request->input('status') != '') {
-        $query->where('status', $request->input('status'));
-    }
-
-    // Filtro por Classificação
-    if ($request->has('classificacao') && $request->input('classificacao') != '') {
-        if ($request->input('classificacao') == 'aprovado') {
-             $query->whereIn('status', ['Aprovado', 'Homologado']);
-        } elseif ($request->input('classificacao') == 'rejeitado') {
-             $query->where('status', 'Rejeitado');
-        }
-    }
-
-    // Carrega os relacionamentos necessários antes de buscar os dados
-    $candidatos = $query->with(['curso', 'instituicao'])->get();
-
-    return view('admin.candidatos.relatorios', [
-        'candidatos' => $candidatos,
-        'cursos' => $cursos,
-        'statusOptions' => [
-            'Em Análise' => 'Em Análise',
-            'Aprovado' => 'Aprovado',
-            'Homologado' => 'Homologado',
-            'Rejeitado' => 'Rejeitado',
-            'Inscrição Incompleta' => 'Inscrição Incompleta',
-        ],
-        'classificacaoOptions' => [
-            'aprovado' => 'Aprovados',
-            'rejeitado' => 'Rejeitados',
-        ],
-        'selectedFilters' => $request->all(),
-    ]);
 }
 
     /**
-     * Exibe a lista de candidatos homologados para convocação.
+     * MÉTODO AUXILIAR PRIVADO
+     * Constrói a consulta de candidatos com base nos filtros dinâmicos da request.
      */
+    private function buildAdvancedReportQuery(Request $request)
+{
+    $query = \App\Models\Candidato::query()
+                ->leftJoin('cursos', 'candidatos.curso_id', '=', 'cursos.id')
+                ->leftJoin('instituicoes', 'candidatos.instituicao_id', '=', 'instituicoes.id')
+                ->leftJoin('users', 'candidatos.user_id', '=', 'users.id') 
+                ->select(
+                    'candidatos.*', 
+                    'cursos.nome as curso_nome', 
+                    'instituicoes.nome as instituicao_nome',
+                    'users.email as email'
+                );
+
+    // Verifica se o "pacote" de filtros foi enviado
+    if ($request->has('filtros')) {
+        foreach ($request->input('filtros', []) as $filter) {
+            
+            // Pula filtros inválidos ou vazios
+            if (empty($filter['field'])) continue;
+
+            $field = $filter['field']; // Ex: 'candidatos.status'
+
+            // Lógica para filtros de período (daterange)
+            if (!empty($filter['value_inicio']) && !empty($filter['value_fim'])) {
+                $inicio = \Carbon\Carbon::parse($filter['value_inicio'])->startOfDay();
+                $fim = \Carbon\Carbon::parse($filter['value_fim'])->endOfDay();
+                $query->whereBetween($field, [$inicio, $fim]);
+            
+            // Lógica para outros tipos de filtro
+            } elseif (isset($filter['value']) && $filter['value'] !== '') {
+                $value = $filter['value'];
+                $operator = $filter['operator'] ?? '=';
+
+                // Se o campo for o nome, usa LIKE para busca textual
+                if ($field === 'candidatos.nome_completo') {
+                    $query->where($field, 'LIKE', '%' . $value . '%');
+                } else {
+                    // Para todos os outros (status, curso, pontuação, etc.), usa o operador
+                    $query->where($field, $operator, $value);
+                }
+            }
+        }
+    }
+
+    return $query;
+}
+
+
+    // =================================================================
+    // ===== FIM DA SEÇÃO DE RELATÓRIOS (O RESTO DO CÓDIGO ABAIXO) =====
+    // =================================================================
+    
+    public function exportarPdf(Request $request)
+    {
+        $query = $this->buildAdvancedReportQuery($request); // Refatorado para usar a mesma lógica
+        $candidatos = $query->get(); // Pega todos, sem paginar
+        
+        $pdf = Pdf::loadView('admin.candidatos.relatorios.pdf-template', compact('candidatos'));
+        return $pdf->stream('relatorio_candidatos.pdf');
+    }
+
     public function ranking()
     {
-        // Busca todos os candidatos homologados
         $candidatosHomologados = Candidato::where('status', 'Homologado')
             ->with('curso')
-            ->get() // Pega todos primeiro, ANTES de ordenar
+            ->get()
             ->map(function($candidato) {
-                // ✅ CALCULA A PONTUAÇÃO REAL PARA CADA UM
                 $pontuacao = $candidato->calcularPontuacaoDetalhada();
                 $candidato->pontuacao_final = $pontuacao['total'];
                 return $candidato;
             })
-            ->sortByDesc('pontuacao_final'); // Agora ordena a coleção pela pontuação calculada
+            ->sortByDesc('pontuacao_final');
 
-        // Agrupa a coleção já ordenada por nome do curso
         $candidatosPorCurso = $candidatosHomologados->groupBy('curso.nome');
 
         return view('admin.candidatos.ranking', compact('candidatosPorCurso'));
     }
 
-    /**
-     * ✅ NOVO MÉTODO
-     * Mostra o formulário para atribuir a vaga (lotação).
-     */
     public function showAtribuirVagaForm(Candidato $candidato)
     {
         if ($candidato->status !== 'Homologado') {
@@ -116,10 +157,6 @@ public function relatorios(Request $request)
         return view('admin.candidatos.atribuir-vaga', compact('candidato'));
     }
 
-    /**
-     * ✅ MÉTODO ATUALIZADO
-     * Valida os dados do formulário de lotação e altera o status do candidato para Convocado.
-     */
     public function convocar(Request $request, Candidato $candidato)
     {
         $validatedData = $request->validate([
@@ -150,9 +187,6 @@ public function relatorios(Request $request)
         }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $cursos = Curso::orderBy('nome')->get();
@@ -160,9 +194,6 @@ public function relatorios(Request $request)
         return view('admin.candidatos.create', compact('cursos', 'instituicoes'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -188,9 +219,6 @@ public function relatorios(Request $request)
         }
     }
 
-    /**
-     * Mostra o perfil completo de um candidato para análise.
-     */
     public function show(Candidato $candidato)
     {
         $candidato->load([
@@ -228,9 +256,6 @@ public function relatorios(Request $request)
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Candidato $candidato)
     {
         $cursos = Curso::orderBy('nome')->get();
@@ -238,9 +263,6 @@ public function relatorios(Request $request)
         return view('admin.candidatos.edit', compact('candidato', 'cursos', 'instituicoes'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Candidato $candidato)
     {
         if ($request->input('status') === 'Aprovado') {
@@ -283,9 +305,6 @@ public function relatorios(Request $request)
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Candidato $candidato)
     {
         DB::beginTransaction();
@@ -307,24 +326,17 @@ public function relatorios(Request $request)
         }
     }
 
-    /**
-     * Atualiza o status de um documento específico (Aprovado/Rejeitado).
-     */
     public function updateDocumentStatus(Request $request, Documento $documento)
     {
+        // Validação corrigida (removida a duplicata)
         $validated = $request->validate([
             'status' => 'required|in:aprovado,rejeitado',
             'motivo_rejeicao' => 'required_if:status,rejeitado|nullable|string|min:10',
         ]);
-
-        // ✅ BLOQUEIO: Não permite aprovar documento rejeitado
+        
         if ($documento->status === 'rejeitado' && $validated['status'] === 'aprovado') {
             return back()->with('error', 'Documento rejeitado não pode ser aprovado. O candidato deve reenviar o documento corrigido.');
         }
-        $validated = $request->validate([
-            'status' => 'required|in:aprovado,rejeitado',
-            'motivo_rejeicao' => 'required_if:status,rejeitado|nullable|string|min:10',
-        ]);
 
         DB::beginTransaction();
         try {
@@ -339,16 +351,12 @@ public function relatorios(Request $request)
                     $candidato->admin_observacao = "A Comissão Organizadora solicitou correções. Verifique o motivo em cada item rejeitado e reenvie os documentos necessários.";
                     $candidato->save();
                 }
-
             } else {
-                // ✅ QUANDO APROVADO
                 $documento->motivo_rejeicao = null;
                 
-                // ✅ VERIFICAR SE PODE VOLTAR PARA "EM ANÁLISE"
                 $candidato = $documento->candidato;
                 if ($candidato && $candidato->status === 'Inscrição Incompleta') {
                     
-                    // Lista de documentos obrigatórios
                     $documentosObrigatorios = ['HISTORICO_ESCOLAR', 'DECLARACAO_MATRICULA', 'DECLARACAO_ELEITORAL'];
                     if ($candidato->sexo === 'Masculino') {
                         $documentosObrigatorios[] = 'RESERVISTA';
@@ -357,7 +365,6 @@ public function relatorios(Request $request)
                         $documentosObrigatorios[] = 'LAUDO_MEDICO';
                     }
                     
-                    // Verifica se todos os documentos obrigatórios estão aprovados
                     $todosAprovados = true;
                     foreach ($documentosObrigatorios as $tipo) {
                         $doc = $candidato->documentos()->where('tipo_documento', $tipo)->first();
@@ -367,10 +374,9 @@ public function relatorios(Request $request)
                         }
                     }
                     
-                    // Se todos estão aprovados, volta para "Em Análise"
                     if ($todosAprovados) {
                         $candidato->status = 'Em Análise';
-                        $candidato->admin_observacao = null; // Limpa a mensagem de correção
+                        $candidato->admin_observacao = null;
                         $candidato->save();
                         Log::info("Candidato ID {$candidato->id} voltou para 'Em Análise' - todos os documentos aprovados.");
                     }
@@ -388,9 +394,6 @@ public function relatorios(Request $request)
         }
     }
 
-    /**
-     * Homologa um candidato específico.
-     */
     public function homologar(Request $request, Candidato $candidato)
     {
         $prazosAtivos = $candidato->atividades()
@@ -432,9 +435,6 @@ public function relatorios(Request $request)
         }
     }
 
-    /**
-     * Defere (aceita) um recurso específico do histórico do candidato.
-     */
     public function deferirRecurso(Request $request, Candidato $candidato, $recurso_index)
     {
         $historico = $candidato->recurso_historico ?? [];
@@ -443,7 +443,6 @@ public function relatorios(Request $request)
             return back()->with('error', 'Recurso não encontrado no histórico.');
         }
 
-        // Não permite uma nova decisão se uma já foi tomada.
         if (!empty($historico[$recurso_index]['decisao_admin'])) {
             return back()->with('error', 'Este recurso já foi decidido.');
         }
@@ -460,9 +459,6 @@ public function relatorios(Request $request)
         return redirect()->route('admin.candidatos.show', $candidato)->with('success', 'Recurso deferido com sucesso! Lembre-se de reavaliar os itens do candidato.');
     }
 
-    /**
-     * Indefere (nega) um recurso específico do histórico do candidato.
-     */
     public function indeferirRecurso(Request $request, Candidato $candidato, $recurso_index)
     {
         $request->validate(['justificativa_admin' => 'required|string|min:10'], 
@@ -499,7 +495,6 @@ public function relatorios(Request $request)
                 $diasAdicionados++;
             }
         }
-        // ✅ AQUI ESTÁ A CORREÇÃO FINAL
         return $data->setTime(17, 0, 0); 
     }
 }

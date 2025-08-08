@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin - Portal do Estagiário')</title>
-    <!-- Tailwind CSS CDN (para simplificar, em um projeto real você usaria o build) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Você pode adicionar seus próprios estilos CSS aqui -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -34,5 +32,8 @@
 
         @yield('content')
     </div>
+
+    {{-- ✅ BINGO! A LINHA QUE FALTAVA FOI ADICIONADA AQUI --}}
+    @stack('scripts')
 </body>
 </html>
