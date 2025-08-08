@@ -27,7 +27,8 @@ class ClassificacaoController extends Controller
                 }
                 // Critério 2 (Desempate): Se as pontuações forem iguais, compara pela data de nascimento (do mais velho para o mais novo)
                 return $a->data_nascimento <=> $b->data_nascimento;
-            });
+            })
+            ->values(); // ← ADICIONE APENAS ISSO AQUI
 
         // 2. Busca os CONVOCADOS, ordenados pela data em que foram convocados
         $convocados = Candidato::where('status', 'Convocado')

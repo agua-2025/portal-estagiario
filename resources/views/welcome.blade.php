@@ -224,22 +224,25 @@
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             @forelse ($homologados->take(5) as $index => $candidato)
-                                <tr class="hover:bg-gray-50 transition-colors duration-150">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            @if($index === 0)
-                                                <span class="text-2xl mr-2">🥇</span>
-                                            @elseif($index === 1)
-                                                <span class="text-2xl mr-2">🥈</span>
-                                            @elseif($index === 2)
-                                                <span class="text-2xl mr-2">🥉</span>
-                                            @else
-                                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-semibold text-sm">
-                                                    {{ $index + 1 }}º
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </td>
+                     <td class="px-6 py-4 whitespace-nowrap">
+    @if($index === 0)
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-yellow-100 text-yellow-800 font-bold text-lg">
+            1º
+        </span>
+    @elseif($index === 1)
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 text-gray-700 font-bold text-lg">
+            2º
+        </span>
+    @elseif($index === 2)
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-orange-100 text-orange-700 font-bold text-lg">
+            3º
+        </span>
+    @else
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 text-blue-600 font-bold text-base">
+            {{ $index + 1 }}º
+        </span>
+    @endif
+</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">

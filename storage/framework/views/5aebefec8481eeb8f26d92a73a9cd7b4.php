@@ -225,22 +225,25 @@
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             <?php $__empty_1 = true; $__currentLoopData = $homologados->take(5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $candidato): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                <tr class="hover:bg-gray-50 transition-colors duration-150">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <?php if($index === 0): ?>
-                                                <span class="text-2xl mr-2">🥇</span>
-                                            <?php elseif($index === 1): ?>
-                                                <span class="text-2xl mr-2">🥈</span>
-                                            <?php elseif($index === 2): ?>
-                                                <span class="text-2xl mr-2">🥉</span>
-                                            <?php else: ?>
-                                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-semibold text-sm">
-                                                    <?php echo e($index + 1); ?>º
-                                                </span>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
+                     <td class="px-6 py-4 whitespace-nowrap">
+    <?php if($index === 0): ?>
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-yellow-100 text-yellow-800 font-bold text-lg">
+            1º
+        </span>
+    <?php elseif($index === 1): ?>
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 text-gray-700 font-bold text-lg">
+            2º
+        </span>
+    <?php elseif($index === 2): ?>
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-orange-100 text-orange-700 font-bold text-lg">
+            3º
+        </span>
+    <?php else: ?>
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 text-blue-600 font-bold text-base">
+            <?php echo e($index + 1); ?>º
+        </span>
+    <?php endif; ?>
+</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><?php echo e($candidato->nome_completo); ?></td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
