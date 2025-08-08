@@ -8,6 +8,7 @@ use App\Models\Documento; // Para a função updateDocumentStatus
 use Illuminate\Http\Request;
 use App\Models\Curso; // Para listas de cursos em create/edit
 use App\Models\Instituicao; // Para listas de instituições em create/edit
+use App\Models\Area; // <<--- Linha adicionada para o relatório
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB; // Essencial para a transação
 use Carbon\Carbon;
@@ -24,35 +25,84 @@ class CandidatoController extends Controller
 
         if ($search) {
             $query->where('nome_completo', 'like', "%{$search}%")
-                  ->orWhere('cpf', 'like', "%{$search}%");
+                ->orWhere('cpf', 'like', "%{$search}%");
         }
 
         $candidatos = $query->latest()->paginate(15);
         return view('admin.candidatos.index', compact('candidatos', 'search'));
     }
 
+public function relatorios(Request $request)
+{
+    // AQUI SÃO BUSCADAS AS OPÇÕES PARA OS FILTROS
+    // A lista de cursos é preenchida a partir da tabela 'cursos'
+    $cursos = Curso::orderBy('nome')->pluck('nome', 'id');
+
+    // AQUI É ONDE OS CANDIDATOS SÃO FILTRADOS
+    $query = Candidato::query();
+
+    // Filtro por Curso (usando a tabela que já existe)
+    if ($request->has('curso_id') && $request->input('curso_id') != '') {
+        $query->where('curso_id', $request->input('curso_id'));
+    }
+
+    // Filtro por Fase (Status)
+    if ($request->has('status') && $request->input('status') != '') {
+        $query->where('status', $request->input('status'));
+    }
+
+    // Filtro por Classificação
+    if ($request->has('classificacao') && $request->input('classificacao') != '') {
+        if ($request->input('classificacao') == 'aprovado') {
+             $query->whereIn('status', ['Aprovado', 'Homologado']);
+        } elseif ($request->input('classificacao') == 'rejeitado') {
+             $query->where('status', 'Rejeitado');
+        }
+    }
+
+    // Carrega os relacionamentos necessários antes de buscar os dados
+    $candidatos = $query->with(['curso', 'instituicao'])->get();
+
+    return view('admin.candidatos.relatorios', [
+        'candidatos' => $candidatos,
+        'cursos' => $cursos,
+        'statusOptions' => [
+            'Em Análise' => 'Em Análise',
+            'Aprovado' => 'Aprovado',
+            'Homologado' => 'Homologado',
+            'Rejeitado' => 'Rejeitado',
+            'Inscrição Incompleta' => 'Inscrição Incompleta',
+        ],
+        'classificacaoOptions' => [
+            'aprovado' => 'Aprovados',
+            'rejeitado' => 'Rejeitados',
+        ],
+        'selectedFilters' => $request->all(),
+    ]);
+}
+
     /**
      * Exibe a lista de candidatos homologados para convocação.
      */
-public function ranking()
-{
-    // Busca todos os candidatos homologados
-    $candidatosHomologados = Candidato::where('status', 'Homologado')
-        ->with('curso')
-        ->get() // Pega todos primeiro, ANTES de ordenar
-        ->map(function($candidato) {
-            // ✅ CALCULA A PONTUAÇÃO REAL PARA CADA UM
-            $pontuacao = $candidato->calcularPontuacaoDetalhada();
-            $candidato->pontuacao_final = $pontuacao['total'];
-            return $candidato;
-        })
-        ->sortByDesc('pontuacao_final'); // Agora ordena a coleção pela pontuação calculada
+    public function ranking()
+    {
+        // Busca todos os candidatos homologados
+        $candidatosHomologados = Candidato::where('status', 'Homologado')
+            ->with('curso')
+            ->get() // Pega todos primeiro, ANTES de ordenar
+            ->map(function($candidato) {
+                // ✅ CALCULA A PONTUAÇÃO REAL PARA CADA UM
+                $pontuacao = $candidato->calcularPontuacaoDetalhada();
+                $candidato->pontuacao_final = $pontuacao['total'];
+                return $candidato;
+            })
+            ->sortByDesc('pontuacao_final'); // Agora ordena a coleção pela pontuação calculada
 
-    // Agrupa a coleção já ordenada por nome do curso
-    $candidatosPorCurso = $candidatosHomologados->groupBy('curso.nome');
+        // Agrupa a coleção já ordenada por nome do curso
+        $candidatosPorCurso = $candidatosHomologados->groupBy('curso.nome');
 
-    return view('admin.candidatos.ranking', compact('candidatosPorCurso'));
-}
+        return view('admin.candidatos.ranking', compact('candidatosPorCurso'));
+    }
 
     /**
      * ✅ NOVO MÉTODO
@@ -70,35 +120,35 @@ public function ranking()
      * ✅ MÉTODO ATUALIZADO
      * Valida os dados do formulário de lotação e altera o status do candidato para Convocado.
      */
-   public function convocar(Request $request, Candidato $candidato)
-{
-    $validatedData = $request->validate([
-        'lotacao_local'           => 'required|string|max:255',
-        'lotacao_chefia'          => 'required|string|max:255',
-        'contrato_data_inicio'    => 'required|date',
-        'contrato_data_fim'       => 'required|date|after_or_equal:contrato_data_inicio',
-        'prorrogacao_data_inicio' => 'nullable|date',
-        'prorrogacao_data_fim'    => 'nullable|date|after_or_equal:prorrogacao_data_inicio',
-        'lotacao_observacoes'     => 'nullable|string',
-    ]);
+    public function convocar(Request $request, Candidato $candidato)
+    {
+        $validatedData = $request->validate([
+            'lotacao_local' => 'required|string|max:255',
+            'lotacao_chefia' => 'required|string|max:255',
+            'contrato_data_inicio' => 'required|date',
+            'contrato_data_fim' => 'required|date|after_or_equal:contrato_data_inicio',
+            'prorrogacao_data_inicio' => 'nullable|date',
+            'prorrogacao_data_fim' => 'nullable|date|after_or_equal:prorrogacao_data_inicio',
+            'lotacao_observacoes' => 'nullable|string',
+        ]);
 
-    if ($candidato->status !== 'Homologado') {
-        return redirect()->route('admin.candidatos.ranking')->with('error', 'Este candidato não está mais disponível para convocação.');
+        if ($candidato->status !== 'Homologado') {
+            return redirect()->route('admin.candidatos.ranking')->with('error', 'Este candidato não está mais disponível para convocação.');
+        }
+
+        try {
+            $candidato->status = 'Convocado';
+            $candidato->convocado_em = now();
+            $candidato->fill($validatedData);
+            $candidato->save();
+
+            return redirect()->route('admin.candidatos.ranking')->with('success', "Candidato {$candidato->nome_completo} convocado com sucesso!");
+
+        } catch (\Exception $e) {
+            Log::error("Erro ao convocar candidato ID {$candidato->id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocorreu um erro ao salvar a convocação.');
+        }
     }
-
-    try {
-        $candidato->status = 'Convocado';
-        $candidato->convocado_em = now();
-        $candidato->fill($validatedData);
-        $candidato->save();
-
-        return redirect()->route('admin.candidatos.ranking')->with('success', "Candidato {$candidato->nome_completo} convocado com sucesso!");
-
-    } catch (\Exception $e) {
-        Log::error("Erro ao convocar candidato ID {$candidato->id}: " . $e->getMessage());
-        return redirect()->back()->with('error', 'Ocorreu um erro ao salvar a convocação.');
-    }
-}
 
     /**
      * Show the form for creating a new resource.
@@ -195,9 +245,9 @@ public function ranking()
     {
         if ($request->input('status') === 'Aprovado') {
             $prazosAtivos = $candidato->atividades()
-                                     ->where('status', 'Rejeitada')
-                                     ->where('prazo_recurso_ate', '>', now())
-                                     ->exists();
+                ->where('status', 'Rejeitada')
+                ->where('prazo_recurso_ate', '>', now())
+                ->exists();
 
             if ($prazosAtivos) {
                 return redirect()->back()->with('error', 'Não é possível aprovar. O candidato possui atividades com prazo de recurso em andamento.');
@@ -257,20 +307,20 @@ public function ranking()
         }
     }
 
-/**
+    /**
      * Atualiza o status de um documento específico (Aprovado/Rejeitado).
      */
-   public function updateDocumentStatus(Request $request, Documento $documento)
-{
-    $validated = $request->validate([
-        'status' => 'required|in:aprovado,rejeitado',
-        'motivo_rejeicao' => 'required_if:status,rejeitado|nullable|string|min:10',
-    ]);
+    public function updateDocumentStatus(Request $request, Documento $documento)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:aprovado,rejeitado',
+            'motivo_rejeicao' => 'required_if:status,rejeitado|nullable|string|min:10',
+        ]);
 
-    // ✅ BLOQUEIO: Não permite aprovar documento rejeitado
-    if ($documento->status === 'rejeitado' && $validated['status'] === 'aprovado') {
-        return back()->with('error', 'Documento rejeitado não pode ser aprovado. O candidato deve reenviar o documento corrigido.');
-    }
+        // ✅ BLOQUEIO: Não permite aprovar documento rejeitado
+        if ($documento->status === 'rejeitado' && $validated['status'] === 'aprovado') {
+            return back()->with('error', 'Documento rejeitado não pode ser aprovado. O candidato deve reenviar o documento corrigido.');
+        }
         $validated = $request->validate([
             'status' => 'required|in:aprovado,rejeitado',
             'motivo_rejeicao' => 'required_if:status,rejeitado|nullable|string|min:10',
@@ -344,9 +394,9 @@ public function ranking()
     public function homologar(Request $request, Candidato $candidato)
     {
         $prazosAtivos = $candidato->atividades()
-                                ->where('status', 'Rejeitada')
-                                ->where('prazo_recurso_ate', '>', now())
-                                ->exists();
+            ->where('status', 'Rejeitada')
+            ->where('prazo_recurso_ate', '>', now())
+            ->exists();
 
         if ($prazosAtivos) {
             return redirect()->back()->with('error', 'Não é possível homologar. O candidato possui atividades com prazo de recurso em andamento.');
@@ -439,17 +489,17 @@ public function ranking()
         return redirect()->route('admin.candidatos.show', $candidato)->with('success', 'Recurso indeferido com sucesso.');
     }
 
-private function calcularDiasUteis(int $diasUteisParaAdicionar): Carbon
-{
-    $data = Carbon::now();
-    $diasAdicionados = 0;
-    while ($diasAdicionados < $diasUteisParaAdicionar) {
-        $data->addDay();
-        if ($data->isWeekday()) {
-            $diasAdicionados++;
+    private function calcularDiasUteis(int $diasUteisParaAdicionar): Carbon
+    {
+        $data = Carbon::now();
+        $diasAdicionados = 0;
+        while ($diasAdicionados < $diasUteisParaAdicionar) {
+            $data->addDay();
+            if ($data->isWeekday()) {
+                $diasAdicionados++;
+            }
         }
-    }
-   // ✅ AQUI ESTÁ A CORREÇÃO FINAL
+        // ✅ AQUI ESTÁ A CORREÇÃO FINAL
         return $data->setTime(17, 0, 0); 
     }
 }

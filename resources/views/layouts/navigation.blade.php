@@ -42,6 +42,10 @@
                             <x-nav-link :href="route('admin.pages.index')" :active="request()->routeIs('admin.pages.*')">
                                 {{ __('Páginas') }}
                             </x-nav-link>
+                            {{-- NOVO BOTÃO ADICIONADO PARA O ADMIN --}}
+                            <x-nav-link :href="route('admin.candidatos.relatorios')" :active="request()->routeIs('admin.candidatos.relatorios')">
+                                {{ __('Relatórios') }}
+                            </x-nav-link>
 
                         @else {{-- Usuário logado que NÃO é admin (presume-se que seja um candidato) --}}
 
