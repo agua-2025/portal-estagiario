@@ -30,10 +30,10 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome do Candidato</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data da Convocação</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Nasc.</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">Nome do Candidato</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Curso</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Data da Convocação</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Data de Nasc.</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -76,7 +76,7 @@
                     <div class="divide-y divide-gray-200">
                         @forelse ($homologadosAgrupados as $nomeCurso => $candidatos)
                             <div class="p-6">
-                                <!-- Header do Curso -->
+                                <!-- Header do Curso --->
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-gray-900">{{ $nomeCurso ?: 'Curso não especificado' }}</h3>
                                     <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
@@ -84,21 +84,21 @@
                                     </span>
                                 </div>
                                 
-                                <!-- Tabela do Curso -->
+                                <!-- Tabela do Curso com estrutura de colunas fixa -->
                                 <div class="overflow-x-auto">
-                                    <table class="min-w-full divide-y divide-gray-200">
+                                    <table class="min-w-full table-fixed divide-y divide-gray-200">
                                         <thead class="bg-gray-50">
                                             <tr>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pos.</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidato</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Nasc.</th>
+                                                <th class="w-16 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pos.</th>
+                                                <th class="w-2/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidato</th>
+                                                <th class="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
+                                                <th class="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Nasc.</th>
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
                                             @foreach ($candidatos as $index => $candidato)
                                                 <tr class="hover:bg-gray-50">
-                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                    <td class="w-16 px-6 py-4 whitespace-nowrap">
                                                         <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium
                                                             {{ $index === 0 ? 'bg-yellow-100 text-yellow-800' : 
                                                                ($index === 1 ? 'bg-gray-100 text-gray-700' : 
@@ -106,13 +106,13 @@
                                                             {{ $index + 1 }}º
                                                         </span>
                                                     </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo }}</td>
-                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                    <td class="w-2/5 px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo }}</td>
+                                                    <td class="w-1/5 px-6 py-4 whitespace-nowrap">
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
                                                             {{ number_format($candidato->pontuacao_final, 2, ',', '.') }}
                                                         </span>
                                                     </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A' }}</td>
+                                                    <td class="w-1/5 px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A' }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
