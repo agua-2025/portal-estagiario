@@ -28,10 +28,10 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome do Candidato</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data da Convocação</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Nasc.</th>
+                                    <th style="width: 35%;" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome do Candidato</th>
+                                    <th style="width: 25%;" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</th>
+                                    <th style="width: 20%;" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data da Convocação</th>
+                                    <th style="width: 20%;" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Nasc.</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -71,60 +71,69 @@
                         </h2>
                     </div>
                     
-                    <!-- Loop para cada CURSO -->
-                    <div class="divide-y divide-gray-200">
-                        <?php $__empty_1 = true; $__currentLoopData = $homologadosAgrupados; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $nomeCurso => $candidatos): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                            <div class="p-6">
-                                <!-- Header do Curso -->
-                                <div class="flex items-center justify-between mb-4">
-                                    <h3 class="text-lg font-semibold text-gray-900"><?php echo e($nomeCurso ?: 'Curso não especificado'); ?></h3>
-                                    <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                                        <?php echo e(count($candidatos)); ?> candidato<?php echo e(count($candidatos) > 1 ? 's' : ''); ?>
+                    <!-- TABELA ÚNICA PARA TODOS OS CURSOS -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <colgroup>
+                                <col style="width: 10%;">
+                                <col style="width: 40%;">
+                                <col style="width: 25%;">
+                                <col style="width: 25%;">
+                            </colgroup>
+                            
+                            <?php $__empty_1 = true; $__currentLoopData = $homologadosAgrupados; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $nomeCurso => $candidatos): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                <!-- Header do Curso como linha da tabela -->
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th colspan="4" class="px-6 py-4 text-left">
+                                            <div class="flex items-center justify-between">
+                                                <h3 class="text-lg font-semibold text-gray-900"><?php echo e($nomeCurso ?: 'Curso não especificado'); ?></h3>
+                                                <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                                                    <?php echo e(count($candidatos)); ?> candidato<?php echo e(count($candidatos) > 1 ? 's' : ''); ?>
 
-                                    </span>
-                                </div>
-                                
-                                <!-- Tabela do Curso -->
-                                <div class="overflow-x-auto">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pos.</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidato</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Nasc.</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="bg-white divide-y divide-gray-200">
-                                            <?php $__currentLoopData = $candidatos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $candidato): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                <tr class="hover:bg-gray-50">
-                                                    <td class="px-6 py-4 whitespace-nowrap">
-                                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium
-                                                            <?php echo e($index === 0 ? 'bg-yellow-100 text-yellow-800' : 
-                                                               ($index === 1 ? 'bg-gray-100 text-gray-700' : 
-                                                               ($index === 2 ? 'bg-orange-100 text-orange-700' : 'bg-blue-50 text-blue-600'))); ?>">
-                                                            <?php echo e($index + 1); ?>º
-                                                        </span>
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><?php echo e($candidato->nome_completo); ?></td>
-                                                    <td class="px-6 py-4 whitespace-nowrap">
-                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                                            <?php echo e(number_format($candidato->pontuacao_final, 2, ',', '.')); ?>
+                                                </span>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pos.</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidato</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Nasc.</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <?php $__currentLoopData = $candidatos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $candidato): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium
+                                                    <?php echo e($index === 0 ? 'bg-yellow-100 text-yellow-800' : 
+                                                       ($index === 1 ? 'bg-gray-100 text-gray-700' : 
+                                                       ($index === 2 ? 'bg-orange-100 text-orange-700' : 'bg-blue-50 text-blue-600'))); ?>">
+                                                    <?php echo e($index + 1); ?>º
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><?php echo e($candidato->nome_completo); ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                                    <?php echo e(number_format($candidato->pontuacao_final, 2, ',', '.')); ?>
 
-                                                        </span>
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo e($candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A'); ?></td>
-                                                </tr>
-                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                            <div class="p-6 text-center text-gray-500">
-                                Nenhum candidato homologado aguardando convocação.
-                            </div>
-                        <?php endif; ?>
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo e($candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A'); ?></td>
+                                        </tr>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </tbody>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="4" class="p-6 text-center text-gray-500">
+                                            Nenhum candidato homologado aguardando convocação.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            <?php endif; ?>
+                        </table>
                     </div>
                 </div>
             </div>
