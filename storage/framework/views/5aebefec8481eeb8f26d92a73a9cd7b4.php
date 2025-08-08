@@ -149,21 +149,21 @@
             <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Transparência</h2>
             <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Acompanhe o Processo</p>
             <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">
-                Veja a lista de candidatos já convocados e a classificação em tempo real daqueles que aguardam uma oportunidade.
+                Acompanhe os candidatos convocados e o ranking atualizado em tempo real.
             </p>
         </div>
         
-        <div class="space-y-12">
-            
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up" data-aos-delay="100">
-                <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
-                    <h3 class="text-2xl font-bold text-gray-900 text-center flex items-center justify-center">
-                        <svg class="w-6 h-6 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        Últimos Convocados
-                    </h3>
-                </div>
+<div class="space-y-12">
+    
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
+            <h3 class="text-2xl font-bold text-gray-900 text-center flex items-center justify-center">
+                <svg class="w-6 h-6 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Últimos Convocados
+            </h3>
+        </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full">
                         <thead class="bg-gray-50">
@@ -202,87 +202,88 @@
                 </div>
             </div>
 
-            
-            <div class="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
-                <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
-                    <h3 class="text-2xl font-bold text-gray-900 text-center flex items-center justify-center">
-                        <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
-                        Top 5 - Classificação Geral
-                    </h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-20">Pos.</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Candidato</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Curso</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Pontuação</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Data de Nasc.</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            <?php $__empty_1 = true; $__currentLoopData = $homologados->take(5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $candidato): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                     <td class="px-6 py-4 whitespace-nowrap">
-    <?php if($index === 0): ?>
-        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-yellow-100 text-yellow-800 font-bold text-lg">
-            1º
-        </span>
-    <?php elseif($index === 1): ?>
-        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 text-gray-700 font-bold text-lg">
-            2º
-        </span>
-    <?php elseif($index === 2): ?>
-        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-orange-100 text-orange-700 font-bold text-lg">
-            3º
-        </span>
-    <?php else: ?>
-        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 text-blue-600 font-bold text-base">
-            <?php echo e($index + 1); ?>º
-        </span>
-    <?php endif; ?>
-</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><?php echo e($candidato->nome_completo); ?></td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                            <?php echo e($candidato->curso->nome ?? 'N/A'); ?>
 
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-gradient-to-r from-green-50 to-emerald-50 text-green-800">
-                                            <?php echo e(number_format($candidato->pontuacao_final, 2, ',', '.')); ?>
-
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo e($candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A'); ?></td>
-                                </tr>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                <tr>
-                                    <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">
-                                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-                                        </svg>
-                                        Nenhum candidato homologado aguardando convocação.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="p-6 text-center bg-gradient-to-r from-gray-50 to-gray-100">
-                    <a href="<?php echo e(route('classificacao.index')); ?>" class="inline-flex items-center px-6 py-3 text-base font-medium rounded-full text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                        Ver Classificação Completa
-                        <svg class="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-        </div>
+<div class="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
+    <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+        <h3 class="text-2xl font-bold text-gray-900 text-center flex items-center justify-center">
+            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            Top 5 - Classificação Geral
+        </h3>
     </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-20">Pos.</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Candidato</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Curso</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Pontuação</th>
+                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Data de Nasc.</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                <?php $__empty_1 = true; $__currentLoopData = $homologados->take(5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $candidato): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    <tr class="hover:bg-gray-50 transition-colors duration-150"> 
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <?php if($index === 0): ?>
+                                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-yellow-100 text-yellow-800 font-bold text-lg">
+                                    1º
+                                </span>
+                            <?php elseif($index === 1): ?>
+                                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 text-gray-700 font-bold text-lg">
+                                    2º
+                                </span>
+                            <?php elseif($index === 2): ?>
+                                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-orange-100 text-orange-700 font-bold text-lg">
+                                    3º
+                                </span>
+                            <?php else: ?>
+                                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 text-blue-600 font-bold text-base">
+                                    <?php echo e($index + 1); ?>º
+                                </span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><?php echo e($candidato->nome_completo); ?></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                <?php echo e($candidato->curso->nome ?? 'N/A'); ?>
+
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-gradient-to-r from-green-50 to-emerald-50 text-green-800">
+                                <?php echo e(number_format($candidato->pontuacao_final, 2, ',', '.')); ?>
+
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo e($candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A'); ?></td>
+                    </tr>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">
+                            <svg class="mx-auto h-12 w-12 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                            </svg>
+                            Nenhum candidato homologado aguardando convocação.
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+    <div class="p-6 text-center bg-gradient-to-r from-gray-50 to-gray-100">
+        <a href="<?php echo e(route('classificacao.index')); ?>" class="inline-flex items-center px-6 py-3 text-base font-medium rounded-full text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+            Ver Classificação Completa
+            <svg class="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+            </svg>
+        </a>
+    </div>
+</div>
+</div>
+</div>
 </section>
     
     <section id="documentos" class="py-24 bg-gray-50">
