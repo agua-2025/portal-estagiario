@@ -50,19 +50,114 @@ class CandidatoController extends Controller
     /**
      * Recebe os filtros via AJAX, consulta o banco e retorna os dados em JSON.
      */
-    public function filterAdvancedReports(Request $request)
+public function filterAdvancedReports(Request $request)
 {
-    try {
-        $query = $this->buildAdvancedReportQuery($request);
-        $query->orderBy('candidatos.nome_completo', 'asc');
-        $candidatos = $query->paginate(20);
-        return response()->json($candidatos);
+    // DEBUG - INÍCIO DO MÉTODO
+    \Log::info('=== DEBUG FILTRO RELATÓRIOS ===');
+    \Log::info('Payload recebido:', [
+        'colunas' => $request->input('colunas'),
+        'filtros' => $request->input('filtros'),
+        'todos_os_dados' => $request->all()
+    ]);
 
-    } catch (\Exception $e) {
-        Log::error('Erro em filterAdvancedReports: ' . $e->getMessage());
+    try {
+        $colunas = $request->input('colunas', []);
+        $filtros = $request->input('filtros', []);
+        
+        // Remove 'acoes' das colunas antes de fazer a query
+        $colunasDb = array_filter($colunas, function($col) {
+            return $col !== 'acoes';
+        });
+        
+        // Adicione sempre o ID para poder gerar links
+        if (!in_array('id', $colunasDb)) {
+            $colunasDb[] = 'id';
+        }
+        
+        // Iniciar a query
+        $query = Candidato::query();
+        
+        // Adicionar joins necessários
+        $query->leftJoin('cursos', 'candidatos.curso_id', '=', 'cursos.id')
+              ->leftJoin('instituicoes', 'candidatos.instituicao_id', '=', 'instituicoes.id')
+              ->leftJoin('users', 'candidatos.user_id', '=', 'users.id');
+        
+        // Aplicar filtros
+        foreach ($filtros as $filtro) {
+            $field = $filtro['field'] ?? null;
+            $value = $filtro['value'] ?? null;
+            
+            if ($field && $value !== null && $value !== '') {
+                if (isset($filtro['value_inicio']) && isset($filtro['value_fim'])) {
+                    // Filtro de data
+                    $query->whereBetween($field, [$filtro['value_inicio'], $filtro['value_fim']]);
+                } elseif (isset($filtro['operator'])) {
+                    // Filtro numérico com operador
+                    $query->where($field, $filtro['operator'], $value);
+                } else {
+                    // Filtro simples
+                    $query->where($field, $value);
+                }
+            }
+        }
+        
+        // Selecionar colunas
+        $selectColumns = [];
+        foreach ($colunasDb as $col) {
+            switch($col) {
+                case 'curso_nome':
+                    $selectColumns[] = 'cursos.nome as curso_nome';
+                    break;
+                case 'instituicao_nome':
+                    $selectColumns[] = 'instituicoes.nome as instituicao_nome';
+                    break;
+                case 'pontuacao_final':
+                    $selectColumns[] = 'candidatos.pontuacao_final'; // CORRIGIDO - nome correto da coluna
+                    break;
+                case 'email':
+            $selectColumns[] = 'users.email as email';
+            break;
+                default:
+                    if (strpos($col, '.') === false) {
+                        $selectColumns[] = 'candidatos.' . $col;
+                    } else {
+                        $selectColumns[] = $col;
+                    }
+            }
+        }
+        
+        // Adicionar sempre o ID
+        if (!in_array('candidatos.id', $selectColumns)) {
+            $selectColumns[] = 'candidatos.id';
+        }
+        
+        $query->select($selectColumns);
+        
+        // Ordenar por nome
+        $query->orderBy('candidatos.nome_completo');
+        
+        // Paginar resultados
+        $results = $query->paginate(20);
+        
+        // Retornar resposta com paginação simplificada
         return response()->json([
-            'error' => 'Ocorreu um erro no servidor ao processar a sua solicitação.',
-            'message' => $e->getMessage()
+            'data' => $results->items(),
+            'links' => [], // Simplificado temporariamente
+            'current_page' => $results->currentPage(),
+            'total' => $results->total(),
+            'per_page' => $results->perPage(),
+            'last_page' => $results->lastPage()
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Erro no filtro de relatórios: ' . $e->getMessage());
+        \Log::error('Stack trace: ' . $e->getTraceAsString());
+        
+        return response()->json([
+            'error' => 'Erro ao processar filtro',
+            'message' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile()
         ], 500);
     }
 }
@@ -118,19 +213,83 @@ class CandidatoController extends Controller
     return $query;
 }
 
+ 
+public function exportarPdf(Request $request)
+{
+    try {
+        $query = $this->buildAdvancedReportQuery($request);
+        $candidatos = $query->orderBy('candidatos.nome_completo', 'asc')->get();
 
-    // =================================================================
-    // ===== FIM DA SEÇÃO DE RELATÓRIOS (O RESTO DO CÓDIGO ABAIXO) =====
-    // =================================================================
-    
-    public function exportarPdf(Request $request)
-    {
-        $query = $this->buildAdvancedReportQuery($request); // Refatorado para usar a mesma lógica
-        $candidatos = $query->get(); // Pega todos, sem paginar
+        $appliedFilters = [];
+        if ($request->has('filtros')) {
+            foreach ($request->input('filtros') as $filter) {
+                if (!empty($filter['field'])) {
+                    $value = $filter['value'] ?? ($filter['value_inicio'] . ' a ' . $filter['value_fim']);
+                    if ($filter['field'] === 'candidatos.curso_id') {
+                        $value = \App\Models\Curso::find($value)->nome ?? $value;
+                    }
+                    if ($filter['field'] === 'candidatos.instituicao_id') {
+                        $value = \App\Models\Instituicao::find($value)->nome ?? $value;
+                    }
+                    $appliedFilters[ucwords(str_replace(['candidatos.', '_id', '_'], ' ', $filter['field']))] = $value;
+                }
+            }
+        }
         
-        $pdf = Pdf::loadView('admin.candidatos.relatorios.pdf-template', compact('candidatos'));
-        return $pdf->stream('relatorio_candidatos.pdf');
+        $prefeituraInfo = [
+            'nome' => env('PREFEITURA_NOME', 'Portal do Estagiário'),
+            'endereco' => env('PREFEITURA_ENDERECO', 'Endereço da Prefeitura, Cidade, UF'),
+            'telefone' => env('PREFEITURA_TELEFONE', '(00) 00000-0000'),
+            'cnpj' => env('PREFEITURA_CNPJ', 'XX.XXX.XXX/0001-XX'),
+            'email' => env('PREFEITURA_EMAIL', 'contato@email.com'),
+        ];
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.candidatos.relatorios.pdf-template', [
+            'candidatos' => $candidatos,
+            'appliedFilters' => $appliedFilters,
+            'dataGeracao' => now()->format('d/m/Y H:i:s'),
+            'prefeituraInfo' => $prefeituraInfo
+        ]);
+        
+        $pdf->setPaper('a4', 'landscape');
+
+        return $pdf->stream('relatorio_candidatos_' . now()->format('Y-m-d') . '.pdf');
+
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Erro ao gerar PDF de relatório: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Não foi possível gerar o PDF. Verifique os logs.');
     }
+}
+
+/**
+ * Gera um PDF com o perfil completo de um candidato específico.
+ */
+public function exportarPerfilPdf(Candidato $candidato)
+{
+    try {
+        $candidato->load(['user', 'curso', 'instituicao', 'documentos', 'atividades.tipoDeAtividade']);
+
+        $prefeituraInfo = [
+            'nome' => env('PREFEITURA_NOME', 'Portal do Estagiário'),
+            'endereco' => env('PREFEITURA_ENDERECO', 'Endereço da Prefeitura, Cidade, UF'),
+            'telefone' => env('PREFEITURA_TELEFONE', '(00) 00000-0000'),
+            'cnpj' => env('PREFEITURA_CNPJ', 'XX.XXX.XXX/0001-XX'),
+            'email' => env('PREFEITURA_EMAIL', 'contato@email.com'),
+        ];
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.candidatos.perfil-pdf-template', [
+            'candidato' => $candidato,
+            'prefeituraInfo' => $prefeituraInfo,
+            'dataGeracao' => now()->format('d/m/Y H:i:s')
+        ]);
+        
+        return $pdf->stream('Perfil - ' . $candidato->nome_completo . '.pdf');
+
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Erro ao gerar PDF de perfil: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Não foi possível gerar o PDF do perfil. Verifique os logs.');
+    }
+}
 
     public function ranking()
     {

@@ -141,13 +141,15 @@ Route::middleware(['auth', 'verified'])
         Route::resource('cursos', AdminCursoController::class); // CORRIGIDO AQUI!
         Route::resource('tipos-de-atividade', TipoDeAtividadeController::class); // CORRIGIDO AQUI!
         Route::get('candidatos/relatorios', [CandidatoController::class, 'relatorios'])->name('candidatos.relatorios');
-        Route::get('candidatos/relatorios/exportar-pdf', [CandidatoController::class, 'exportarPdf'])->name('candidatos.relatorios.exportar-pdf');
+        Route::post('candidatos/relatorios/exportar-pdf', [CandidatoController::class, 'exportarPdf'])->name('candidatos.relatorios.exportar-pdf');
         Route::resource('candidatos', CandidatoController::class);
         Route::resource('pages', PageController::class);
         Route::get('ranking-convocacao', [CandidatoController::class, 'ranking'])->name('candidatos.ranking');
         Route::get('candidatos/{candidato}/atribuir-vaga', [CandidatoController::class, 'showAtribuirVagaForm'])->name('candidatos.showAtribuirVagaForm');
         Route::post('candidatos/{candidato}/convocar', [CandidatoController::class, 'convocar'])->name('candidatos.convocar');
         Route::post('candidatos/relatorios/filtrar', [CandidatoController::class, 'filterAdvancedReports'])->name('candidatos.relatorios.filtrar');
+        Route::get('candidatos/{candidato}/perfil-pdf', [App\Http\Controllers\Admin\CandidatoController::class, 'exportarPerfilPdf'])->name('candidatos.perfil.pdf');
+        
 
 
         // Rotas para Gerenciamento de Usuários (com o novo UserController)

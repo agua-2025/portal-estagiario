@@ -22,42 +22,43 @@
 </head>
 <body>
 
-    {{-- ✅ CABEÇALHO ATUALIZADO COM LOGO E NOME DO PORTAL --}}
+    
 <table class="prefeitura-header">
     <tr>
-        {{-- Coluna da Logomarca --}}
+        
         <td style="width: 50%; text-align: left;">
-            @if(file_exists(public_path('images/logo.png')))
-                <img src="{{ public_path('images/logo.png') }}" alt="Logomarca" style="width: 220px; height: auto;">
-            @endif
+            <?php if(file_exists(public_path('images/logo.png'))): ?>
+                <img src="<?php echo e(public_path('images/logo.png')); ?>" alt="Logomarca" style="width: 220px; height: auto;">
+            <?php endif; ?>
         </td>
 
-        {{-- Coluna dos Dados de Contato (COM O TÍTULO) --}}
+        
         <td style="width: 50%; text-align: right; font-size: 9px; line-height: 1.4;">
-            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px;">{{ $prefeituraInfo['nome'] }}</div>
+            <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px;"><?php echo e($prefeituraInfo['nome']); ?></div>
             
-            {{ $prefeituraInfo['endereco'] }}<br>
-            Telefone: {{ $prefeituraInfo['telefone'] }} | CNPJ: {{ $prefeituraInfo['cnpj'] }}<br>
-            Email: {{ $prefeituraInfo['email'] }}
+            <?php echo e($prefeituraInfo['endereco']); ?><br>
+            Telefone: <?php echo e($prefeituraInfo['telefone']); ?> | CNPJ: <?php echo e($prefeituraInfo['cnpj']); ?><br>
+            Email: <?php echo e($prefeituraInfo['email']); ?>
+
         </td>
     </tr>
 </table>
 
     <div class="footer">
-        Gerado em: {{ $dataGeracao }} - Página <span class="pagenum"></span>
+        Gerado em: <?php echo e($dataGeracao); ?> - Página <span class="pagenum"></span>
     </div>
 
     <main>
         <div class="report-title">Relatório de Candidatos</div>
 
-        @if(!empty($appliedFilters))
+        <?php if(!empty($appliedFilters)): ?>
             <div class="filter-summary">
                 <h3>Filtros Aplicados:</h3>
-                @foreach($appliedFilters as $key => $value)
-                    <p><strong>{{ $key }}:</strong> {{ $value }}</p>
-                @endforeach
+                <?php $__currentLoopData = $appliedFilters; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <p><strong><?php echo e($key); ?>:</strong> <?php echo e($value); ?></p>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
-        @endif
+        <?php endif; ?>
 
         <table>
             <thead>
@@ -72,23 +73,23 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($candidatos as $candidato)
+                <?php $__empty_1 = true; $__currentLoopData = $candidatos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $candidato): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>{{ $candidato->nome_completo }}</td>
-                        <td>{{ $candidato->cpf }}</td>
-                        <td>{{ $candidato->curso_nome }}</td>
-                        <td>{{ $candidato->instituicao_nome }}</td>
-                        <td>{{ $candidato->status }}</td>
-                        <td>{{ number_format($candidato->pontuacao_final, 2, ',', '.') }}</td>
+                        <td><?php echo e($loop->iteration); ?></td>
+                        <td><?php echo e($candidato->nome_completo); ?></td>
+                        <td><?php echo e($candidato->cpf); ?></td>
+                        <td><?php echo e($candidato->curso_nome); ?></td>
+                        <td><?php echo e($candidato->instituicao_nome); ?></td>
+                        <td><?php echo e($candidato->status); ?></td>
+                        <td><?php echo e(number_format($candidato->pontuacao_final, 2, ',', '.')); ?></td>
                     </tr>
-                @empty
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                     <tr>
                         <td colspan="7" style="text-align: center;">Nenhum candidato encontrado para os filtros selecionados.</td>
                     </tr>
-                @endforelse
+                <?php endif; ?>
             </tbody>
         </table>
     </main>
 </body>
-</html>
+</html><?php /**PATH C:\laragon\www\portal-estagiario\resources\views/admin/candidatos/relatorios/pdf-template.blade.php ENDPATH**/ ?>

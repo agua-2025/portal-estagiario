@@ -43,7 +43,7 @@ return [
     |--------------------------------------------------------------------------
     */
 
-   'timezone' => 'America/Sao_Paulo',
+    'timezone' => 'America/Sao_Paulo',
 
     /*
     |--------------------------------------------------------------------------
@@ -93,13 +93,16 @@ return [
         /*
          * Package Service Providers...
          */
+        
+        // ✅ LINHA ADICIONADA AQUI
+        Barryvdh\DomPDF\ServiceProvider::class,
 
         /*
          * Application Service Providers...
          */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
-        App\Providers\BroadcastServiceProvider::class,
+        // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
     ])->toArray(),
@@ -112,6 +115,10 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
+        
+        // ✅ LINHA ADICIONADA AQUI
+        'Pdf' => Barryvdh\DomPDF\Facade\Pdf::class,
+
     ])->toArray(),
 
 ];

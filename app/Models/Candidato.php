@@ -90,8 +90,7 @@ class Candidato extends Model
         'prorrogacao_data_fim' => 'date',
     ];
 
-    protected $appends = ['completion_percentage', 'pontuacao_final'];
-
+    protected $appends = ['completion_percentage', 'pontuacao_final', 'perfil_pdf_url'];
     /**
      * O método "booted" do modelo.
      */
@@ -200,6 +199,11 @@ class Candidato extends Model
             'semestres_completos',
         ];
     }
+
+public function getPerfilPdfUrlAttribute()
+{
+    return route('admin.candidatos.perfil.pdf', ['candidato' => $this->id]);
+}
 
     public function getCompletionPercentageAttribute()
     {
