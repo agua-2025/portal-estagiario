@@ -17,7 +17,7 @@
                 </div>
 
                 <div class="p-6 space-y-6">
-                    <!-- Seção de Filtros -->
+                    <!-- Seção de Filtros ---->
                     <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center space-x-2">
