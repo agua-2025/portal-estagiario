@@ -52,51 +52,47 @@ class CandidatoController extends Controller
      */
 public function filterAdvancedReports(Request $request)
 {
-    // DEBUG - INÍCIO DO MÉTODO
-    \Log::info('=== DEBUG FILTRO RELATÓRIOS ===');
-    \Log::info('Payload recebido:', [
-        'colunas' => $request->input('colunas'),
-        'filtros' => $request->input('filtros'),
-        'todos_os_dados' => $request->all()
-    ]);
-
     try {
         $colunas = $request->input('colunas', []);
         $filtros = $request->input('filtros', []);
         
-        // Remove 'acoes' das colunas antes de fazer a query
         $colunasDb = array_filter($colunas, function($col) {
             return $col !== 'acoes';
         });
         
-        // Adicione sempre o ID para poder gerar links
         if (!in_array('id', $colunasDb)) {
             $colunasDb[] = 'id';
         }
         
-        // Iniciar a query
-        $query = Candidato::query();
+        $query = \App\Models\Candidato::query();
         
-        // Adicionar joins necessários
         $query->leftJoin('cursos', 'candidatos.curso_id', '=', 'cursos.id')
               ->leftJoin('instituicoes', 'candidatos.instituicao_id', '=', 'instituicoes.id')
               ->leftJoin('users', 'candidatos.user_id', '=', 'users.id');
         
-        // Aplicar filtros
+        // APLICAR FILTROS (LÓGICA CORRIGIDA E UNIFICADA)
         foreach ($filtros as $filtro) {
             $field = $filtro['field'] ?? null;
-            $value = $filtro['value'] ?? null;
             
-            if ($field && $value !== null && $value !== '') {
-                if (isset($filtro['value_inicio']) && isset($filtro['value_fim'])) {
-                    // Filtro de data
-                    $query->whereBetween($field, [$filtro['value_inicio'], $filtro['value_fim']]);
-                } elseif (isset($filtro['operator'])) {
-                    // Filtro numérico com operador
-                    $query->where($field, $filtro['operator'], $value);
+            // Pula filtros sem campo definido
+            if (!$field) continue;
+
+            // Lógica para filtros de período
+            if (!empty($filtro['value_inicio']) && !empty($filtro['value_fim'])) {
+            // Filtro de data
+            $inicio = \Carbon\Carbon::parse($filtro['value_inicio'])->startOfDay();
+            $fim = \Carbon\Carbon::parse($filtro['value_fim'])->endOfDay();
+            $query->whereBetween($field, [$inicio, $fim]);
+
+            // Lógica para filtros com valor único
+            } elseif (isset($filtro['value']) && $filtro['value'] !== '') {
+                $value = $filtro['value'];
+                $operator = $filtro['operator'] ?? '=';
+
+                if ($field === 'candidatos.nome_completo') {
+                    $query->where($field, 'LIKE', '%' . $value . '%');
                 } else {
-                    // Filtro simples
-                    $query->where($field, $value);
+                    $query->where($field, $operator, $value);
                 }
             }
         }
@@ -105,60 +101,26 @@ public function filterAdvancedReports(Request $request)
         $selectColumns = [];
         foreach ($colunasDb as $col) {
             switch($col) {
-                case 'curso_nome':
-                    $selectColumns[] = 'cursos.nome as curso_nome';
-                    break;
-                case 'instituicao_nome':
-                    $selectColumns[] = 'instituicoes.nome as instituicao_nome';
-                    break;
-                case 'pontuacao_final':
-                    $selectColumns[] = 'candidatos.pontuacao_final'; // CORRIGIDO - nome correto da coluna
-                    break;
-                case 'email':
-            $selectColumns[] = 'users.email as email';
-            break;
+                case 'curso_nome': $selectColumns[] = 'cursos.nome as curso_nome'; break;
+                case 'instituicao_nome': $selectColumns[] = 'instituicoes.nome as instituicao_nome'; break;
+                case 'pontuacao_final': $selectColumns[] = 'candidatos.pontuacao_final'; break;
+                case 'email': $selectColumns[] = 'users.email as email'; break;
                 default:
-                    if (strpos($col, '.') === false) {
-                        $selectColumns[] = 'candidatos.' . $col;
-                    } else {
-                        $selectColumns[] = $col;
-                    }
+                    if (strpos($col, '.') === false) { $selectColumns[] = 'candidatos.' . $col; } 
+                    else { $selectColumns[] = $col; }
             }
         }
+        if (!in_array('candidatos.id', $selectColumns)) { $selectColumns[] = 'candidatos.id'; }
         
-        // Adicionar sempre o ID
-        if (!in_array('candidatos.id', $selectColumns)) {
-            $selectColumns[] = 'candidatos.id';
-        }
-        
-        $query->select($selectColumns);
-        
-        // Ordenar por nome
+        $query->select(array_unique($selectColumns));
         $query->orderBy('candidatos.nome_completo');
-        
-        // Paginar resultados
         $results = $query->paginate(20);
         
-        // Retornar resposta com paginação simplificada
-        return response()->json([
-            'data' => $results->items(),
-            'links' => [], // Simplificado temporariamente
-            'current_page' => $results->currentPage(),
-            'total' => $results->total(),
-            'per_page' => $results->perPage(),
-            'last_page' => $results->lastPage()
-        ]);
+        return response()->json($results);
         
     } catch (\Exception $e) {
-        \Log::error('Erro no filtro de relatórios: ' . $e->getMessage());
-        \Log::error('Stack trace: ' . $e->getTraceAsString());
-        
-        return response()->json([
-            'error' => 'Erro ao processar filtro',
-            'message' => $e->getMessage(),
-            'line' => $e->getLine(),
-            'file' => $e->getFile()
-        ], 500);
+        \Log::error('Erro no filtro de relatórios: ' . $e->getMessage() . ' no arquivo ' . $e->getFile() . ' na linha ' . $e->getLine());
+        return response()->json(['error' => 'Erro interno no servidor.', 'message' => $e->getMessage()], 500);
     }
 }
 
@@ -345,6 +307,40 @@ public function exportarPerfilPdf(Candidato $candidato)
             return redirect()->back()->with('error', 'Ocorreu um erro ao salvar a convocação.');
         }
     }
+
+    /**
+ * Gera um PDF com os detalhes da convocação de um candidato.
+ */
+public function exportarConvocacaoPdf(Candidato $candidato)
+{
+    // Apenas continua se o candidato estiver de fato convocado
+    if ($candidato->status !== 'Convocado') {
+        return redirect()->back()->with('error', 'Este candidato não possui dados de convocação.');
+    }
+
+    try {
+        $candidato->load(['user', 'curso', 'instituicao']);
+        $prefeituraInfo = [
+            'nome' => env('PREFEITURA_NOME', 'Portal do Estagiário'),
+            'endereco' => env('PREFEITURA_ENDERECO', 'Endereço da Prefeitura, Cidade, UF'),
+            'telefone' => env('PREFEITURA_TELEFONE', '(00) 00000-0000'),
+            'cnpj' => env('PREFEITURA_CNPJ', 'XX.XXX.XXX/0001-XX'),
+            'email' => env('PREFEITURA_EMAIL', 'contato@email.com'),
+        ];
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.candidatos.relatorios.convocacao-pdf-template', [
+            'candidato' => $candidato,
+            'prefeituraInfo' => $prefeituraInfo,
+            'dataGeracao' => now()->format('d/m/Y H:i:s')
+        ]);
+        
+        return $pdf->stream('Convocacao - ' . $candidato->nome_completo . '.pdf');
+
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Erro ao gerar PDF de convocação: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Não foi possível gerar o PDF de convocação.');
+    }
+}
 
     public function create()
     {

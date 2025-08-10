@@ -35,17 +35,17 @@ class RolesAndPermissionsSeeder extends Seeder
                 'ver_relatorios_gerais',
 
                 // Permissões de Usuários/Acesso
-                'gerenciar_usuarios', // Inclui criar, ver, editar, deletar qualquer usuário (admin e estagiario)
+                'gerenciar_usuarios', // Inclui criar, ver, editar, deletar qualquer usuário (admin e candidato)
                 'ver_proprio_perfil',
                 'editar_proprio_perfil',
-                'ver_todos_estagiarios',
-                'editar_estagiarios',
-                'homologar_estagiarios',
-                'gerenciar_recursos_estagiarios',
+                'ver_todos_candidatos', // Renomeado para alinhar com o papel
+                'editar_candidatos', // Renomeado para alinhar com o papel
+                'homologar_candidatos', // Renomeado para alinhar com o papel
+                'gerenciar_recursos_candidatos', // Renomeado para alinhar com o papel
 
                 // Permissões de Documentos e Atividades do Candidato
-                'gerenciar_documentos_estagiarios', // Inclui aprovar/rejeitar
-                'gerenciar_atividades_estagiarios', // Inclui aprovar/rejeitar
+                'gerenciar_documentos_candidatos', // Inclui aprovar/rejeitar
+                'gerenciar_atividades_candidatos', // Inclui aprovar/rejeitar
                 'enviar_proprios_documentos',
                 'enviar_proprias_atividades',
 
@@ -62,33 +62,49 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // Cria ou encontra os papéis
             $adminRole = Role::findOrCreate('admin');
-            $estagiarioRole = Role::findOrCreate('estagiario');
-            $this->command->info('Papéis "admin" e "estagiario" criados/verificados.');
+            $candidatoRole = Role::findOrCreate('candidato'); // <-- CORRIGIDO AQUI
+            $this->command->info('Papéis "admin" e "candidato" criados/verificados.');
 
             // Atribui todas as permissões ao papel 'admin'
             $adminRole->givePermissionTo(Permission::all());
             $this->command->info('Todas as permissões atribuídas ao papel "admin".');
 
-            // Atribui permissões específicas ao papel 'estagiario'
-            $estagiarioRole->givePermissionTo([
+            // Atribui permissões específicas ao papel 'candidato'
+            $candidatoRole->givePermissionTo([
                 'ver_proprio_perfil',
                 'editar_proprio_perfil',
                 'enviar_proprios_documentos',
                 'enviar_proprias_atividades',
             ]);
-            $this->command->info('Permissões específicas atribuídas ao papel "estagiario".');
+            $this->command->info('Permissões específicas atribuídas ao papel "candidato".');
 
-            // --- ATRIBUINDO PAPÉIS AOS USUÁRIOS EXISTENTES (APENAS CANDIDATOS AQUI) ---
+            // --- ATRIBUINDO PAPÉIS AOS USUÁRIOS EXISTENTES ---
 
-            // Atribui o papel 'estagiario' a todos os usuários que têm um perfil de candidato
-            $candidatoUsers = User::whereHas('candidato')->get(); // Pega todos os Users que têm um Candidato associado
+            // 1. Encontra e atribui o papel 'admin' ao seu usuário administrador
+            // ✅ AJUSTADO AQUI PARA O E-MAIL CORRETO
+            $adminUser = User::where('email', 'marcio@mirassoldoeste.mt.gov.br')->first(); 
+
+            if ($adminUser) {
+                if (!$adminUser->hasRole('admin')) {
+                    $adminUser->assignRole('admin');
+                    $this->command->info('Papel "admin" atribuído ao usuário admin: ' . $adminUser->email);
+                } else {
+                    $this->command->info('Usuário admin com email \'' . $adminUser->email . '\' já possui o papel \'admin\'.');
+                }
+            } else {
+                // A mensagem de erro agora usa o e-mail correto
+                $this->command->error('Usuário admin com email \'marcio@mirassoldoeste.mt.gov.br\' não encontrado. Não foi possível atribuir o papel \'admin\'.');
+            }
+
+            // 2. Atribui o papel 'candidato' a todos os usuários que têm um perfil de candidato
+            $candidatoUsers = User::whereHas('candidato')->get();
 
             foreach ($candidatoUsers as $candidatoUser) {
-                if (!$candidatoUser->hasRole('estagiario')) {
-                    $candidatoUser->assignRole('estagiario');
-                    $this->command->info('Papel "estagiario" atribuído ao usuário candidato: ' . $candidatoUser->email);
+                if (!$candidatoUser->hasRole('candidato')) { // <-- CORRIGIDO AQUI
+                    $candidatoUser->assignRole('candidato'); // <-- CORRIGIDO AQUI
+                    $this->command->info('Papel "candidato" atribuído ao usuário candidato: ' . $candidatoUser->email);
                 } else {
-                    $this->command->info('Usuário candidato já possui o papel \'estagiario\': ' . $candidatoUser->email);
+                    $this->command->info('Usuário candidato já possui o papel \'candidato\': ' . $candidatoUser->email);
                 }
             }
 

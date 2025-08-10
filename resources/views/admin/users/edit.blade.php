@@ -69,7 +69,7 @@
                         <div class="space-y-2">
                             <label for="cpf" class="block text-sm font-medium text-gray-700">
                                 {{ __('CPF') }}
-                                <span class="text-xs text-orange-600 font-normal ml-1">({{ __('obrigatório para Estagiário') }})</span>
+                                <span class="text-xs text-orange-600 font-normal ml-1">({{ __('obrigatório para Candidato') }})</span>
                             </label>
                             <div class="max-w-md">
                                 <input 
@@ -83,7 +83,7 @@
                                 />
                             </div>
                             <p class="text-xs text-gray-500">
-                                {{ __('O CPF é obrigatório caso o usuário seja ou se torne um Estagiário') }}
+                                {{ __('O CPF é obrigatório caso o usuário seja ou se torne um Candidato') }}
                             </p>
                             <x-input-error :messages="$errors->get('cpf')" class="mt-2" />
                         </div>
@@ -146,30 +146,30 @@
                                 {{ __('Papéis') }}
                             </label>
                             <div class="space-y-3">
-                                @foreach($roles as $roleName => $roleLabel)
+                                @foreach($roles as $role)
                                     <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
                                         <input 
                                             type="checkbox" 
                                             name="roles[]" 
-                                            id="role_{{ $roleName }}" 
-                                            value="{{ $roleName }}"
+                                            id="role_{{ $role }}" 
+                                            value="{{ $role }}"
                                             class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2"
-                                            {{ in_array($roleName, old('roles', $userRoles)) ? 'checked' : '' }}
+                                            {{ in_array($role, old('roles', $userRoles)) ? 'checked' : '' }}
                                         >
-                                        <label for="role_{{ $roleName }}" class="text-sm font-medium text-gray-700 capitalize cursor-pointer">
-                                            {{ $roleLabel }}
+                                        <label for="role_{{ $role }}" class="text-sm font-medium text-gray-700 capitalize cursor-pointer">
+                                            {{ $role }}
                                         </label>
-                                        @if($roleName === 'estagiario')
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                Estagiário
-                                            </span>
-                                        @elseif($roleName === 'admin')
+                                        @if($role === 'admin')
                                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                 Admin
                                             </span>
+                                        @elseif($role === 'candidato')
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Candidato
+                                            </span>
                                         @else
                                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                {{ ucfirst($roleLabel) }}
+                                                {{ ucfirst($role) }}
                                             </span>
                                         @endif
                                     </div>

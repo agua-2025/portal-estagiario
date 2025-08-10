@@ -90,7 +90,7 @@ class Candidato extends Model
         'prorrogacao_data_fim' => 'date',
     ];
 
-    protected $appends = ['completion_percentage', 'pontuacao_final', 'perfil_pdf_url'];
+    protected $appends = ['completion_percentage', 'pontuacao_final', 'perfil_pdf_url', 'convocacao_pdf_url'];
     /**
      * O método "booted" do modelo.
      */
@@ -117,6 +117,14 @@ class Candidato extends Model
             }
         });
     }
+
+public function getConvocacaoPdfUrlAttribute()
+{
+    if ($this->status === 'Convocado') {
+        return route('admin.candidatos.convocacao.pdf', $this->id); // usar o nome correto
+    }
+    return null;
+}
     
     /**
      * Determina se o candidato pode interpor recurso após a homologação.
@@ -171,14 +179,37 @@ class Candidato extends Model
         return $this->hasMany(CandidatoAtividade::class);
     }
 
-    public function getPontuacaoFinalAttribute()
-    {
-        if (method_exists($this, 'calcularPontuacaoDetalhada')) {
-            $pontuacaoDetalhada = $this->calcularPontuacaoDetalhada();
-            return $pontuacaoDetalhada['total'] ?? 0;
-        }
-        return $this->attributes['pontuacao'] ?? 0;
+    /**
+ * Calcula a pontuação total com base nas atividades e a salva no banco de dados.
+ */
+public function updateAndSaveScore()
+{
+    // Chama o método que já existe para calcular a pontuação detalhada
+    $pontuacaoDetalhada = $this->calcularPontuacaoDetalhada();
+    $totalScore = $pontuacaoDetalhada['total'] ?? 0;
+
+    // ✅ CORREÇÃO AQUI: Usando o nome de coluna correto do banco de dados
+    $this->pontuacao_final = $totalScore;
+    $this->save();
+
+    return $totalScore;
+}
+
+public function getPontuacaoFinalAttribute()
+{
+    // Se já existe valor salvo no banco, use ele
+    if (isset($this->attributes['pontuacao_final']) && $this->attributes['pontuacao_final'] > 0) {
+        return $this->attributes['pontuacao_final'];
     }
+    
+    // Caso contrário, calcule
+    if (method_exists($this, 'calcularPontuacaoDetalhada')) {
+        $pontuacaoDetalhada = $this->calcularPontuacaoDetalhada();
+        return $pontuacaoDetalhada['total'] ?? 0;
+    }
+    
+    return 0;
+}
     
     public static function getCompletableFields(): array
     {

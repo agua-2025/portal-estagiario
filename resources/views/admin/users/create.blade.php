@@ -1,6 +1,5 @@
 <x-app-layout>
 
-
     <div class="py-6">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Card Principal -->
@@ -74,7 +73,7 @@
                         <div class="space-y-2">
                             <label for="cpf" class="block text-sm font-medium text-gray-700">
                                 {{ __('CPF') }}
-                                <span class="text-xs text-orange-600 font-normal ml-1">({{ __('obrigatório para Estagiário') }})</span>
+                                <span class="text-xs text-orange-600 font-normal ml-1">({{ __('obrigatório para Candidato') }})</span>
                             </label>
                             <div class="max-w-md">
                                 <input 
@@ -88,7 +87,7 @@
                                 />
                             </div>
                             <p class="text-xs text-gray-500">
-                                {{ __('O CPF é obrigatório para usuários com papel de Estagiário') }}
+                                {{ __('O CPF é obrigatório para usuários com papel de Candidato') }}
                             </p>
                             @error('cpf')
                                 <p class="text-sm text-red-600">{{ $message }}</p>
@@ -171,13 +170,13 @@
                                         <label for="role_{{ $role }}" class="text-sm font-medium text-gray-700 capitalize cursor-pointer">
                                             {{ $role }}
                                         </label>
-                                        @if($role === 'estagiario')
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                Estagiário
-                                            </span>
-                                        @elseif($role === 'admin')
+                                        @if($role === 'admin')
                                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                 Admin
+                                            </span>
+                                        @elseif($role === 'candidato')
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Candidato
                                             </span>
                                         @else
                                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -266,7 +265,7 @@
             } else {
                 e.target.classList.remove('border-red-300', 'focus:ring-red-500', 'focus:border-red-500');
                 e.target.classList.add('border-gray-300', 'focus:ring-indigo-500', 'focus:border-indigo-500');
-            }
+            </tr>
         });
     </script>
 </x-app-layout>
