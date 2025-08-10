@@ -1,18 +1,19 @@
-#!/usr/bin/env php
-<?php
+#!/bin/bash
 
-use Illuminate\Foundation\Application;
-use Symfony\Component\Console\Input\ArgvInput;
+# Copia nosso arquivo de configuração personalizado do Nginx para o local correto
+cp /home/site/wwwroot/default /etc/nginx/sites-available/default
 
-define('LARAVEL_START', microtime(true));
+# Reinicia o Nginx para que as alterações tenham efeito
+service nginx restart
 
-// Register the Composer autoloader...
-require __DIR__.'/vendor/autoload.php';
+# ======= NOSSA SOLUÇÃO =======
+# Navega para a pasta do projeto e roda os comandos do Laravel
+# durante a inicialização do servidor.
 
-// Bootstrap Laravel and handle the command...
-/** @var Application $app */
-$app = require_once __DIR__.'/bootstrap/app.php';
+cd /home/site/wwwroot
 
-$status = $app->handleCommand(new ArgvInput);
+php artisan key:generate --force
+php artisan config:cache
+php artisan migrate --force
 
-exit($status);
+# =============================
