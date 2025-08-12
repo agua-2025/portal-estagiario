@@ -29,10 +29,8 @@
                             @endphp
 
                             <div class="py-4 border-b last:border-b-0">
-                                {{-- ✅ AJUSTE 2.0: Adicionado flex-wrap para quebrar linha no mobile sem quebrar o desktop --}}
                                 <div class="flex flex-wrap justify-between items-start gap-4">
-                                    {{-- Informações do Documento --}}
-                                    <div class="flex-grow min-w-[200px] mb-2"> {{-- Adicionado min-width para evitar que o texto seja espremido --}}
+                                    <div class="flex-grow min-w-[200px] mb-2">
                                         <p class="font-semibold text-gray-800">{{ $nome }}</p>
 
                                         @if($documentoEnviado && $documentoEnviado->status === 'rejeitado' && !empty($documentoEnviado->motivo_rejeicao))
@@ -42,7 +40,6 @@
                                         @endif
                                     </div>
 
-                                    {{-- Ações e Status --}}
                                     <div class="flex items-center flex-shrink-0 gap-x-2">
                                         @if($documentoEnviado)
                                             <span class="font-semibold capitalize px-3 py-1.5 rounded-md text-xs
@@ -60,17 +57,17 @@
                                     </div>
                                 </div>
 
-                                {{-- Formulário de Upload (quando necessário) --}}
                                 <div class="mt-3">
                                     @if(!$documentoEnviado || $documentoEnviado->status === 'rejeitado')
-                                        {{-- ✅ AJUSTE 2.0: flex-wrap permite que o botão quebre a linha no mobile --}}
                                         <form action="{{ route('candidato.documentos.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
                                             @csrf
                                             <input type="hidden" name="tipo_documento" value="{{ $tipo }}">
                                             @if($documentoEnviado && $documentoEnviado->status === 'rejeitado')
                                                 <span class="text-sm text-gray-600">Substituir arquivo:</span>
                                             @endif
-                                            <input type="file" name="documento" required class="text-sm text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+                                            
+                                            {{-- ✅ AJUSTE: Adicionado o atributo "accept" para sugerir os tipos de arquivo corretos --}}
+                                            <input type="file" name="documento" required accept="application/pdf, image/png, image/jpeg" class="text-sm text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
                                             
                                             <button type="submit" class="px-4 py-1.5 border border-blue-600 text-blue-700 rounded-md text-sm font-semibold hover:bg-blue-600 hover:text-white ml-auto transition-colors duration-200">
                                                 {{ $documentoEnviado && $documentoEnviado->status === 'rejeitado' ? 'Enviar Correção' : 'Enviar' }}
