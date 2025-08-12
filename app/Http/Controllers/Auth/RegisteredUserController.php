@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Providers\RouteServiceProvider; // Importado para redirecionamento
+use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
-use Spatie\Permission\Models\Role; // ✅ ADICIONADO: Importar o modelo Role do Spatie
-use Illuminate\Support\Facades\Log; // ✅ ADICIONADO: Para logar avisos, se o papel não for encontrado
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Log;
 
 class RegisteredUserController extends Controller
 {
@@ -36,7 +36,7 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'terms' => ['required', 'accepted'], // Para garantir que os termos foram aceitos
+            'terms' => ['required', 'accepted'],
         ], [
             'terms.required' => 'Você deve aceitar os Termos de Uso e Política de Privacidade.',
             'terms.accepted' => 'Você deve aceitar os Termos de Uso e Política de Privacidade.',
@@ -46,25 +46,24 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'candidato', // Manter para compatibilidade com sua lógica antiga
-            'terms_accepted_at' => now(), // Registra a data de aceitação dos termos
+            'role' => 'candidato',
+            'terms_accepted_at' => now(),
         ]);
 
-        // ✅ ADICIONADO: Atribuir o papel 'estagiario' via Spatie
-        // Busca o papel 'estagiario'. É importante que este papel já tenha sido criado pelo seeder!
-        $estagiarioRole = Role::findByName('estagiario'); 
-        if ($estagiarioRole) {
-            $user->assignRole($estagiarioRole);
-        } else {
-            // Se por algum motivo o papel 'estagiario' não foi encontrado (o que não deveria acontecer se o seeder rodou)
-            Log::warning('Papel "estagiario" não encontrado ao registrar novo usuário. Verifique o seeder.');
-        }
+        // ✅ DEFINITIVO: Garante que o role 'candidato' sempre exista
+        $candidatoRole = Role::firstOrCreate([
+            'name' => 'candidato', 
+            'guard_name' => 'web'
+        ]);
+
+        // Atribui o papel ao usuário
+        $user->assignRole($candidatoRole);
+
+        Log::info("Papel 'candidato' atribuído ao usuário: " . $user->email);
 
         event(new Registered($user));
-
         Auth::login($user);
 
-        // O RouteServiceProvider::HOME geralmente aponta para /dashboard
-        return redirect(RouteServiceProvider::HOME); 
+        return redirect(RouteServiceProvider::HOME);
     }
 }

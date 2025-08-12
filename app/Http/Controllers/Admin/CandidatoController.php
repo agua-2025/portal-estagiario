@@ -560,20 +560,16 @@ public function exportarConvocacaoPdf(Candidato $candidato)
             return redirect()->back()->with('error', 'Não é possível homologar. O candidato possui atividades com prazo de recurso em andamento.');
         }
 
-        $request->validate([
-            'ato_homologacao' => 'required|string|max:255',
-            'homologacao_observacoes' => 'nullable|string',
-        ], [
-            'ato_homologacao.required' => 'O campo "Número/Referência do Ato de Homologação" é obrigatório.',
-        ]);
+   $request->validate([
+        'homologacao_observacoes' => 'nullable|string',
+    ]);
 
-        if ($candidato->status !== 'Aprovado') {
-            return redirect()->back()->with('error', 'Apenas candidatos "Aprovados" podem ser homologados.');
-        }
+    if ($candidato->status !== 'Aprovado') {
+        return redirect()->back()->with('error', 'Apenas candidatos "Aprovados" podem ser homologados.');
+    }
 
         try {
             $candidato->status = 'Homologado';
-            $candidato->ato_homologacao = $request->input('ato_homologacao');
             $candidato->homologado_em = now();
             $candidato->homologacao_observacoes = $request->input('homologacao_observacoes');
             $candidato->revert_reason = null;
