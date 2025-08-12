@@ -12,6 +12,7 @@
                                 fields: initialFields,
                                 percentage: 0,
                                 validationAttempted: { step1: false, step2: false, step3: false },
+                                cpfIsValid: true, // Adicionado: estado de validação do CPF
                                 
                                 estados: estados,
                                 todasCidades: todasCidades,
@@ -54,8 +55,49 @@
                                         this.updateAllFilteredLists(); 
                                     });
 
+                                    // Adicionado: Observador para o campo CPF
+                                    this.$watch('fields.cpf', () => {
+                                        this.cpfIsValid = this.validateCpf(this.fields.cpf);
+                                    });
+
                                     this.$watch('fields', () => this.calculatePercentage(), { deep: true });
                                 },
+
+                              // Nova função para validar o CPF
+                                validateCpf(cpf) {
+                                    // Remove caracteres não numéricos
+                                    const cleanedCpf = cpf.replace(/[^\d]+/g,'');
+                                    
+                                    // Retorna falso se a string for diferente de 11 dígitos ou for uma sequência inválida
+                                    if (cleanedCpf.length !== 11 || /^(\d)\1{10}$/.test(cleanedCpf)) {
+                                        return false;
+                                    }
+
+                                    let sum = 0;
+                                    let rest;
+                                    
+                                    // Validação do primeiro dígito verificador
+                                    for (let i = 1; i <= 9; i++) {
+                                        sum = sum + parseInt(cleanedCpf.substring(i - 1, i)) * (11 - i);
+                                    }
+                                    rest = (sum * 10) % 11;
+
+                                    if (rest === 10 || rest === 11) rest = 0;
+                                    if (rest !== parseInt(cleanedCpf.substring(9, 10))) return false;
+
+                                    sum = 0;
+                                    
+                                    // Validação do segundo dígito verificador
+                                    for (let i = 1; i <= 10; i++) {
+                                        sum = sum + parseInt(cleanedCpf.substring(i - 1, i)) * (12 - i);
+                                    }
+                                    rest = (sum * 10) % 11;
+
+                                    if (rest === 10 || rest === 11) rest = 0;
+                                    if (rest !== parseInt(cleanedCpf.substring(10, 11))) return false;
+
+                                    return true;
+                                },  
 
                                 updateAllFilteredLists() {
                                     if (this.fields.naturalidade_estado) {
@@ -74,14 +116,16 @@
                                 },
                                 
                                 isStep1Valid() { 
+                                    // A validação do CPF foi adicionada aqui
                                     return !!this.fields.nome_completo && 
-                                            !!this.fields.nome_mae && 
-                                            !!this.fields.data_nascimento && 
-                                            !!this.fields.sexo && 
-                                            !!this.fields.cpf && 
-                                            !!this.fields.naturalidade_estado && 
-                                            !!this.fields.naturalidade_cidade && 
-                                            (this.fields.possui_deficiencia !== null && this.fields.possui_deficiencia !== ''); 
+                                        !!this.fields.nome_mae && 
+                                        !!this.fields.data_nascimento && 
+                                        !!this.fields.sexo && 
+                                        !!this.fields.cpf && 
+                                        this.cpfIsValid && // Adicionado: validação do CPF
+                                        !!this.fields.naturalidade_estado && 
+                                        !!this.fields.naturalidade_cidade && 
+                                        (this.fields.possui_deficiencia !== null && this.fields.possui_deficiencia !== ''); 
                                 },
                                 
                                 isStep2Valid() { 
@@ -126,6 +170,13 @@
                                     if (field === 'possui_deficiencia') {
                                         return value === null || value === '';
                                     }
+                                    
+                                    // Validação do campo 'cpf'
+                                    if (field === 'cpf') {
+                                        // Retorna true se o campo estiver vazio ou se o CPF for inválido
+                                        return !value || !this.cpfIsValid; 
+                                    }
+
                                     return !value;
                                 },
 
@@ -264,7 +315,9 @@
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="cpf" class="block font-medium text-sm text-gray-700">CPF <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('cpf', 1) }" x-mask="999.999.999-99" x-model="fields.cpf" id="cpf" name="cpf" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
+                                        <input :class="{ 'border-red-500': isInvalid('cpf', 1) }" x-mask="999.999.999-99" x-model="fields.cpf" id="cpf" name="cpf" type="text" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao">
+                                        {{-- ✅ Adicionado: Mensagem de erro para CPF inválido --}}
+                                        <p x-show="validationAttempted.step1 && !cpfIsValid" class="mt-2 text-sm text-red-600">Por favor, insira um CPF válido.</p>
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
