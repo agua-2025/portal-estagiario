@@ -30,24 +30,24 @@
                                 $documentoEnviado = $documentosEnviados->get($tipo);
                             @endphp
 
-                            {{-- ✅ AJUSTE 1: Estrutura alterada de "card" para "linha com borda inferior", como na tela de Atividades --}}
                             <div class="py-4 border-b last:border-b-0">
-                                <div class="flex justify-between items-start gap-4">
+                                {{-- ✅ AJUSTE RESPONSIVO: Layout agora é coluna no mobile (flex-col) e linha em telas maiores (sm:flex-row) --}}
+                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                                     {{-- Informações do Documento --}}
                                     <div class="flex-grow">
                                         <p class="font-semibold text-gray-800">{{ $nome }}</p>
 
                                         @if($documentoEnviado && $documentoEnviado->status === 'rejeitado' && !empty($documentoEnviado->motivo_rejeicao))
                                             {{-- Motivo da Rejeição com quebra de linha --}}
-                                            <div class="mt-2 p-2 text-xs text-red-800 bg-red-50 rounded-md border border-red-200 break-all">
+                                            <div class="mt-2 p-2 text-xs text-red-800 bg-red-50 rounded-md border border-red-200 break-words">
                                                 <strong class="font-bold">Motivo da Rejeição:</strong> {{ $documentoEnviado->motivo_rejeicao }}
                                             </div>
                                         @endif
                                     </div>
 
                                     {{-- Ações e Status --}}
-                                    <div class="flex items-center flex-shrink-0 gap-x-2">
-                                        {{-- ✅ AJUSTE 2: Badge de status retangular e com cores leves --}}
+                                    {{-- ✅ AJUSTE RESPONSIVO: Adicionado margem no mobile (mt-3) e removido em telas maiores (sm:mt-0). `flex-wrap` permite que botões quebrem a linha se necessário. --}}
+                                    <div class="flex items-center flex-wrap flex-shrink-0 gap-x-2 mt-3 sm:mt-0">
                                         @if($documentoEnviado)
                                             <span class="font-semibold capitalize px-3 py-1.5 rounded-md text-xs
                                                 @if($documentoEnviado->status == 'aprovado') bg-green-100 text-green-800 @endif
@@ -58,7 +58,6 @@
                                             <span class="font-semibold capitalize px-3 py-1.5 rounded-md text-xs bg-yellow-100 text-yellow-800">Pendente</span>
                                         @endif
                                         
-                                        {{-- ✅ AJUSTE 3: Botões de ação com estilo leve --}}
                                         @if($documentoEnviado)
                                              <a href="{{ route('candidato.documentos.show', $documentoEnviado->id) }}" target="_blank" class="px-3 py-1.5 bg-gray-200 text-gray-800 rounded-md text-xs font-semibold hover:bg-gray-300">Visualizar</a>
                                         @endif
@@ -66,28 +65,30 @@
                                 </div>
 
                                 {{-- Formulário de Upload (quando necessário) --}}
-                                <div class="mt-3 pl-4">
+                                <div class="mt-3 pl-0 sm:pl-4"> {{-- ✅ AJUSTE RESPONSIVO: Removido padding a esquerda no mobile --}}
                                     @if(!$documentoEnviado)
-                                        <form action="{{ route('candidato.documentos.store') }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-x-3">
+                                        {{-- ✅ AJUSTE RESPONSIVO: `flex-wrap` para o formulário não quebrar em telas pequenas --}}
+                                        <form action="{{ route('candidato.documentos.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
                                             @csrf
                                             <input type="hidden" name="tipo_documento" value="{{ $tipo }}">
-                                            <input type="file" name="documento" required class="text-sm text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
-                                            <button type="submit" class="px-4 py-1.5 border border-blue-600 text-blue-700 rounded-md text-sm font-semibold hover:bg-blue-600 hover:text-white ml-auto transition-colors duration-200">Enviar Correção</button>
+                                            <input type="file" name="documento" required class="text-sm text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 flex-grow">
+                                            {{-- ✅ AJUSTE RESPONSIVO: Botão com largura total no mobile (w-full) e margem automática só em telas maiores (sm:ml-auto) --}}
+                                            <button type="submit" class="w-full sm:w-auto px-4 py-1.5 border border-blue-600 text-blue-700 rounded-md text-sm font-semibold hover:bg-blue-600 hover:text-white sm:ml-auto transition-colors duration-200">Enviar</button>
                                         </form>
-{{-- Trecho dentro do @foreach, para o caso de documento rejeitado --}}
-@elseif($documentoEnviado->status === 'rejeitado')
-    <form action="{{ route('candidato.documentos.store') }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-x-3">
-        @csrf
-        <input type="hidden" name="tipo_documento" value="{{ $tipo }}">
-        <span class="text-sm text-gray-600">Substituir arquivo:</span>
-        <input type="file" name="documento" required class="text-sm text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
-        
-        {{-- ✅ BOTÃO AJUSTADO --}}
-        <button type="submit" class="px-4 py-1.5 border border-blue-600 text-blue-700 rounded-md text-sm font-semibold hover:bg-blue-600 hover:text-white ml-auto transition-colors duration-200">
-            Enviar Correção
-        </button>
-    </form>
-@endif
+                                    @elseif($documentoEnviado->status === 'rejeitado')
+                                        {{-- ✅ AJUSTE RESPONSIVO: `flex-wrap` para o formulário não quebrar em telas pequenas --}}
+                                        <form action="{{ route('candidato.documentos.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
+                                            @csrf
+                                            <input type="hidden" name="tipo_documento" value="{{ $tipo }}">
+                                            <span class="text-sm text-gray-600 hidden sm:inline">Substituir arquivo:</span>
+                                            <input type="file" name="documento" required class="text-sm text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 flex-grow">
+                                            
+                                            {{-- ✅ AJUSTE RESPONSIVO: Botão com largura total no mobile (w-full) e margem automática só em telas maiores (sm:ml-auto) --}}
+                                            <button type="submit" class="w-full sm:w-auto px-4 py-1.5 border border-blue-600 text-blue-700 rounded-md text-sm font-semibold hover:bg-blue-600 hover:text-white sm:ml-auto transition-colors duration-200">
+                                                Enviar Correção
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
