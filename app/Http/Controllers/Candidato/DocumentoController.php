@@ -135,7 +135,6 @@ class DocumentoController extends Controller
 
             if (in_array($tipoDocumento, $documentosNecessariosParaVerificar) && in_array($previousStatus, ['Homologado', 'Aprovado', 'Em Análise'])) {
                 $candidato->status = 'Em Análise';
-                $candidato->ato_homologacao = null;
                 $candidato->homologado_em = null;
                 $candidato->homologacao_observacoes = null;
                 
@@ -245,7 +244,6 @@ class DocumentoController extends Controller
                 if ($previousStatus === 'Homologado' || $previousStatus === 'Aprovado' || $previousStatus === 'Em Análise') {
                     $candidato->status = $todosObrigatoriosAindaPresentes ? 'Em Análise' : 'Inscrição Incompleta';
                     
-                    $candidato->ato_homologacao = null;
                     $candidato->homologado_em = null;
                     $candidato->homologacao_observacoes = null;
                     

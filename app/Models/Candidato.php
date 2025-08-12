@@ -49,7 +49,6 @@ class Candidato extends Model
         'status', 
         'admin_observacao',
         'instituicao_id', 
-        'ato_homologacao', 
         'homologado_em', 
         'homologacao_observacoes',
         'revert_reason',

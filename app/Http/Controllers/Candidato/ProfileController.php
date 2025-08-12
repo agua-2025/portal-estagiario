@@ -115,7 +115,6 @@ class ProfileController extends Controller
                     $candidato->status = 'Em Análise'; 
                     
                     // Limpa os campos de homologação
-                    $candidato->ato_homologacao = null;
                     $candidato->homologado_em = null;
                     $candidato->homologacao_observacoes = null;
 

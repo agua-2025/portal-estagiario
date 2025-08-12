@@ -96,7 +96,6 @@ class AtividadeController extends Controller
 
             if (in_array($previousStatus, ['Homologado', 'Aprovado', 'Em Análise'])) {
                 $candidato->status = 'Em Análise';
-                $candidato->ato_homologacao = null;
                 $candidato->homologado_em = null;
                 $candidato->homologacao_observacoes = null;
                 
@@ -197,7 +196,6 @@ class AtividadeController extends Controller
 
             if (in_array($previousStatus, ['Homologado', 'Aprovado', 'Em Análise'])) {
                 $candidato->status = 'Em Análise';
-                $candidato->ato_homologacao = null;
                 $candidato->homologado_em = null;
                 $candidato->homologacao_observacoes = null;
                 
@@ -246,7 +244,6 @@ class AtividadeController extends Controller
 
             if (in_array($previousStatus, ['Homologado', 'Aprovado'])) {
                 $candidato->status = 'Em Análise';
-                $candidato->ato_homologacao = null;
                 $candidato->homologado_em = null;
                 $candidato->homologacao_observacoes = null;
                 
