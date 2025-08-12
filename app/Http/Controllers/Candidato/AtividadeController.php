@@ -37,13 +37,13 @@ class AtividadeController extends Controller
 
     Log::debug('Iniciando store de atividade. Request data: ' . json_encode($request->all()));
 
-    $user = Auth::user();
-
+    
         $user = Auth::user();
         $candidato = $user->candidato; 
         if (!$candidato) {
             return redirect()->back()->with('error', 'Perfil de candidato não encontrado.');
         }
+
         $previousStatus = $candidato->status; 
 
         $validationRules = [
@@ -74,7 +74,7 @@ class AtividadeController extends Controller
             $validationRules['data_inicio'] = 'required|date';
             $validationRules['data_fim'] = 'required|date|after_or_equal:data_inicio';
         }
-        
+                
         $request->validate($validationRules);
 
         $dadosParaSalvar = $request->only([
