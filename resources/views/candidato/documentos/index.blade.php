@@ -9,7 +9,6 @@
                         <p class="mt-1 text-sm text-gray-600">Envie os documentos necessários para validar a sua inscrição.</p>
                     </div>
                     
-                    {{-- Alertas e outras mensagens podem continuar aqui --}}
                     @if(session('success'))
                         <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-lg" role="alert">
                             <p>{{ session('success') }}</p>
@@ -22,7 +21,6 @@
                         </div>
                     @endif
 
-
                     {{-- Lista de Documentos --}}
                     <div class="space-y-4">
                         @foreach ($documentosNecessarios as $tipo => $nome)
@@ -31,14 +29,13 @@
                             @endphp
 
                             <div class="py-4 border-b last:border-b-0">
-                                {{-- ✅ AJUSTE RESPONSIVO: Layout agora é coluna no mobile (flex-col) e linha em telas maiores (sm:flex-row) --}}
-                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                                {{-- ✅ AJUSTE 2.0: Adicionado flex-wrap para quebrar linha no mobile sem quebrar o desktop --}}
+                                <div class="flex flex-wrap justify-between items-start gap-4">
                                     {{-- Informações do Documento --}}
-                                    <div class="flex-grow">
+                                    <div class="flex-grow min-w-[200px] mb-2"> {{-- Adicionado min-width para evitar que o texto seja espremido --}}
                                         <p class="font-semibold text-gray-800">{{ $nome }}</p>
 
                                         @if($documentoEnviado && $documentoEnviado->status === 'rejeitado' && !empty($documentoEnviado->motivo_rejeicao))
-                                            {{-- Motivo da Rejeição com quebra de linha --}}
                                             <div class="mt-2 p-2 text-xs text-red-800 bg-red-50 rounded-md border border-red-200 break-words">
                                                 <strong class="font-bold">Motivo da Rejeição:</strong> {{ $documentoEnviado->motivo_rejeicao }}
                                             </div>
@@ -46,8 +43,7 @@
                                     </div>
 
                                     {{-- Ações e Status --}}
-                                    {{-- ✅ AJUSTE RESPONSIVO: Adicionado margem no mobile (mt-3) e removido em telas maiores (sm:mt-0). `flex-wrap` permite que botões quebrem a linha se necessário. --}}
-                                    <div class="flex items-center flex-wrap flex-shrink-0 gap-x-2 mt-3 sm:mt-0">
+                                    <div class="flex items-center flex-shrink-0 gap-x-2">
                                         @if($documentoEnviado)
                                             <span class="font-semibold capitalize px-3 py-1.5 rounded-md text-xs
                                                 @if($documentoEnviado->status == 'aprovado') bg-green-100 text-green-800 @endif
@@ -65,27 +61,19 @@
                                 </div>
 
                                 {{-- Formulário de Upload (quando necessário) --}}
-                                <div class="mt-3 pl-0 sm:pl-4"> {{-- ✅ AJUSTE RESPONSIVO: Removido padding a esquerda no mobile --}}
-                                    @if(!$documentoEnviado)
-                                        {{-- ✅ AJUSTE RESPONSIVO: `flex-wrap` para o formulário não quebrar em telas pequenas --}}
+                                <div class="mt-3">
+                                    @if(!$documentoEnviado || $documentoEnviado->status === 'rejeitado')
+                                        {{-- ✅ AJUSTE 2.0: flex-wrap permite que o botão quebre a linha no mobile --}}
                                         <form action="{{ route('candidato.documentos.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
                                             @csrf
                                             <input type="hidden" name="tipo_documento" value="{{ $tipo }}">
-                                            <input type="file" name="documento" required class="text-sm text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 flex-grow">
-                                            {{-- ✅ AJUSTE RESPONSIVO: Botão com largura total no mobile (w-full) e margem automática só em telas maiores (sm:ml-auto) --}}
-                                            <button type="submit" class="w-full sm:w-auto px-4 py-1.5 border border-blue-600 text-blue-700 rounded-md text-sm font-semibold hover:bg-blue-600 hover:text-white sm:ml-auto transition-colors duration-200">Enviar</button>
-                                        </form>
-                                    @elseif($documentoEnviado->status === 'rejeitado')
-                                        {{-- ✅ AJUSTE RESPONSIVO: `flex-wrap` para o formulário não quebrar em telas pequenas --}}
-                                        <form action="{{ route('candidato.documentos.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
-                                            @csrf
-                                            <input type="hidden" name="tipo_documento" value="{{ $tipo }}">
-                                            <span class="text-sm text-gray-600 hidden sm:inline">Substituir arquivo:</span>
-                                            <input type="file" name="documento" required class="text-sm text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 flex-grow">
+                                            @if($documentoEnviado && $documentoEnviado->status === 'rejeitado')
+                                                <span class="text-sm text-gray-600">Substituir arquivo:</span>
+                                            @endif
+                                            <input type="file" name="documento" required class="text-sm text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
                                             
-                                            {{-- ✅ AJUSTE RESPONSIVO: Botão com largura total no mobile (w-full) e margem automática só em telas maiores (sm:ml-auto) --}}
-                                            <button type="submit" class="w-full sm:w-auto px-4 py-1.5 border border-blue-600 text-blue-700 rounded-md text-sm font-semibold hover:bg-blue-600 hover:text-white sm:ml-auto transition-colors duration-200">
-                                                Enviar Correção
+                                            <button type="submit" class="px-4 py-1.5 border border-blue-600 text-blue-700 rounded-md text-sm font-semibold hover:bg-blue-600 hover:text-white ml-auto transition-colors duration-200">
+                                                {{ $documentoEnviado && $documentoEnviado->status === 'rejeitado' ? 'Enviar Correção' : 'Enviar' }}
                                             </button>
                                         </form>
                                     @endif
