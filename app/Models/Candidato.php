@@ -187,7 +187,7 @@ public function updateAndSaveScore()
     $pontuacaoDetalhada = $this->calcularPontuacaoDetalhada();
     $totalScore = $pontuacaoDetalhada['total'] ?? 0;
 
-    // ✅ CORREÇÃO AQUI: Usando o nome de coluna correto do banco de dados
+    //CORREÇÃO AQUI: Usando o nome de coluna correto do banco de dados
     $this->pontuacao_final = $totalScore;
     $this->save();
 
