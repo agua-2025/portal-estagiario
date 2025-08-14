@@ -2,9 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <!-- Adicionando viewport-fit=cover para melhor controle em dispositivos com entalhe (notch) -->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <!-- FAVICON PRIMEIRO - ANTES DE TUDO -->
     <link rel="shortcut icon" href="<?php echo e(asset('favicon.ico')); ?>?v=<?php echo e(time()); ?>">
     <link rel="icon" type="image/x-icon" href="<?php echo e(asset('favicon.ico')); ?>?v=<?php echo e(time()); ?>">
     <link rel="icon" type="image/png" href="<?php echo e(asset('favicon.png')); ?>?v=<?php echo e(time()); ?>">
@@ -13,13 +11,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
+        
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-            
-    <!-- Manifest para PWA (opcional) -->
-    <link rel="manifest" href="<?php echo e(asset('site.webmanifest')); ?>">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <style>
         /* --- CORREÇÕES FINAIS PARA CONTER TOTALMENTE A LARGURA --- */
         /* Reforçando contenção no html e body */
