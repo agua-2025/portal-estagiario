@@ -55,20 +55,19 @@ return [
     |--------------------------------------------------------------------------
     | Admin Panel Logo
     |--------------------------------------------------------------------------
-    |
-    | Here you can change the logo of your admin panel.
-    |
-    | For detailed instructions you can look the logo section here:
-    | https://github.com/jeroennoten/Laravel-AdminLTE/wiki/Basic-Configuration
-    |
     */
 
-    'logo' => '<b>Admin</b>LTE',
-    'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-    'logo_img_class' => 'brand-image img-circle elevation-3',
+    // ✅ AJUSTADO PARA USAR O NOME DO SEU PORTAL
+    'logo' => '<b>Portal</b> do Estagiário', 
+
+    // ✅ AJUSTADO PARA USAR A SUA IMAGEM DA PASTA PUBLIC
+    'logo_img' => 'images/logo.png', 
+
+    // Classes para estilizar a imagem
+    'logo_img_class' => 'brand-image', 
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => 'Admin Logo',
+    'logo_img_alt' => 'Logo Portal do Estagiário',
 
     /*
     |--------------------------------------------------------------------------

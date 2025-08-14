@@ -4,13 +4,20 @@
     <meta charset="utf-8">
     <!-- Adicionando viewport-fit=cover para melhor controle em dispositivos com entalhe (notch) -->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <!-- FAVICON PRIMEIRO - ANTES DE TUDO -->
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v={{ time() }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v={{ time() }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v={{ time() }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <title>@yield('title', 'Portal do Estagiário')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png">
+            
+    <!-- Manifest para PWA (opcional) -->
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
