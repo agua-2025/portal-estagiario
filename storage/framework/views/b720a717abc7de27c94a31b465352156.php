@@ -108,10 +108,7 @@
                                     <p class="text-base text-purple-800">
                                         <span class="font-semibold text-lg">Parabéns!</span> Sua inscrição foi Homologada!
                                         <br>
-                                        <?php if(auth()->user()->candidato->ato_homologacao): ?>
-                                            <span class="block mt-2 text-sm text-purple-700">Ato de Homologação: <?php echo e(auth()->user()->candidato->ato_homologacao); ?></span>
-                                        <?php endif; ?>
-                                    </p>
+                                        </p>
                                     
                                     
                                     <?php if(Auth::user()->candidato?->pode_interpor_recurso && Auth::user()->candidato->homologado_em): ?>
