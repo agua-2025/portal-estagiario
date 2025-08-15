@@ -109,7 +109,7 @@
                 <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Áreas de Atuação</h2>
                 <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Seu Conhecimento Tem Valor Aqui</p>
                 <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">
-                    Estamos construindo um banco de talentos com os perfis mais promissores para diversas áreas. **Cadastre-se, pontue seu perfil** e esteja preparado para as vagas que surgirem nos setores da Prefeitura.
+                    Estamos construindo um banco de talentos com os perfis mais promissores para diversas áreas. Cadastre-se, pontue seu perfil e esteja preparado para as vagas que surgirem nos setores da Prefeitura.
                 </p>
             </div>
             <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
