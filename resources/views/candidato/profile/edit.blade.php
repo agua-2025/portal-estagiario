@@ -312,7 +312,7 @@
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
-                                    <label for="data_nascimento_display" class="block font-medium text-sm text-gray-700">
+                                   <label for="data_nascimento_display" class="block font-medium text-sm text-gray-700">
                                     Data de Nascimento <span class="text-red-500">*</span>
                                     </label>
                                     <input :class="{ 'border-red-500': isInvalid('data_nascimento', 1) }"
@@ -322,7 +322,12 @@
                                     inputmode="numeric" placeholder="dd/mm/aaaa"
                                     class="mt-1 block w-full rounded-md shadow-sm border-gray-300"
                                     required :disabled="isAguardandoHomologacao">
+                                    <p x-show="dataNascimentoDisplay && dataNascimentoDisplay.length === 10 && !brToISO(dataNascimentoDisplay)"
+                                    class="mt-1 text-sm text-red-600">
+                                    Data inválida. Use dd/mm/aaaa.
+                                    </p>
                                     <input type="hidden" name="data_nascimento" :value="fields.data_nascimento">
+
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
@@ -463,17 +468,24 @@
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
-                                        <label for="curso_data_inicio_display" class="block font-medium text-sm text-gray-700">
-                                        Data de Início do Curso <span class="text-red-500">*</span>
-                                        </label>
-                                        <input :class="{ 'border-red-500': isInvalid('curso_data_inicio', 3) }"
-                                        x-mask="99/99/9999"
-                                        x-model="cursoInicioDisplay"
-                                        id="curso_data_inicio_display"
-                                        inputmode="numeric" placeholder="dd/mm/aaaa"
-                                        class="mt-1 block w-full rounded-md shadow-sm border-gray-300"
-                                        required :disabled="isAguardandoHomologacao">
-                                        <input type="hidden" name="curso_data_inicio" :value="fields.curso_data_inicio">
+                                    <label for="curso_data_inicio_display" class="block font-medium text-sm text-gray-700">
+                                    Data de Início do Curso <span class="text-red-500">*</span>
+                                    </label>
+                                    <input :class="{ 'border-red-500': isInvalid('curso_data_inicio', 3) }"
+                                    x-mask="99/99/9999"
+                                    x-model="cursoInicioDisplay"
+                                    id="curso_data_inicio_display"
+                                    inputmode="numeric" placeholder="dd/mm/aaaa"
+                                    class="mt-1 block w-full rounded-md shadow-sm border-gray-300"
+                                    required :disabled="isAguardandoHomologacao">
+
+                                    <p x-show="cursoInicioDisplay && cursoInicioDisplay.length === 10 && !brToISO(cursoInicioDisplay)"
+                                    class="mt-1 text-sm text-red-600">
+                                    Data inválida. Use dd/mm/aaaa.
+                                    </p>
+
+                                    <input type="hidden" name="curso_data_inicio" :value="fields.curso_data_inicio">
+
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
@@ -487,7 +499,22 @@
                                     inputmode="numeric" placeholder="dd/mm/aaaa"
                                     class="mt-1 block w-full rounded-md shadow-sm border-gray-300"
                                     required :disabled="isAguardandoHomologacao">
+
+                                    <!-- 1) Data inválida (formato/valor) -->
+                                    <p x-show="cursoConclusaoDisplay && cursoConclusaoDisplay.length === 10 && !brToISO(cursoConclusaoDisplay)"
+                                    class="mt-1 text-sm text-red-600">
+                                    Data inválida. Use dd/mm/aaaa.
+                                    </p>
+
+                                    <!-- 2) Conclusão anterior ao início -->
+                                    <p x-show="brToISO(cursoConclusaoDisplay) && brToISO(cursoInicioDisplay) && brToISO(cursoConclusaoDisplay) < brToISO(cursoInicioDisplay)"
+                                    class="mt-1 text-sm text-red-600">
+                                    A conclusão não pode ser anterior ao início.
+                                    </p>
+
                                     <input type="hidden" name="curso_previsao_conclusao" :value="fields.curso_previsao_conclusao">
+
+
 
                                     </div>
                                     
