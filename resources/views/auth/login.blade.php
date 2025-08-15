@@ -2,7 +2,6 @@
     <div class="w-full max-w-md mx-auto">
         <!-- Header da tela de login -->
         <div class="mb-8 text-center">
-            <h2 class="text-3xl font-bold text-gray-900">Bem-vindo de volta</h2>
             <p class="mt-2 text-sm text-gray-600">Faça login em sua conta</p>
         </div>
 
