@@ -278,86 +278,127 @@
             </svg>
         </a>
     </div>
-</div>
-</div>
-</div>
-</section>
-{{-- Seção Documentos --}}
-<section id="documentos" class="py-24 bg-gray-50">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-16" data-aos="fade-up">
-      <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Informações</h2>
-      <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Editais e Documentos</p>
-      <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">
-        Aqui você encontra os documentos importantes, editais de chamamento para estágio e todas as informações para se preparar para as futuras oportunidades.
-      </p>
-    </div>
-
-    <div class="max-w-4xl mx-auto">
-      <div class="space-y-6">
-        @forelse($docs as $doc)
-          @php
-            $map = [
-              'edital'     => 'bg-red-100 text-red-600',
-              'manual'     => 'bg-blue-100 text-blue-600',
-              'cronograma' => 'bg-green-100 text-green-600',
-            ];
-            $cls   = $map[$doc->type] ?? 'bg-gray-100 text-gray-600';
-            $isNew = $doc->published_at && $doc->published_at->gt(now()->subDays(10));
-          @endphp
-
-          <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
-               data-aos="fade-up"
-               data-aos-delay="{{ $loop->iteration * 100 }}">
-            <div class="p-8">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                  <div class="flex-shrink-0">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center {{ $cls }}">
-                      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                      </svg>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-semibold text-gray-900">{{ $doc->title }}</h3>
-                    <p class="text-sm text-gray-500">
-                      Publicado em: {{ optional($doc->published_at)->format('d/m/Y') }}
-                      @if($doc->ext) • {{ $doc->ext }} @endif
-                      @if($doc->size_human) • {{ $doc->size_human }} @endif
-                    </p>
-                  </div>
-                </div>
-
-                <div class="flex items-center space-x-3">
-                  @if($isNew)
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Novo</span>
-                  @endif
-
-                  <a href="{{ route('public-docs.download', $doc) }}"
-                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
-                    <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 10v6m0 0l-4-4m4 4l4-4m-2 14h-4a2 2 0 01-2-2V5a2 2 0 012-2h4a2 2 0 012 2v12a2 2 0 01-2 2z"/>
-                    </svg>
-                    Baixar
-                  </a>
-                </div>
-              </div>
+        </div>
+        </div>
+        </div>
+        </section>
+        {{-- Seção Documentos --}}
+        <section id="documentos" class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16" data-aos="fade-up">
+            <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Informações</h2>
+            <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Editais e Documentos</p>
+            <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">
+                Aqui você encontra os documentos importantes, editais de chamamento para estágio e todas as informações para se preparar para as futuras oportunidades.
+            </p>
             </div>
-          </div>
-        @empty
-          <div class="bg-white rounded-2xl p-10 text-center shadow">
-            <p class="text-gray-700 font-medium">Nenhum documento disponível no momento.</p>
-            <p class="text-gray-500 text-sm mt-1">Volte mais tarde 🙂</p>
-          </div>
-        @endforelse
-      </div>
-    </div>
-  </div>
-</section>
 
+            <div class="max-w-4xl mx-auto">
+            <div class="space-y-6">
+                @forelse($docs as $doc)
+                @php
+                    // Mapeia cores/ícones por tipo
+                    $iconMap = [
+                    'edital'        => ['bg' => 'bg-rose-100',   'text' => 'text-rose-600',   'name' => 'document'],
+                    'manual'        => ['bg' => 'bg-blue-100',   'text' => 'text-blue-600',   'name' => 'book'],
+                    'cronograma'    => ['bg' => 'bg-green-100',  'text' => 'text-green-600',  'name' => 'calendar'],
+                    'lei'           => ['bg' => 'bg-amber-100',  'text' => 'text-amber-600',  'name' => 'document'],
+                    'decreto'       => ['bg' => 'bg-violet-100', 'text' => 'text-violet-600', 'name' => 'stamp'],
+                    'noticias'      => ['bg' => 'bg-sky-100',    'text' => 'text-sky-600',    'name' => 'megaphone'],
+                    'notícias'      => ['bg' => 'bg-sky-100',    'text' => 'text-sky-600',    'name' => 'megaphone'],
+                    'convocacoes'   => ['bg' => 'bg-orange-100', 'text' => 'text-orange-600', 'name' => 'bell'],
+                    'convocações'   => ['bg' => 'bg-orange-100', 'text' => 'text-orange-600', 'name' => 'bell'],
+                    ];
+                    $icon = $iconMap[$doc->type] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-600', 'name' => 'document'];
+
+                    $isNew = $doc->published_at && $doc->published_at->gt(now()->subDays(10));
+                @endphp
+
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
+                    data-aos="fade-up"
+                    data-aos-delay="{{ $loop->iteration * 100 }}">
+                    <div class="p-8">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center {{ $icon['bg'] }}">
+                            @switch($icon['name'])
+                                @case('calendar')
+                                <svg class="w-6 h-6 {{ $icon['text'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                @break
+                                @case('book')
+                                <svg class="w-6 h-6 {{ $icon['text'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6.253v13.5M12 6.253C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13.5C4.168 18.977 5.754 18.5 7.5 18.5s3.332.477 4.5 1.253m0-13.5C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13.5c-1.168-.776-2.754-1.253-4.5-1.253s-3.332.477-4.5 1.253"/>
+                                </svg>
+                                @break
+                                @case('stamp') {{-- Decreto (carimbo) --}}
+                                <svg class="w-6 h-6 {{ $icon['text'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 3h6v6H9V3zm-3 9h12v3H6v-3zm-1 6h14v3H5v-3z"/>
+                                </svg>
+                                @break
+                                @case('megaphone') {{-- Notícias --}}
+                                <svg class="w-6 h-6 {{ $icon['text'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5.9l6.5-1.6A2 2 0 0120 6.2v7.6a2 2 0 01-2.5 1.9L11 14.1M11 5.9v8.2M11 14.1l-3.95 1.3A2 2 0 015 13.5V6.7A2 2 0 017.05 4.8L11 5.9M15 19a3 3 0 01-6 0"/>
+                                </svg>
+                                @break
+                                @case('bell') {{-- Convocações --}}
+                                <svg class="w-6 h-6 {{ $icon['text'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1"/>
+                                </svg>
+                                @break
+                                @default {{-- Document (edital/lei e fallback) --}}
+                                <svg class="w-6 h-6 {{ $icon['text'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            @endswitch
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ $doc->title }}</h3>
+                            <p class="text-sm text-gray-500">
+                            Publicado em: {{ optional($doc->published_at)->format('d/m/Y') ?: '—' }}
+                            @if($doc->ext) • {{ $doc->ext }} @endif
+                            @if($doc->size_human) • {{ $doc->size_human }} @endif
+                            </p>
+                        </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                        @if($isNew)
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Novo</span>
+                        @endif
+
+                        <a href="{{ route('public-docs.download', $doc) }}"
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
+                            <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 10v6m0 0l-4-4m4 4l4-4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            Baixar
+                        </a>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                @empty
+                <div class="bg-white rounded-2xl p-10 text-center shadow">
+                    <p class="text-gray-700 font-medium">Nenhum documento disponível no momento.</p>
+                    <p class="text-gray-500 text-sm mt-1">Volte mais tarde 🙂</p>
+                </div>
+                @endforelse
+            </div>
+            </div>
+        </div>
+        </section>
 
         {{-- Seção Como Funciona --}}
         <section class="py-24 bg-white">

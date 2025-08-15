@@ -11,7 +11,7 @@
         <div class="mb-4 rounded bg-green-100 text-green-800 px-4 py-3">
           {{ session('success') }}
         </div>
-      @endif>
+      @endif
 
       <div class="flex items-center justify-between mb-6">
         <div></div>
@@ -36,25 +36,50 @@
           <tbody class="divide-y">
             @forelse($docs as $d)
               @php
-                $typeMap = [
-                  'edital' => 'bg-red-100 text-red-800',
-                  'manual' => 'bg-blue-100 text-blue-800',
-                  'cronograma' => 'bg-green-100 text-green-800',
+                // Mapas de cores e rótulos (aceita com/sem acento)
+                $badgeMap = [
+                  'edital'        => 'bg-rose-100 text-rose-800',
+                  'manual'        => 'bg-blue-100 text-blue-800',
+                  'cronograma'    => 'bg-green-100 text-green-800',
+                  'lei'           => 'bg-amber-100 text-amber-800',
+                  'decreto'       => 'bg-violet-100 text-violet-800',
+                  'noticias'      => 'bg-sky-100 text-sky-800',
+                  'notícias'      => 'bg-sky-100 text-sky-800',
+                  'convocacoes'   => 'bg-orange-100 text-orange-800',
+                  'convocações'   => 'bg-orange-100 text-orange-800',
                 ];
-                $badge = $typeMap[$d->type] ?? 'bg-gray-100 text-gray-800';
+                $labelMap = [
+                  'edital'        => 'Edital',
+                  'manual'        => 'Manual',
+                  'cronograma'    => 'Cronograma',
+                  'lei'           => 'Lei',
+                  'decreto'       => 'Decreto',
+                  'noticias'      => 'Notícias',
+                  'notícias'      => 'Notícias',
+                  'convocacoes'   => 'Convocações',
+                  'convocações'   => 'Convocações',
+                ];
+
+                $typeKey = $d->type ?? '';
+                $badge   = $badgeMap[$typeKey] ?? 'bg-gray-100 text-gray-800';
+                $label   = $labelMap[$typeKey] ?? ($typeKey ? ucfirst($typeKey) : null);
               @endphp
+
               <tr class="text-sm">
                 <td class="py-3 px-4 font-medium text-gray-900">{{ $d->title }}</td>
+
                 <td class="py-3 px-4">
-                  @if($d->type)
+                  @if($label)
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs {{ $badge }}">
-                      {{ ucfirst($d->type) }}
+                      {{ $label }}
                     </span>
                   @else
                     —
                   @endif
                 </td>
+
                 <td class="py-3 px-4">{{ optional($d->published_at)->format('d/m/Y H:i') ?: '—' }}</td>
+
                 <td class="py-3 px-4">
                   @if($d->is_published)
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs">Publicado</span>
@@ -62,12 +87,15 @@
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs">Rascunho</span>
                   @endif
                 </td>
+
                 <td class="py-3 px-4">
                   {{ $d->ext }} @if($d->size_human) • {{ $d->size_human }} @endif
                 </td>
+
                 <td class="py-3 px-4">
                   {{ (int)($d->downloads ?? 0) }}
                 </td>
+
                 <td class="py-3 px-4">
                   <div class="flex items-center gap-3">
                     <a class="text-blue-600 hover:underline" href="{{ route('admin.public-docs.edit',$d) }}">Editar</a>

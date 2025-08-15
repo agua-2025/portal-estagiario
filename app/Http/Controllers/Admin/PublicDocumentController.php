@@ -6,9 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\PublicDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class PublicDocumentController extends Controller
 {
+    /** Tipos permitidos (usar sem acento no banco) */
+    private const ALLOWED_TYPES = [
+        'edital',
+        'manual',
+        'cronograma',
+        'lei',
+        'decreto',
+        'noticias',
+        'convocacoes',
+    ];
+
     public function index()
     {
         $docs = PublicDocument::latest('published_at')->paginate(15);
@@ -24,25 +36,36 @@ class PublicDocumentController extends Controller
     {
         $data = $request->validate([
             'title'        => ['required','string','max:255'],
-            'type'         => ['nullable','in:edital,manual,cronograma'],
+            'type'         => ['nullable','in:'.implode(',', self::ALLOWED_TYPES)],
             'file'         => ['required','file','mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip','max:20480'], // 20MB
             'published_at' => ['required','date'],
             'is_published' => ['sometimes','boolean'],
         ]);
 
+        // Upload
         $path = $request->file('file')->store('public/docs'); // storage/app/public/docs
         $size = Storage::size($path);
+
+        // published_at como Carbon
+        $publishedAt = Carbon::parse($data['published_at']);
+
+        // Checkbox: se não vier, padrão = true na criação
+        $isPublished = $request->has('is_published')
+            ? $request->boolean('is_published')
+            : true;
 
         PublicDocument::create([
             'title'        => $data['title'],
             'type'         => $data['type'] ?? null,
             'file_path'    => $path,
             'file_size'    => $size,
-            'published_at' => $data['published_at'],
-            'is_published' => (bool)($data['is_published'] ?? true),
+            'published_at' => $publishedAt,
+            'is_published' => $isPublished,
         ]);
 
-        return redirect()->route('admin.public-docs.index')->with('success','Documento criado com sucesso.');
+        return redirect()
+            ->route('admin.public-docs.index')
+            ->with('success','Documento criado com sucesso.');
     }
 
     public function edit(PublicDocument $public_doc)
@@ -54,12 +77,13 @@ class PublicDocumentController extends Controller
     {
         $data = $request->validate([
             'title'        => ['required','string','max:255'],
-            'type'         => ['nullable','in:edital,manual,cronograma'],
+            'type'         => ['nullable','in:'.implode(',', self::ALLOWED_TYPES)],
             'file'         => ['nullable','file','mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip','max:20480'],
             'published_at' => ['required','date'],
             'is_published' => ['sometimes','boolean'],
         ]);
 
+        // Substitui arquivo se enviado
         if ($request->hasFile('file')) {
             if ($public_doc->file_path && Storage::exists($public_doc->file_path)) {
                 Storage::delete($public_doc->file_path);
@@ -71,11 +95,14 @@ class PublicDocumentController extends Controller
         $public_doc->fill([
             'title'        => $data['title'],
             'type'         => $data['type'] ?? null,
-            'published_at' => $data['published_at'],
-            'is_published' => (bool)($data['is_published'] ?? false),
+            'published_at' => Carbon::parse($data['published_at']),
+            // Em update, checkbox ausente = false (comportamento padrão)
+            'is_published' => $request->boolean('is_published'),
         ])->save();
 
-        return redirect()->route('admin.public-docs.index')->with('success','Documento atualizado com sucesso.');
+        return redirect()
+            ->route('admin.public-docs.index')
+            ->with('success','Documento atualizado com sucesso.');
     }
 
     public function destroy(PublicDocument $public_doc)

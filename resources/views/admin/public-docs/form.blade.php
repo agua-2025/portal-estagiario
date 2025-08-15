@@ -34,9 +34,13 @@
           <label class="block text-sm font-medium text-gray-700">Tipo</label>
           <select name="type" class="mt-1 w-full border rounded-lg px-3 py-2">
             <option value="">—</option>
-            <option value="edital" @selected(old('type',$doc->type)==='edital')>Edital</option>
-            <option value="manual" @selected(old('type',$doc->type)==='manual')>Manual</option>
-            <option value="cronograma" @selected(old('type',$doc->type)==='cronograma')>Cronograma</option>
+            <option value="edital"       @selected(old('type',$doc->type)==='edital')>Edital</option>
+            <option value="manual"       @selected(old('type',$doc->type)==='manual')>Manual</option>
+            <option value="cronograma"   @selected(old('type',$doc->type)==='cronograma')>Cronograma</option>
+            <option value="lei"          @selected(old('type',$doc->type)==='lei')>Lei</option>
+            <option value="decreto"      @selected(old('type',$doc->type)==='decreto')>Decreto</option>
+            <option value="noticias"     @selected(old('type',$doc->type)==='noticias')>Notícias</option>
+            <option value="convocacoes"  @selected(old('type',$doc->type)==='convocacoes')>Convocações</option>
           </select>
         </div>
 
@@ -44,7 +48,13 @@
           <label class="block text-sm font-medium text-gray-700">
             Arquivo {{ $doc->exists ? '(enviar para substituir)' : '' }}
           </label>
-          <input type="file" name="file" class="mt-1">
+          <input
+            type="file"
+            name="file"
+            @if(!$doc->exists) required @endif
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/zip"
+            class="mt-1"
+          >
           @if($doc->exists && $doc->file_path)
             <p class="text-sm text-gray-600 mt-1">
               Atual: {{ $doc->ext }} @if($doc->size_human) • {{ $doc->size_human }} @endif
