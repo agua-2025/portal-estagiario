@@ -8,267 +8,205 @@
                     <script>
                         function profileFormComponent(initialFields, estados, todasCidades, instituicoes, todosCursos, totalProfileFields, completableFields, candidatoStatus) {
                             return {
-                                step: 1,
-                                fields: initialFields,
-                                percentage: 0,
-                                validationAttempted: { step1: false, step2: false, step3: false },
-                                cpfIsValid: true, // Adicionado: estado de validação do CPF
-                                pickers: { nascimento: null, inicio: null, conclusao: null }, // [ADD] refs dos Flatpickrs
+                            step: 1,
+                            fields: initialFields,
+                            percentage: 0,
+                            validationAttempted: { step1: false, step2: false, step3: false },
+                            cpfIsValid: true,
 
-                                
-                                estados: estados,
-                                todasCidades: todasCidades,
-                                instituicoes: instituicoes,
-                                todosCursos: todosCursos,
+                            estados: estados,
+                            todasCidades: todasCidades,
+                            instituicoes: instituicoes,
+                            todosCursos: todosCursos,
 
-                                cidadesNaturalidadeFiltradas: [],
-                                cidadesEnderecoFiltradas: [],
-                                cursosFiltrados: todosCursos,
+                            cidadesNaturalidadeFiltradas: [],
+                            cidadesEnderecoFiltradas: [],
+                            cursosFiltrados: todosCursos,
 
-                                candidatoStatus: candidatoStatus, // ✅ ADICIONADO: Status do candidato
-                                
-                                get isAguardandoHomologacao() { // ✅ ADICIONADO: Propriedade computada para status
-                                    return this.candidatoStatus === 'Aprovado';
-                                },
+                            // displays em dd/mm/aaaa (visíveis ao usuário)
+                            dataNascimentoDisplay: '',
+                            cursoInicioDisplay: '',
+                            cursoConclusaoDisplay: '',
 
-                                init() {
+                            candidatoStatus: candidatoStatus,
+
+                            get isAguardandoHomologacao() {
+                                return this.candidatoStatus === 'Aprovado';
+                            },
+
+                            init() {
                                 this.updateAllFilteredLists();
                                 this.calculatePercentage();
 
-                                // mantém seus watchers existentes
+                                // Inicializa displays (BR) a partir do ISO vindo do backend
+                                this.dataNascimentoDisplay  = this.isoToBR(this.fields.data_nascimento);
+                                this.cursoInicioDisplay     = this.isoToBR(this.fields.curso_data_inicio);
+                                this.cursoConclusaoDisplay  = this.isoToBR(this.fields.curso_previsao_conclusao);
+
+                                // Sincroniza BR -> ISO quando o usuário digitar
+                                this.$watch('dataNascimentoDisplay',  v => this.fields.data_nascimento = this.brToISO(v));
+                                this.$watch('cursoInicioDisplay',     v => this.fields.curso_data_inicio = this.brToISO(v));
+                                this.$watch('cursoConclusaoDisplay',  v => this.fields.curso_previsao_conclusao = this.brToISO(v));
+
+                                // Watchers já existentes
                                 this.$watch('fields.naturalidade_estado', () => { 
-                                    if (this.fields.naturalidade_estado) {
+                                if (this.fields.naturalidade_estado) {
                                     const cidadesDoEstado = this.todasCidades.filter(c => c.estado_id == this.fields.naturalidade_estado);
                                     const cidadeAtualExiste = cidadesDoEstado.find(c => c.nome === this.fields.naturalidade_cidade);
-                                    if (!cidadeAtualExiste) {
-                                        this.fields.naturalidade_cidade = '';
-                                    }
-                                    }
-                                    this.updateAllFilteredLists(); 
+                                    if (!cidadeAtualExiste) this.fields.naturalidade_cidade = '';
+                                }
+                                this.updateAllFilteredLists(); 
                                 });
 
                                 this.$watch('fields.estado', () => { 
-                                    if (this.fields.estado) {
+                                if (this.fields.estado) {
                                     const cidadesDoEstado = this.todasCidades.filter(c => c.estado_id == this.fields.estado);
                                     const cidadeAtualExiste = cidadesDoEstado.find(c => c.nome === this.fields.cidade);
-                                    if (!cidadeAtualExiste) {
-                                        this.fields.cidade = '';
-                                    }
-                                    }
-                                    this.updateAllFilteredLists(); 
+                                    if (!cidadeAtualExiste) this.fields.cidade = '';
+                                }
+                                this.updateAllFilteredLists(); 
                                 });
 
                                 // valida CPF
                                 this.$watch('fields.cpf', () => {
-                                    this.cpfIsValid = this.validateCpf(this.fields.cpf);
+                                this.cpfIsValid = this.validateCpf(this.fields.cpf);
                                 });
 
                                 // recalcula %
                                 this.$watch('fields', () => this.calculatePercentage(), { deep: true });
+                            },
 
-                                // >>> CHAMADA QUE FALTAVA: inicializa os datepickers
-                                this.$nextTick(() => { this.initDatePickers(); });
-                                },
+                            // ==== HELPERS BR <-> ISO (fora do init, no mesmo nível dos métodos) ====
+                            pad(n){ return n?.toString().padStart(2,'0'); },
+                            isValidISO(iso) {
+                                if(!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+                                const [y,m,d] = iso.split('-').map(Number);
+                                const dt = new Date(y, m-1, d);
+                                return dt.getFullYear()===y && (dt.getMonth()+1)===m && dt.getDate()===d;
+                            },
+                            brToISO(br) {
+                                if(!br) return '';
+                                const m = br.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+                                if(!m) return '';
+                                const d=this.pad(+m[1]), mo=this.pad(+m[2]), y=m[3];
+                                const iso = `${y}-${mo}-${d}`;
+                                return this.isValidISO(iso) ? iso : '';
+                            },
+                            isoToBR(iso) {
+                                if(!iso) return '';
+                                const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                                if(!m) return '';
+                                return `${m[3]}/${m[2]}/${m[1]}`;
+                            },
 
-
-                                initDatePickers() {
-
-                                // segurança: só roda se flatpickr estiver disponível (exposto no window em app.js)
-                                if (!window.flatpickr) return;
-
-                                // evita re-inicializar se Alpine remontar o componente
-                                if (this.pickers.nascimento || this.pickers.inicio || this.pickers.conclusao) return;
-
-                                const common = {
-                                    dateFormat: "Y-m-d",  // valor REAL no input (vai para o backend)
-                                    altInput: true,       // mostra campo amigável ao usuário
-                                    altFormat: "d/m/Y",   // formato exibido ao usuário
-                                    allowInput: true,     // permite digitar manualmente
-                                    disableMobile: true   // força a UI do Flatpickr no celular
-                                    // locale já foi setada globalmente em app.js (pt-BR)
-                                };
-
-                                // Data de nascimento — sem futuro
-                                this.pickers.nascimento = flatpickr(
-                                    this.$root.querySelector('#data_nascimento'),
-                                    {
-                                    ...common,
-                                    defaultDate: this.fields.data_nascimento || null,
-                                    maxDate: new Date(),
-                                    // minDate: "1950-01-01", // opcional — defina se quiser
-                                    onChange: (selectedDates, dateStr) => { this.fields.data_nascimento = dateStr; }
-                                    }
-                                );
-
-                                // Início do curso — sem futuro
-                                this.pickers.inicio = flatpickr(
-                                    this.$root.querySelector('#curso_data_inicio'),
-                                    {
-                                    ...common,
-                                    defaultDate: this.fields.curso_data_inicio || null,
-                                    maxDate: new Date(),
-                                    onChange: (selectedDates, dateStr) => {
-                                        this.fields.curso_data_inicio = dateStr;
-                                        // garante que conclusão >= início
-                                        if (this.pickers.conclusao) {
-                                        this.pickers.conclusao.set('minDate', dateStr || null);
-                                        }
-                                    }
-                                    }
-                                );
-
-                                // Previsão de conclusão — >= início; máx opcional +10 anos
-                                const maxConclusao = new Date();
-                                maxConclusao.setFullYear(maxConclusao.getFullYear() + 10);
-
-                                this.pickers.conclusao = flatpickr(
-                                    this.$root.querySelector('#curso_previsao_conclusao'),
-                                    {
-                                    ...common,
-                                    defaultDate: this.fields.curso_previsao_conclusao || null,
-                                    minDate: this.fields.curso_data_inicio || null,
-                                    maxDate: maxConclusao,
-                                    onChange: (selectedDates, dateStr) => { this.fields.curso_previsao_conclusao = dateStr; }
-                                    }
-                                );
-                                },
-
-
-                              // Nova função para validar o CPF
-                                validateCpf(cpf) {
-                                    // Remove caracteres não numéricos
-                                    const cleanedCpf = cpf.replace(/[^\d]+/g,'');
-                                    
-                                    // Retorna falso se a string for diferente de 11 dígitos ou for uma sequência inválida
-                                    if (cleanedCpf.length !== 11 || /^(\d)\1{10}$/.test(cleanedCpf)) {
-                                        return false;
-                                    }
-
-                                    let sum = 0;
-                                    let rest;
-                                    
-                                    // Validação do primeiro dígito verificador
-                                    for (let i = 1; i <= 9; i++) {
-                                        sum = sum + parseInt(cleanedCpf.substring(i - 1, i)) * (11 - i);
-                                    }
-                                    rest = (sum * 10) % 11;
-
-                                    if (rest === 10 || rest === 11) rest = 0;
-                                    if (rest !== parseInt(cleanedCpf.substring(9, 10))) return false;
-
-                                    sum = 0;
-                                    
-                                    // Validação do segundo dígito verificador
-                                    for (let i = 1; i <= 10; i++) {
-                                        sum = sum + parseInt(cleanedCpf.substring(i - 1, i)) * (12 - i);
-                                    }
-                                    rest = (sum * 10) % 11;
-
-                                    if (rest === 10 || rest === 11) rest = 0;
-                                    if (rest !== parseInt(cleanedCpf.substring(10, 11))) return false;
-
-                                    return true;
-                                },  
-
-                                updateAllFilteredLists() {
-                                    if (this.fields.naturalidade_estado) {
-                                        this.cidadesNaturalidadeFiltradas = this.todasCidades.filter(c => c.estado_id == this.fields.naturalidade_estado);
-                                    } else {
-                                        this.cidadesNaturalidadeFiltradas = [];
-                                    }
-
-                                    if (this.fields.estado) {
-                                        this.cidadesEnderecoFiltradas = this.todasCidades.filter(c => c.estado_id == this.fields.estado);
-                                    } else {
-                                        this.cidadesEnderecoFiltradas = [];
-                                    }
-
-                                    this.cursosFiltrados = this.todosCursos; 
-                                },
-                                
-                                isStep1Valid() { 
-                                    // A validação do CPF foi adicionada aqui
-                                    return !!this.fields.nome_completo && 
-                                        !!this.fields.nome_mae && 
-                                        !!this.fields.data_nascimento && 
-                                        !!this.fields.sexo && 
-                                        !!this.fields.cpf && 
-                                        this.cpfIsValid && // Adicionado: validação do CPF
-                                        !!this.fields.naturalidade_estado && 
-                                        !!this.fields.naturalidade_cidade && 
-                                        (this.fields.possui_deficiencia !== null && this.fields.possui_deficiencia !== ''); 
-                                },
-                                
-                                isStep2Valid() { 
-                                    return !!this.fields.telefone && 
-                                            !!this.fields.cep && 
-                                            !!this.fields.logradouro && 
-                                            !!this.fields.numero && 
-                                            !!this.fields.bairro && 
-                                            !!this.fields.estado && 
-                                            !!this.fields.cidade; 
-                                },
-
-                                isStep3Valid() {
-                                    return !!this.fields.instituicao_id && 
-                                           !!this.fields.curso_id && 
-                                           !!this.fields.curso_data_inicio &&
-                                           !!this.fields.curso_previsao_conclusao &&
-                                           !!this.fields.semestres_completos &&
-                                           !!this.fields.media_aproveitamento;
-                                },
-
-                                attemptNextStep(currentStep) {
-                                    if (this.isAguardandoHomologacao) return; // ✅ Impede avançar se aguardando homologação
-
-                                    if (currentStep === 1) {
-                                        this.validationAttempted.step1 = true;
-                                        if (this.isStep1Valid()) { this.step++; }
-                                    } else if (currentStep === 2) {
-                                        this.validationAttempted.step2 = true;
-                                        if (this.isStep2Valid()) { this.step++; }
-                                    } else if (currentStep === 3) {
-                                        this.validationAttempted.step3 = true;
-                                    }
-                                },
-
-                                isInvalid(field, step) {
-                                    if (step === 1 && !this.validationAttempted.step1) return false;
-                                    if (step === 2 && !this.validationAttempted.step2) return false;
-                                    if (step === 3 && !this.validationAttempted.step3) return false;
-                                    
-                                    const value = this.fields[field];
-                                    if (field === 'possui_deficiencia') {
-                                        return value === null || value === '';
-                                    }
-                                    
-                                    // Validação do campo 'cpf'
-                                    if (field === 'cpf') {
-                                        // Retorna true se o campo estiver vazio ou se o CPF for inválido
-                                        return !value || !this.cpfIsValid; 
-                                    }
-
-                                    return !value;
-                                },
-
-                                calculatePercentage() {
-                                    let totalFields = totalProfileFields;
-                                    if (totalFields === 0) { this.percentage = 0; return; }
-                                    
-                                    let filledFields = 0;
-                                    completableFields.forEach(field => {
-                                        const value = this.fields[field];
-                                        if (field === 'possui_deficiencia') {
-                                            if (value === '0' || value === '1' || value === 0 || value === 1) filledFields++;
-                                        } else if (value !== null && value !== '') {
-                                            filledFields++;
-                                        }
-                                    });
-                                    
-                                    this.percentage = Math.min(Math.round((filledFields / totalFields) * 100), 100);
+                            updateAllFilteredLists() {
+                                if (this.fields.naturalidade_estado) {
+                                this.cidadesNaturalidadeFiltradas = this.todasCidades.filter(c => c.estado_id == this.fields.naturalidade_estado);
+                                } else {
+                                this.cidadesNaturalidadeFiltradas = [];
                                 }
+                                if (this.fields.estado) {
+                                this.cidadesEnderecoFiltradas = this.todasCidades.filter(c => c.estado_id == this.fields.estado);
+                                } else {
+                                this.cidadesEnderecoFiltradas = [];
+                                }
+                                this.cursosFiltrados = this.todosCursos;
+                            },
+
+                            isStep1Valid() {
+                                return !!this.fields.nome_completo && 
+                                    !!this.fields.nome_mae && 
+                                    !!this.fields.data_nascimento && 
+                                    !!this.fields.sexo && 
+                                    !!this.fields.cpf && 
+                                    this.cpfIsValid &&
+                                    !!this.fields.naturalidade_estado && 
+                                    !!this.fields.naturalidade_cidade && 
+                                    (this.fields.possui_deficiencia !== null && this.fields.possui_deficiencia !== '');
+                            },
+
+                            isStep2Valid() {
+                                return !!this.fields.telefone && 
+                                    !!this.fields.cep && 
+                                    !!this.fields.logradouro && 
+                                    !!this.fields.numero && 
+                                    !!this.fields.bairro && 
+                                    !!this.fields.estado && 
+                                    !!this.fields.cidade;
+                            },
+
+                            isStep3Valid() {
+                                return !!this.fields.instituicao_id && 
+                                    !!this.fields.curso_id && 
+                                    !!this.fields.curso_data_inicio &&
+                                    !!this.fields.curso_previsao_conclusao &&
+                                    !!this.fields.semestres_completos &&
+                                    !!this.fields.media_aproveitamento;
+                            },
+
+                            attemptNextStep(currentStep) {
+                                if (this.isAguardandoHomologacao) return;
+                                if (currentStep === 1) {
+                                this.validationAttempted.step1 = true;
+                                if (this.isStep1Valid()) { this.step++; }
+                                } else if (currentStep === 2) {
+                                this.validationAttempted.step2 = true;
+                                if (this.isStep2Valid()) { this.step++; }
+                                } else if (currentStep === 3) {
+                                this.validationAttempted.step3 = true;
+                                }
+                            },
+
+                            isInvalid(field, step) {
+                                if (step === 1 && !this.validationAttempted.step1) return false;
+                                if (step === 2 && !this.validationAttempted.step2) return false;
+                                if (step === 3 && !this.validationAttempted.step3) return false;
+
+                                const value = this.fields[field];
+                                if (field === 'possui_deficiencia') {
+                                return value === null || value === '';
+                                }
+                                if (field === 'cpf') {
+                                return !value || !this.cpfIsValid;
+                                }
+                                return !value;
+                            },
+
+                            calculatePercentage() {
+                                let totalFields = totalProfileFields;
+                                if (totalFields === 0) { this.percentage = 0; return; }
+                                let filledFields = 0;
+                                completableFields.forEach(field => {
+                                const value = this.fields[field];
+                                if (field === 'possui_deficiencia') {
+                                    if (value === '0' || value === '1' || value === 0 || value === 1) filledFields++;
+                                } else if (value !== null && value !== '') {
+                                    filledFields++;
+                                }
+                                });
+                                this.percentage = Math.min(Math.round((filledFields / totalFields) * 100), 100);
+                            },
+
+                            // sua validateCpf original:
+                            validateCpf(cpf) {
+                                const cleanedCpf = cpf.replace(/[^\d]+/g,'');
+                                if (cleanedCpf.length !== 11 || /^(\d)\1{10}$/.test(cleanedCpf)) return false;
+
+                                let sum = 0, rest;
+                                for (let i = 1; i <= 9; i++) sum += parseInt(cleanedCpf.substring(i-1, i)) * (11 - i);
+                                rest = (sum * 10) % 11;
+                                if (rest === 10 || rest === 11) rest = 0;
+                                if (rest !== parseInt(cleanedCpf.substring(9, 10))) return false;
+
+                                sum = 0;
+                                for (let i = 1; i <= 10; i++) sum += parseInt(cleanedCpf.substring(i-1, i)) * (12 - i);
+                                rest = (sum * 10) % 11;
+                                if (rest === 10 || rest === 11) rest = 0;
+                                if (rest !== parseInt(cleanedCpf.substring(10, 11))) return false;
+                                return true;
                             }
-                        }
+                            };
+
                     </script>
                     @php
                         // Prepara os dados iniciais com o formato correto para o JavaScript
@@ -372,10 +310,13 @@
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="data_nascimento" class="block font-medium text-sm text-gray-700">Data de Nascimento <span class="text-red-500">*</span></label>
                                         <input :class="{ 'border-red-500': isInvalid('data_nascimento', 1) }"
-                                        x-model="fields.data_nascimento"
-                                        id="data_nascimento" name="data_nascimento" type="text"
+                                        x-mask="99/99/9999"
+                                        x-model="dataNascimentoDisplay"
+                                        id="data_nascimento_display"
+                                        inputmode="numeric" placeholder="dd/mm/aaaa"
                                         class="mt-1 block w-full rounded-md shadow-sm border-gray-300"
                                         required :disabled="isAguardandoHomologacao">
+                                        <input type="hidden" name="data_nascimento" :value="fields.data_nascimento">
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
@@ -517,20 +458,26 @@
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="curso_data_inicio" class="block font-medium text-sm text-gray-700">Data de Início do Curso <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('curso_data_inicio', 3) }"
-                                        x-model="fields.curso_data_inicio"
-                                        id="curso_data_inicio" name="curso_data_inicio" type="text"
+                                      <input :class="{ 'border-red-500': isInvalid('curso_data_inicio', 3) }"
+                                        x-mask="99/99/9999"
+                                        x-model="cursoInicioDisplay"
+                                        id="curso_data_inicio_display"
+                                        inputmode="numeric" placeholder="dd/mm/aaaa"
                                         class="mt-1 block w-full rounded-md shadow-sm border-gray-300"
                                         required :disabled="isAguardandoHomologacao">
+                                        <input type="hidden" name="curso_data_inicio" :value="fields.curso_data_inicio">
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="curso_previsao_conclusao" class="block font-medium text-sm text-gray-700">Previsão de Conclusão <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('curso_previsao_conclusao', 3) }"
-                                        x-model="fields.curso_previsao_conclusao"
-                                        id="curso_previsao_conclusao" name="curso_previsao_conclusao" type="text"
+                                       <input :class="{ 'border-red-500': isInvalid('curso_previsao_conclusao', 3) }"
+                                        x-mask="99/99/9999"
+                                        x-model="cursoConclusaoDisplay"
+                                        id="curso_previsao_conclusao_display"
+                                        inputmode="numeric" placeholder="dd/mm/aaaa"
                                         class="mt-1 block w-full rounded-md shadow-sm border-gray-300"
                                         required :disabled="isAguardandoHomologacao">
+                                        <input type="hidden" name="curso_previsao_conclusao" :value="fields.curso_previsao_conclusao">
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
