@@ -31,8 +31,8 @@
                         candidatoStatus: candidatoStatus,
 
                         get isAguardandoHomologacao() {
-                        return this.candidatoStatus === 'Aprovado';
-                        },
+                        return this.candidatoStatus === 'Convocado';
+                        }
 
                         init() {
                         this.updateAllFilteredLists();
