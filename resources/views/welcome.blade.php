@@ -153,17 +153,17 @@
             </p>
         </div>
         
-<div class="space-y-12">
-    {{-- CARD 1: Últimos Convocados --}}
-    <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up" data-aos-delay="100">
-        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
-            <h3 class="text-2xl font-bold text-gray-900 text-center flex items-center justify-center">
-                <svg class="w-6 h-6 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Últimos Convocados
-            </h3>
-        </div>
+        <div class="space-y-12">
+            {{-- CARD 1: Últimos Convocados --}}
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
+                    <h3 class="text-2xl font-bold text-gray-900 text-center flex items-center justify-center">
+                        <svg class="w-6 h-6 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Últimos Convocados
+                    </h3>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full">
                         <thead class="bg-gray-50">
@@ -282,104 +282,82 @@
 </div>
 </div>
 </section>
-    {{-- Seção Documentos --}}
-    <section id="documentos" class="py-24 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16" data-aos="fade-up">
-                <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Informações</h2>
-                <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Editais e Documentos</p>
-                <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">
-                    Aqui você encontra os documentos importantes, editais de chamamento para estágio e todas as informações para se preparar para as futuras oportunidades.
-                </p>
-            </div>
-            <div class="max-w-4xl mx-auto">
-                <div class="space-y-6">
-                    <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
-                        <div class="p-8">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-4">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-lg font-semibold text-gray-900">Edital de Abertura 001/2025</h3>
-                                        <p class="text-sm text-gray-500">Publicado em: 10/07/2025 • PDF • 2.5 MB</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Novo</span>
-                                    <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
-                                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-4-4m4 4l4-4m-2 14h-4a2 2 0 01-2-2V5a2 2 0 012-2h4a2 2 0 012 2v12a2 2 0 01-2 2z"/>
-                                        </svg>
-                                        Baixar
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+{{-- Seção Documentos --}}
+<section id="documentos" class="py-24 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16" data-aos="fade-up">
+      <h2 class="text-base font-semibold text-blue-600 tracking-wide uppercase">Informações</h2>
+      <p class="mt-2 text-4xl font-bold text-gray-900 sm:text-5xl">Editais e Documentos</p>
+      <p class="mt-4 max-w-3xl mx-auto text-xl text-gray-600">
+        Aqui você encontra os documentos importantes, editais de chamamento para estágio e todas as informações para se preparar para as futuras oportunidades.
+      </p>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+      <div class="space-y-6">
+        @forelse($docs as $doc)
+          @php
+            $map = [
+              'edital'     => 'bg-red-100 text-red-600',
+              'manual'     => 'bg-blue-100 text-blue-600',
+              'cronograma' => 'bg-green-100 text-green-600',
+            ];
+            $cls   = $map[$doc->type] ?? 'bg-gray-100 text-gray-600';
+            $isNew = $doc->published_at && $doc->published_at->gt(now()->subDays(10));
+          @endphp
+
+          <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
+               data-aos="fade-up"
+               data-aos-delay="{{ $loop->iteration * 100 }}">
+            <div class="p-8">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                  <div class="flex-shrink-0">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center {{ $cls }}">
+                      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                      </svg>
                     </div>
-                    <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
-                        <div class="p-8">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-4">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-lg font-semibold text-gray-900">Manual do Candidato</h3>
-                                        <p class="text-sm text-gray-500">Publicado em: 05/07/2025 • PDF • 1.8 MB</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
-                                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-4-4m4 4l4-4m-2 14h-4a2 2 0 01-2-2V5a2 2 0 012-2h4a2 2 0 012 2v12a2 2 0 01-2 2z"/>
-                                        </svg>
-                                        Baixar
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden" data-aos="fade-up" data-aos-delay="300">
-                        <div class="p-8">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-4">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                                            {{-- Ícone SVG faltando aqui no original --}}
-                                            <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-lg font-semibold text-gray-900">Cronograma de Chamamento para Estágio</h3>
-                                        <p class="text-sm text-gray-500">Publicado em: 01/07/2025 • PDF • 0.9 MB</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
-                                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-4-4m4 4l4-4m-2 14h-4a2 2 0 01-2-2V5a2 2 0 012-2h4a2 2 0 012 2v12a2 2 0 01-2 2z"/>
-                                        </svg>
-                                        Baixar
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-semibold text-gray-900">{{ $doc->title }}</h3>
+                    <p class="text-sm text-gray-500">
+                      Publicado em: {{ optional($doc->published_at)->format('d/m/Y') }}
+                      @if($doc->ext) • {{ $doc->ext }} @endif
+                      @if($doc->size_human) • {{ $doc->size_human }} @endif
+                    </p>
+                  </div>
                 </div>
+
+                <div class="flex items-center space-x-3">
+                  @if($isNew)
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Novo</span>
+                  @endif
+
+                  <a href="{{ route('public-docs.download', $doc) }}"
+                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
+                    <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 10v6m0 0l-4-4m4 4l4-4m-2 14h-4a2 2 0 01-2-2V5a2 2 0 012-2h4a2 2 0 012 2v12a2 2 0 01-2 2z"/>
+                    </svg>
+                    Baixar
+                  </a>
+                </div>
+              </div>
             </div>
-        </section>
+          </div>
+        @empty
+          <div class="bg-white rounded-2xl p-10 text-center shadow">
+            <p class="text-gray-700 font-medium">Nenhum documento disponível no momento.</p>
+            <p class="text-gray-500 text-sm mt-1">Volte mais tarde 🙂</p>
+          </div>
+        @endforelse
+      </div>
+    </div>
+  </div>
+</section>
+
 
         {{-- Seção Como Funciona --}}
         <section class="py-24 bg-white">

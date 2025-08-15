@@ -40,6 +40,7 @@
                                         <x-dropdown-link :href="route('admin.cursos.index')">Cursos</x-dropdown-link>
                                         <x-dropdown-link :href="route('admin.tipos-de-atividade.index')">Regras de Pontuação</x-dropdown-link>
                                         <x-dropdown-link :href="route('admin.pages.index')">Páginas</x-dropdown-link>
+                                        <x-dropdown-link :href="route('admin.public-docs.index')">{{ __('Documentos Públicos') }} </x-dropdown-link>
                                     </div>
                                 </div>
                             </div>
@@ -109,7 +110,6 @@
             </div>
         </div>
     </div>
-
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         {{-- Lógica para mostrar o menu correto no mobile --}}
         @if(auth()->user()->role === 'candidato')
@@ -135,29 +135,117 @@
                 @endif
             </div>
         @else
-            {{-- Aqui você pode adicionar os links do menu do Admin para mobile se precisar --}}
-        @endif
+       <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+    {{-- Lógica para mostrar o menu correto no mobile --}}
+    @if(auth()->user()->role === 'candidato')
+        {{-- MENU DO CANDIDATO (MOBILE) --}}
+        <div class="pt-2 pb-3 space-y-1">
+            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                Meu Painel
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('candidato.profile.edit')" :active="request()->routeIs('candidato.profile.edit')">
+                Preencher/Editar Dados
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('candidato.documentos.index')" :active="request()->routeIs('candidato.documentos.index')">
+                Enviar Documentos
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('candidato.atividades.index')" :active="request()->routeIs('candidato.atividades.index')">
+                Anexar Atividades
+            </x-responsive-nav-link>
 
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="text-base font-medium text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="text-sm font-medium text-gray-500">{{ Auth::user()->email }}</div>
+            @if (Auth::user()->candidato?->pode_interpor_recurso)
+                <div class="border-t border-gray-200"></div>
+                <x-responsive-nav-link :href="route('candidato.recurso.create')" class="font-bold text-red-600">
+                    {{ __('Interpor Recurso') }}
+                </x-responsive-nav-link>
+            @endif
+        </div>
+    @else
+        {{-- MENU DO ADMIN (MOBILE) --}}
+        <div class="pt-2 pb-3 space-y-1">
+            {{-- Painel Admin --}}
+            <x-responsive-nav-link
+                :href="route('dashboard')"
+                :active="request()->routeIs('dashboard')">
+                Painel Admin
+            </x-responsive-nav-link>
+
+            {{-- Candidatos (accordion) --}}
+            <div x-data="{ openCand:false }" class="border-t border-gray-200 pt-2">
+                <button @click="openCand = !openCand"
+                        class="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-600">
+                    <span>Candidatos</span>
+                    <svg class="w-4 h-4 transform transition-transform" :class="{ 'rotate-180': openCand }" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div x-show="openCand" x-transition class="mt-1 space-y-1 pl-6">
+                    <x-responsive-nav-link :href="route('admin.candidatos.index')" :active="request()->routeIs('admin.candidatos.*')">
+                        Listar Todos
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.candidatos.relatorios')" :active="request()->routeIs('admin.candidatos.relatorios')">
+                        Relatórios
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.candidatos.ranking')" :active="request()->routeIs('admin.candidatos.ranking')">
+                        Convocação
+                    </x-responsive-nav-link>
+                </div>
             </div>
 
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
-
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
+            {{-- Configurações (accordion) --}}
+            <div x-data="{ openCfg:false }" class="border-t border-gray-200 pt-2">
+                <button @click="openCfg = !openCfg"
+                        class="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-600">
+                    <span>Configurações</span>
+                    <svg class="w-4 h-4 transform transition-transform" :class="{ 'rotate-180': openCfg }" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div x-show="openCfg" x-transition class="mt-1 space-y-1 pl-6">
+                    <x-responsive-nav-link :href="route('admin.instituicoes.index')" :active="request()->routeIs('admin.instituicoes.*')">
+                        Instituições
                     </x-responsive-nav-link>
-                </form>
+                    <x-responsive-nav-link :href="route('admin.cursos.index')" :active="request()->routeIs('admin.cursos.*')">
+                        Cursos
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.tipos-de-atividade.index')" :active="request()->routeIs('admin.tipos-de-atividade.*')">
+                        Regras de Pontuação
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.pages.index')" :active="request()->routeIs('admin.pages.*')">
+                        Páginas
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.public-docs.index')" :active="request()->routeIs('admin.public-docs.*')">
+                        Documentos Públicos
+                    </x-responsive-nav-link>
+                </div>
+            </div>
+
+            {{-- Gerenciar Usuários --}}
+            <div class="border-t border-gray-200 pt-2">
+                <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                    Gerenciar Usuários
+                </x-responsive-nav-link>
             </div>
         </div>
+    @endif
+
+    {{-- Perfil + Logout --}}
+    <div class="pt-4 pb-1 border-t border-gray-200">
+        <div class="px-4">
+            <div class="text-base font-medium text-gray-800">{{ Auth::user()->name }}</div>
+            <div class="text-sm font-medium text-gray-500">{{ Auth::user()->email }}</div>
+        </div>
+        <div class="mt-3 space-y-1">
+            <x-responsive-nav-link :href="route('profile.edit')">
+                {{ __('Profile') }}
+            </x-responsive-nav-link>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <x-responsive-nav-link :href="route('logout')"
+                    onclick="event.preventDefault(); this.closest('form').submit();">
+                    {{ __('Log Out') }}
+                </x-responsive-nav-link>
+            </form>
+        </div>
     </div>
-</nav>
+</div>

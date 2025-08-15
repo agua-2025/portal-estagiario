@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Models\Estado;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Page;
+use App\Models\PublicDocument; 
+use Illuminate\Support\Facades\Storage; 
 
 // ✅ Importações de Controllers
 use App\Http\Controllers\WelcomeController; // Controlador da página inicial pública
@@ -60,6 +62,16 @@ Route::get('/perguntas-frequentes', function () {
     $page = Page::where('slug', 'perguntas-frequentes-faq')->firstOrFail();
     return view('public.perguntas-frequentes-faq', compact('page'));
 })->name('perguntas-frequentes');
+
+Route::get('/docs-publicos/{public_doc}/download', function (PublicDocument $public_doc) {
+    abort_unless($public_doc->is_published && $public_doc->published_at && $public_doc->published_at->lte(now()), 404);
+    abort_unless($public_doc->file_path && Storage::exists($public_doc->file_path), 404);
+
+    $public_doc->increment('downloads'); // ✅ conta
+
+    return Storage::download($public_doc->file_path, $public_doc->downloadFilename());
+})->name('public-docs.download');
+
 
 
 // Rota para exibir detalhes de um curso específico
@@ -145,6 +157,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::post('candidatos/relatorios/filtrar', [CandidatoController::class, 'filterAdvancedReports'])->name('candidatos.relatorios.filtrar');
         Route::get('candidatos/{candidato}/perfil-pdf', [App\Http\Controllers\Admin\CandidatoController::class, 'exportarPerfilPdf'])->name('candidatos.perfil.pdf');
         Route::get('candidatos/{candidato}/convocacao-pdf', [App\Http\Controllers\Admin\CandidatoController::class, 'exportarConvocacaoPdf'])->name('candidatos.convocacao.pdf');
+        Route::resource('public-docs', \App\Http\Controllers\Admin\PublicDocumentController::class)->parameters(['public-docs' => 'public_doc']);
+
 
         // Rotas para Gerenciamento de Usuários (com o novo UserController)
         Route::resource('users', UserController::class); 
