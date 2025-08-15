@@ -30,9 +30,11 @@
 
                         candidatoStatus: candidatoStatus,
 
+                      
                         get isAguardandoHomologacao() {
-                        return this.candidatoStatus === 'Aprovado';
-                        },
+                        // agora só bloqueia quando estiver "Convocado"
+                        return this.candidatoStatus === 'Convocado';
+                        }, 
 
                         init() {
                         this.updateAllFilteredLists();
