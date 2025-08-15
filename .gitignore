@@ -34,7 +34,7 @@ Thumbs.db
 auth.json
 Homestead.json
 Homestead.yaml
-/.historys
+.historys/
 
 # ⚠️ NÃO ignore public/build (você compila local e faz commit)
 # public/build  ← NÃO coloque esta linha

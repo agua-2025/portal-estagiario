@@ -13,6 +13,8 @@
                                 percentage: 0,
                                 validationAttempted: { step1: false, step2: false, step3: false },
                                 cpfIsValid: true, // Adicionado: estado de validação do CPF
+                                pickers: { nascimento: null, inicio: null, conclusao: null }, // [ADD] refs dos Flatpickrs
+
                                 
                                 estados: estados,
                                 todasCidades: todasCidades,
@@ -30,38 +32,107 @@
                                 },
 
                                 init() {
-                                    this.updateAllFilteredLists();
-                                    this.calculatePercentage();
+                                this.updateAllFilteredLists();
+                                this.calculatePercentage();
 
-                                    this.$watch('fields.naturalidade_estado', () => { 
-                                        if (this.fields.naturalidade_estado) {
-                                            const cidadesDoEstado = this.todasCidades.filter(c => c.estado_id == this.fields.naturalidade_estado);
-                                            const cidadeAtualExiste = cidadesDoEstado.find(c => c.nome === this.fields.naturalidade_cidade);
-                                            if (!cidadeAtualExiste) {
-                                                this.fields.naturalidade_cidade = '';
-                                            }
-                                        }
-                                        this.updateAllFilteredLists(); 
-                                    });
+                                // mantém seus watchers existentes
+                                this.$watch('fields.naturalidade_estado', () => { 
+                                    if (this.fields.naturalidade_estado) {
+                                    const cidadesDoEstado = this.todasCidades.filter(c => c.estado_id == this.fields.naturalidade_estado);
+                                    const cidadeAtualExiste = cidadesDoEstado.find(c => c.nome === this.fields.naturalidade_cidade);
+                                    if (!cidadeAtualExiste) {
+                                        this.fields.naturalidade_cidade = '';
+                                    }
+                                    }
+                                    this.updateAllFilteredLists(); 
+                                });
 
-                                    this.$watch('fields.estado', () => { 
-                                        if (this.fields.estado) {
-                                            const cidadesDoEstado = this.todasCidades.filter(c => c.estado_id == this.fields.estado);
-                                            const cidadeAtualExiste = cidadesDoEstado.find(c => c.nome === this.fields.cidade);
-                                            if (!cidadeAtualExiste) {
-                                                this.fields.cidade = '';
-                                            }
-                                        }
-                                        this.updateAllFilteredLists(); 
-                                    });
+                                this.$watch('fields.estado', () => { 
+                                    if (this.fields.estado) {
+                                    const cidadesDoEstado = this.todasCidades.filter(c => c.estado_id == this.fields.estado);
+                                    const cidadeAtualExiste = cidadesDoEstado.find(c => c.nome === this.fields.cidade);
+                                    if (!cidadeAtualExiste) {
+                                        this.fields.cidade = '';
+                                    }
+                                    }
+                                    this.updateAllFilteredLists(); 
+                                });
 
-                                    // Adicionado: Observador para o campo CPF
-                                    this.$watch('fields.cpf', () => {
-                                        this.cpfIsValid = this.validateCpf(this.fields.cpf);
-                                    });
+                                // valida CPF
+                                this.$watch('fields.cpf', () => {
+                                    this.cpfIsValid = this.validateCpf(this.fields.cpf);
+                                });
 
-                                    this.$watch('fields', () => this.calculatePercentage(), { deep: true });
+                                // recalcula %
+                                this.$watch('fields', () => this.calculatePercentage(), { deep: true });
+
+                                // >>> CHAMADA QUE FALTAVA: inicializa os datepickers
+                                this.$nextTick(() => { this.initDatePickers(); });
                                 },
+
+
+                                initDatePickers() {
+
+                                // segurança: só roda se flatpickr estiver disponível (exposto no window em app.js)
+                                if (!window.flatpickr) return;
+
+                                // evita re-inicializar se Alpine remontar o componente
+                                if (this.pickers.nascimento || this.pickers.inicio || this.pickers.conclusao) return;
+
+                                const common = {
+                                    dateFormat: "Y-m-d",  // valor REAL no input (vai para o backend)
+                                    altInput: true,       // mostra campo amigável ao usuário
+                                    altFormat: "d/m/Y",   // formato exibido ao usuário
+                                    allowInput: true,     // permite digitar manualmente
+                                    disableMobile: true   // força a UI do Flatpickr no celular
+                                    // locale já foi setada globalmente em app.js (pt-BR)
+                                };
+
+                                // Data de nascimento — sem futuro
+                                this.pickers.nascimento = flatpickr(
+                                    this.$root.querySelector('#data_nascimento'),
+                                    {
+                                    ...common,
+                                    defaultDate: this.fields.data_nascimento || null,
+                                    maxDate: new Date(),
+                                    // minDate: "1950-01-01", // opcional — defina se quiser
+                                    onChange: (selectedDates, dateStr) => { this.fields.data_nascimento = dateStr; }
+                                    }
+                                );
+
+                                // Início do curso — sem futuro
+                                this.pickers.inicio = flatpickr(
+                                    this.$root.querySelector('#curso_data_inicio'),
+                                    {
+                                    ...common,
+                                    defaultDate: this.fields.curso_data_inicio || null,
+                                    maxDate: new Date(),
+                                    onChange: (selectedDates, dateStr) => {
+                                        this.fields.curso_data_inicio = dateStr;
+                                        // garante que conclusão >= início
+                                        if (this.pickers.conclusao) {
+                                        this.pickers.conclusao.set('minDate', dateStr || null);
+                                        }
+                                    }
+                                    }
+                                );
+
+                                // Previsão de conclusão — >= início; máx opcional +10 anos
+                                const maxConclusao = new Date();
+                                maxConclusao.setFullYear(maxConclusao.getFullYear() + 10);
+
+                                this.pickers.conclusao = flatpickr(
+                                    this.$root.querySelector('#curso_previsao_conclusao'),
+                                    {
+                                    ...common,
+                                    defaultDate: this.fields.curso_previsao_conclusao || null,
+                                    minDate: this.fields.curso_data_inicio || null,
+                                    maxDate: maxConclusao,
+                                    onChange: (selectedDates, dateStr) => { this.fields.curso_previsao_conclusao = dateStr; }
+                                    }
+                                );
+                                },
+
 
                               // Nova função para validar o CPF
                                 validateCpf(cpf) {
@@ -300,7 +371,11 @@
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="data_nascimento" class="block font-medium text-sm text-gray-700">Data de Nascimento <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('data_nascimento', 1) }" x-model="fields.data_nascimento" id="data_nascimento" name="data_nascimento" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
+                                        <input :class="{ 'border-red-500': isInvalid('data_nascimento', 1) }"
+                                        x-model="fields.data_nascimento"
+                                        id="data_nascimento" name="data_nascimento" type="text"
+                                        class="mt-1 block w-full rounded-md shadow-sm border-gray-300"
+                                        required :disabled="isAguardandoHomologacao">
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
@@ -442,12 +517,20 @@
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="curso_data_inicio" class="block font-medium text-sm text-gray-700">Data de Início do Curso <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('curso_data_inicio', 3) }" x-model="fields.curso_data_inicio" id="curso_data_inicio" name="curso_data_inicio" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
+                                        <input :class="{ 'border-red-500': isInvalid('curso_data_inicio', 3) }"
+                                        x-model="fields.curso_data_inicio"
+                                        id="curso_data_inicio" name="curso_data_inicio" type="text"
+                                        class="mt-1 block w-full rounded-md shadow-sm border-gray-300"
+                                        required :disabled="isAguardandoHomologacao">
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="curso_previsao_conclusao" class="block font-medium text-sm text-gray-700">Previsão de Conclusão <span class="text-red-500">*</span></label>
-                                        <input :class="{ 'border-red-500': isInvalid('curso_previsao_conclusao', 3) }" x-model="fields.curso_previsao_conclusao" name="curso_previsao_conclusao" type="date" class="mt-1 block w-full rounded-md shadow-sm border-gray-300" required :disabled="isAguardandoHomologacao"> {{-- ✅ DESABILITADO --}}
+                                        <input :class="{ 'border-red-500': isInvalid('curso_previsao_conclusao', 3) }"
+                                        x-model="fields.curso_previsao_conclusao"
+                                        id="curso_previsao_conclusao" name="curso_previsao_conclusao" type="text"
+                                        class="mt-1 block w-full rounded-md shadow-sm border-gray-300"
+                                        required :disabled="isAguardandoHomologacao">
                                     </div>
                                     
                                     <div class="col-span-12 sm:col-span-6">
