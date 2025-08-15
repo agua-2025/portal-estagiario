@@ -305,4 +305,49 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m3 5.197V9a3 3 0 00-6 0v2.25"/>
                             </svg>
                             Gerenciar Usuários
+                        </x-responsive-nav-link>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- USER PROFILE + LOGOUT (MOBILE) --}}
+        <div class="pt-4 pb-1 border-t border-gray-200">
+            <div class="px-4 mb-2">
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Conta</h3>
+            </div>
+            <div class="px-4 mb-3">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-blue-600 font-medium text-sm">{{ substr(Auth::user()->name, 0, 1) }}</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->name }}</div>
+                        <div class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-1 px-2">
+                <x-responsive-nav-link :href="route('profile.edit')"
+                    class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors">
+                    <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {{ __('Profile') }}
+                </x-responsive-nav-link>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();"
+                        class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors text-red-600 hover:bg-red-50">
+                        <svg class="w-5 h-5 mr-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        {{ __('Log Out') }}
+                    </x-responsive-nav-link>
+                </form>
+            </div>
+        </div>
+    </div>
 </nav>
