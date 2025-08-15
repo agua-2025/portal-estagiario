@@ -37,7 +37,7 @@ class WelcomeController extends Controller
         // <-- [ADD] Documentos publicados para a seção “Editais e Documentos”
         $docs = PublicDocument::published()
             ->latest('published_at')
-            ->take(3) // use ->get() para todos
+            ->take(6) // use ->get() para todos
             ->get();
 
         return view('welcome', compact('cursos', 'homologados', 'convocados', 'docs')); // <-- [ADD docs]
