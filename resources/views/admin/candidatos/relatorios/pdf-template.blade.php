@@ -35,7 +35,7 @@
         {{-- Coluna dos Dados de Contato (COM O TÍTULO) --}}
         <td style="width: 50%; text-align: right; font-size: 9px; line-height: 1.4;">
             <div style="font-weight: bold; font-size: 11px; margin-bottom: 5px;">{{ $prefeituraInfo['nome'] }}</div>
-            
+
             {{ $prefeituraInfo['endereco'] }}<br>
             Telefone: {{ $prefeituraInfo['telefone'] }} | CNPJ: {{ $prefeituraInfo['cnpj'] }}<br>
             Email: {{ $prefeituraInfo['email'] }}

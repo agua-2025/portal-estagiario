@@ -232,11 +232,11 @@ public function exportarPerfilPdf(Candidato $candidato)
         $candidato->load(['user', 'curso', 'instituicao', 'documentos', 'atividades.tipoDeAtividade']);
 
         $prefeituraInfo = [
-            'nome' => env('PREFEITURA_NOME', 'Portal do Estagiário'),
-            'endereco' => env('PREFEITURA_ENDERECO', 'Endereço da Prefeitura, Cidade, UF'),
-            'telefone' => env('PREFEITURA_TELEFONE', '(00) 00000-0000'),
-            'cnpj' => env('PREFEITURA_CNPJ', 'XX.XXX.XXX/0001-XX'),
-            'email' => env('PREFEITURA_EMAIL', 'contato@email.com'),
+            'nome' => env('PREFEITURA_NOME', 'Prefeitura de Mirassol dOeste'),
+            'endereco' => env('PREFEITURA_ENDERECO', 'Rua Antonio Tavares, n° 3310, Centro CEP: 78.280-000 - Mirassol D’Oeste, MT'),
+            'telefone' => env('PREFEITURA_TELEFONE', '(65) 99930-6419'),
+            'cnpj' => env('PREFEITURA_CNPJ', '303.755.477/0001-75'),
+            'email' => env('PREFEITURA_EMAIL', 'contato@portaldoestagiario.com'),
         ];
         
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.candidatos.perfil-pdf-template', [
@@ -321,12 +321,12 @@ public function exportarConvocacaoPdf(Candidato $candidato)
     try {
         $candidato->load(['user', 'curso', 'instituicao']);
         $prefeituraInfo = [
-            'nome' => env('PREFEITURA_NOME', 'Portal do Estagiário'),
-            'endereco' => env('PREFEITURA_ENDERECO', 'Endereço da Prefeitura, Cidade, UF'),
-            'telefone' => env('PREFEITURA_TELEFONE', '(00) 00000-0000'),
-            'cnpj' => env('PREFEITURA_CNPJ', 'XX.XXX.XXX/0001-XX'),
-            'email' => env('PREFEITURA_EMAIL', 'contato@email.com'),
-        ];
+            'nome' => env('PREFEITURA_NOME', 'Prefeitura de Mirassol dOeste'),
+            'endereco' => env('PREFEITURA_ENDERECO', 'Rua Antonio Tavares, n° 3310, Centro CEP: 78.280-000 - Mirassol D’Oeste, MT'),
+            'telefone' => env('PREFEITURA_TELEFONE', '(65) 99930-6419'),
+            'cnpj' => env('PREFEITURA_CNPJ', '303.755.477/0001-75'),
+            'email' => env('PREFEITURA_EMAIL', 'contato@portaldoestagiario.com'),
+            ];
         
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.candidatos.relatorios.convocacao-pdf-template', [
             'candidato' => $candidato,
