@@ -1,5 +1,5 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
-import forms from '@tailwindcss/forms';
+import defaultTheme from 'tailwindcss/defaultTheme'
+import forms from '@tailwindcss/forms'
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -13,5 +13,5 @@ export default {
     './vendor/laravel/jetstream/**/*.blade.php',
   ],
   theme: { extend: {} },
-  plugins: [],
+  plugins: [forms],   // ✅ aqui é o que faltava
 }
