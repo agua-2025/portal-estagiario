@@ -34,9 +34,17 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'terms' => ['required', 'accepted'],
+
+            // 🔒 ANTI-BOT (mínimo e sem atrito)
+            'website' => ['max:0'], // honeypot: se vier preenchido, rejeita
+            '_start' => ['required', 'integer', function ($attr, $value, $fail) {
+                if (time() - (int) $value < 4) {
+                    $fail('Envio muito rápido. Tente novamente.');
+                }
+            }],
         ], [
             'terms.required' => 'Você deve aceitar os Termos de Uso e Política de Privacidade.',
             'terms.accepted' => 'Você deve aceitar os Termos de Uso e Política de Privacidade.',
@@ -50,15 +58,12 @@ class RegisteredUserController extends Controller
             'terms_accepted_at' => now(),
         ]);
 
-        // ✅ DEFINITIVO: Garante que o role 'candidato' sempre exista
+        // ✅ Garante que o role 'candidato' exista e atribui
         $candidatoRole = Role::firstOrCreate([
-            'name' => 'candidato', 
+            'name' => 'candidato',
             'guard_name' => 'web'
         ]);
-
-        // Atribui o papel ao usuário
         $user->assignRole($candidatoRole);
-
         Log::info("Papel 'candidato' atribuído ao usuário: " . $user->email);
 
         event(new Registered($user));

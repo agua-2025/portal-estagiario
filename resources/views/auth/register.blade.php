@@ -113,6 +113,8 @@
             </div>
 
             <!-- Botão de Registro -->
+            <input type="text" name="website" autocomplete="off" tabindex="-1" class="hidden" />
+            <input type="hidden" name="_start" value="{{ time() }}">
             <div>
                 <x-primary-button 
                     class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition duration-200"
