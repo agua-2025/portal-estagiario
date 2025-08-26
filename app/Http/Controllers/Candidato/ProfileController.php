@@ -72,31 +72,59 @@ class ProfileController extends Controller
         $this->authorize('update', $candidato);
 
         $validatedData = $request->validate([
-            'nome_completo' => 'required|string|max:255',
-            'nome_mae' => 'required|string|max:255',
-            'nome_pai' => 'nullable|string|max:255',
-            'data_nascimento' => 'required|date',
-            'sexo' => 'required|string',
-            'cpf' => ['required', 'string', 'max:14', Rule::unique('candidatos')->ignore($candidato->id)], 
-            'rg' => ['nullable', 'string', 'max:20'],
-            'rg_orgao_expedidor' => 'nullable|string|max:255',
-            'naturalidade_estado' => 'required|exists:estados,id',
-            'naturalidade_cidade' => 'required|string',
-            'possui_deficiencia' => 'required|boolean',
-            'telefone' => 'required|string|max:20',
-            'cep' => 'required|string|max:9',
-            'logradouro' => 'required|string|max:255',
-            'numero' => 'required|string|max:20',
-            'bairro' => 'required|string|max:255',
-            'estado' => 'required|exists:estados,id',
-            'cidade' => 'required|string',
-            'curso_id' => 'required|exists:cursos,id',
-            'instituicao_id' => 'required|exists:instituicoes,id', 
-            'curso_data_inicio' => 'required|date',
-            'curso_previsao_conclusao' => 'required|date|after:curso_data_inicio',
-            'media_aproveitamento' => 'required|numeric|between:0,10.00',
-            'semestres_completos' => 'required|integer|min:0',
+            'nome_completo' => ['required','string','min:3','max:255'],
+            'nome_mae' => ['required','string','min:3','max:255'],
+            'nome_pai' => ['nullable','string','max:255'],
+
+            // Use formato fixo Y-m-d para casar com os <input type="hidden">
+            'data_nascimento' => ['required','date_format:Y-m-d'],
+
+            // Não aceite qualquer string; force enum
+            'sexo' => ['required','in:Feminino,Masculino,Outro'],
+
+            // CPF: aceite com ou sem máscara e exija 11 dígitos
+            // (troque por 'cpf' se você já tem a rule específica instalada)
+            'cpf' => [
+                'required',
+                'regex:/^(?:\d{3}\.\d{3}\.\d{3}-\d{2}|\d{11})$/',
+                Rule::unique('candidatos','cpf')->ignore($candidato->id),
+            ],
+
+            'rg' => ['nullable','string','max:20'],
+            'rg_orgao_expedidor' => ['nullable','string','max:255'],
+
+            'naturalidade_estado' => ['required','integer','exists:estados,id'],
+            'naturalidade_cidade' => ['required','string','max:255'],
+
+            // O Alpine envia '0' ou '1'; boolean aceita, mas vamos garantir que venha presente
+            'possui_deficiencia' => ['required','in:0,1'],
+
+            'telefone' => ['required','string','max:20'],
+            'cep' => ['required','string','max:9'],
+            'logradouro' => ['required','string','max:255'],
+            'numero' => ['required','string','max:20'],
+            'bairro' => ['required','string','max:255'],
+
+            'estado' => ['required','integer','exists:estados,id'],
+            'cidade' => ['required','string','max:255'],
+
+            'instituicao_id' => ['required','integer','exists:instituicoes,id'],
+            'curso_id' => ['required','integer','exists:cursos,id'],
+
+            // Datas acadêmicas também em Y-m-d e com relação válida
+            'curso_data_inicio' => ['required','date_format:Y-m-d'],
+            'curso_previsao_conclusao' => ['required','date_format:Y-m-d','after_or_equal:curso_data_inicio'],
+
+            'media_aproveitamento' => ['required','numeric','between:0,10'],
+            'semestres_completos' => ['required','integer','min:0'],
+        ], [
+            'cpf.regex' => 'Informe um CPF válido (11 dígitos, com ou sem pontuação).',
+            'curso_previsao_conclusao.after_or_equal' => 'A previsão de conclusão não pode ser anterior ao início do curso.',
+            'data_nascimento.date_format' => 'A data de nascimento deve estar no formato YYYY-MM-DD.',
+            'curso_data_inicio.date_format' => 'A data de início deve estar no formato YYYY-MM-DD.',
+            'curso_previsao_conclusao.date_format' => 'A data de conclusão deve estar no formato YYYY-MM-DD.',
         ]);
+
         
         try {
             DB::transaction(function () use ($candidato, $validatedData) {

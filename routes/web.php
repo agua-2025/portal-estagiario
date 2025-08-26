@@ -178,43 +178,5 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::post('recursos/{candidato}/indeferir/{recurso_index}', [CandidatoController::class, 'indeferirRecurso'])->name('recursos.indeferir');
 });
 
-
-// ✅ ROTA DE TESTE - RESTAURADA
-use App\Models\Candidato;
-use Illuminate\Http\Request;
-
-Route::get('/test-save', function () {
-    $candidato = Candidato::where('status', 'Em Análise')->first(); 
-    if (! $candidato) {
-        $candidato = Candidato::first(); 
-    }
-    if (! $candidato) {
-        return "Nenhum candidato encontrado no banco de dados para testar.";
-    }
-    $test_reason = [
-        [
-            'timestamp' => now()->toDateTimeString(),
-            'reason' => "Este é um teste de salvamento direto no banco.",
-            'action' => 'test_save',
-            'previous_status' => $candidato->status,
-        ]
-    ];
-    try {
-        $candidato->revert_reason = $test_reason;
-        $candidato->save();
-        $candidato->refresh();
-        echo "<h1>Teste Concluído para o Candidato: " . $candidato->nome_completo . "</h1>";
-        echo "<h2>Conteúdo salvo no banco de dados:</h2>";
-        echo "<pre>";
-        print_r($candidato->revert_reason);
-        echo "</pre>";
-    } catch (\Exception $e) {
-        echo "<h1>Ocorreu um erro ao tentar salvar!</h1>";
-        echo "<p><strong>Mensagem do Erro:</strong> " . $e->getMessage() . "</p>";
-    }
-});
-// FIM DA ROTA DE TESTE
-
-
 // Inclui as rotas de autenticação (login, register, etc.) do Breeze
 require __DIR__.'/auth.php';

@@ -69,6 +69,7 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
         Auth::login($user);
 
-        return redirect(RouteServiceProvider::HOME);
+        return redirect()->route('candidato.profile.edit')
+    ->with('success', 'Conta criada! Complete seu perfil para prosseguir.');
     }
 }

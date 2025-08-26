@@ -288,7 +288,13 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('candidato.profile.update') }}">
+                        <form method="POST" action="{{ route('candidato.profile.update') }}"
+                            x-on:submit.prevent="
+                                validationAttempted = {step1:true, step2:true, step3:true};
+                                if (isStep1Valid() && isStep2Valid() && isStep3Valid()) {
+                                    $el.submit();
+                                }
+                            ">
                             @csrf
                             @method('PUT')
 
