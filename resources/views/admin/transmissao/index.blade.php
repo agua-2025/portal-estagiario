@@ -40,41 +40,45 @@
             {{-- CONTROLES COMPACTOS --}}
             <div class="bg-white border border-gray-200 rounded p-4 mb-4 shadow-sm">
                 {{-- Linha 1: Busca + Filtro --}}
-                <form method="GET" action="{{ route('admin.transmissao.index') }}" class="flex gap-3 mb-4">
-                    <div class="flex-1">
+                <form method="GET" action="{{ route('admin.transmissao.index') }}" class="flex flex-col sm:flex-row gap-3 mb-4">
+                    <div class="flex-1 min-w-0">
                         <input type="text" name="q" value="{{ $q }}" placeholder="Buscar candidato..."
                                class="w-full h-9 text-sm px-3 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </div>
-                    <select name="status" class="w-32 h-9 text-sm px-3 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        @php
-                            $opts = [
-                                '' => 'Todos',
-                                'incompletos' => 'Incompleta',
-                                'em_analise'  => 'Em Análise',
-                                'aprovado'    => 'Aprovado',
-                                'homologado'  => 'Homologado',
-                                'convocado'   => 'Convocado',
-                            ];
-                        @endphp
-                        @foreach($opts as $val => $label)
-                            <option value="{{ $val }}" @selected($status === $val)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    <button type="submit" class="px-4 h-9 text-sm rounded bg-gray-900 text-white hover:bg-gray-800">
-                        Buscar
-                    </button>
+                    <div class="flex gap-3">
+                        <select name="status" class="w-32 h-9 text-sm px-3 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @php
+                                $opts = [
+                                    '' => 'Todos',
+                                    'incompletos' => 'Incompleta',
+                                    'em_analise'  => 'Em Análise',
+                                    'aprovado'    => 'Aprovado',
+                                    'homologado'  => 'Homologado',
+                                    'convocado'   => 'Convocado',
+                                ];
+                            @endphp
+                            @foreach($opts as $val => $label)
+                                <option value="{{ $val }}" @selected($status === $val)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="px-4 h-9 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">
+                            Buscar
+                        </button>
+                    </div>
                 </form>
 
                 {{-- Linha 2: Modelo + Assunto --}}
-                <div class="flex gap-3 mb-3">
-                    <select x-model="selectedModel" class="w-32 h-9 text-sm px-3 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        <option value="incompleto">Incompleto</option>
-                        <option value="lembrete">Lembrete</option>
-                        <option value="convocacao">Convocação</option>
-                    </select>
-                    <button type="button" @click="loadTemplate()" class="px-4 h-9 text-sm rounded bg-gray-900 text-white hover:bg-gray-800">
-                        Carregar
-                    </button>
+                <div class="flex flex-col sm:flex-row gap-3 mb-3">
+                    <div class="flex gap-3">
+                        <select x-model="selectedModel" class="w-32 h-9 text-sm px-3 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="incompleto">Incompleto</option>
+                            <option value="lembrete">Lembrete</option>
+                            <option value="convocacao">Convocação</option>
+                        </select>
+                        <button type="button" @click="loadTemplate()" class="px-4 h-9 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">
+                            Carregar
+                        </button>
+                    </div>
                     <input type="text" x-model="subject" placeholder="Assunto do e-mail" class="flex-1 h-9 text-sm px-3 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                 </div>
 
@@ -85,15 +89,15 @@
                 </div>
 
                 {{-- Linha 4: Variables + Copiar --}}
-                <div class="flex items-center justify-between text-xs border-t border-gray-100 pt-3">
-                    <div class="flex gap-1">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs border-t border-gray-100 pt-3">
+                    <div class="flex flex-wrap gap-1">
                         <code class="bg-gray-100 px-2 py-1 rounded">{nome}</code>
                         <code class="bg-gray-100 px-2 py-1 rounded">{primeiro_nome}</code>
                         <code class="bg-gray-100 px-2 py-1 rounded">{curso}</code>
                         <code class="bg-gray-100 px-2 py-1 rounded">{status}</code>
                         <code class="bg-gray-100 px-2 py-1 rounded">{link_login}</code>
                     </div>
-                    <button type="button" @click="copyMessage()" class="text-sm px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700">
+                    <button type="button" @click="copyMessage()" class="w-full sm:w-auto text-sm px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700">
                         Copiar
                     </button>
                 </div>
