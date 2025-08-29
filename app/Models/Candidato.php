@@ -89,6 +89,7 @@ class Candidato extends Model
         'contrato_data_fim' => 'date',
         'prorrogacao_data_inicio' => 'date',
         'prorrogacao_data_fim' => 'date',
+        'last_contacted_at'    => 'datetime',
     ];
 
     protected $appends = [
@@ -96,7 +97,7 @@ class Candidato extends Model
     'pontuacao_final',
     'perfil_pdf_url',
     'convocacao_pdf_url',
-    'nome_completo_formatado', // <-- ADICIONADO
+    'nome_completo_formatado', 
 ];
 
     /**
@@ -133,6 +134,39 @@ public function getConvocacaoPdfUrlAttribute()
     }
     return null;
 }
+
+// Retorna só dígitos do telefone (ex.: "(65) 99999-9999" -> "65999999999")
+public function getTelefoneDigitsAttribute(): ?string
+{
+    $digits = preg_replace('/\D+/', '', (string) $this->telefone);
+    return $digits ?: null;
+}
+
+// Retorna em E.164 presumindo Brasil (55). Ex.: "65999999999" -> "5565999999999"
+public function getTelefoneE164Attribute(): ?string
+{
+    $d = $this->telefone_digits;
+    if (!$d) return null;
+
+    // Já vem com 55?
+    if (str_starts_with($d, '55')) return $d;
+
+    // 10 ou 11 dígitos (DDD + número)
+    if (strlen($d) >= 10 && strlen($d) <= 11) {
+        return '55' . $d;
+    }
+
+    // Qualquer outro caso: deixa nulo para bloquear o botão
+    return null;
+}
+
+// Telefone "tem cara" de WhatsApp utilizável (10/11 dígitos BR)
+public function getHasWhatsappAttribute(): bool
+{
+    $d = $this->telefone_digits;
+    return $d && (strlen($d) === 11 || strlen($d) === 10);
+}
+
     
     /**
      * Determina se o candidato pode interpor recurso após a homologação.

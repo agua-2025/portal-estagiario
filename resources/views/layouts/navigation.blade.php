@@ -26,6 +26,7 @@
                                         <x-dropdown-link :href="route('admin.candidatos.index')">Listar Todos</x-dropdown-link>
                                         <x-dropdown-link :href="route('admin.candidatos.relatorios')">Relatórios</x-dropdown-link>
                                         <x-dropdown-link :href="route('admin.candidatos.ranking')">Convocação</x-dropdown-link>
+                                        <x-dropdown-link :href="route('admin.transmissao.index')">Lista de Transmissão</x-dropdown-link>
                                     </div>
                                 </div>
                             </div>
@@ -238,6 +239,13 @@
                                 </svg>
                                 Convocação
                             </x-responsive-nav-link>
+                            <x-responsive-nav-link :href="route('admin.transmissao.index')" :active="request()->routeIs('admin.transmissao.*')"
+                            class="flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors">
+                            <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 8a3 3 0 013 3v4a3 3 0 01-3 3H8l-4 3V8a3 3 0 013-3h8z" />
+                            </svg>
+                            Lista de Transmissão
+                        </x-responsive-nav-link>
                         </div>
                     </div>
                 </div>

@@ -28,8 +28,8 @@ use App\Http\Controllers\Admin\TipoDeAtividadeController;
 use App\Http\Controllers\Admin\CandidatoController; 
 use App\Http\Controllers\Admin\AtividadeAnaliseController; 
 use App\Http\Controllers\Admin\PageController; 
-use App\Http\Controllers\Admin\UserController; // Importação do UserController
-
+use App\Http\Controllers\Admin\UserController; 
+use App\Http\Controllers\Admin\TransmissaoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -158,6 +158,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('candidatos/{candidato}/perfil-pdf', [App\Http\Controllers\Admin\CandidatoController::class, 'exportarPerfilPdf'])->name('candidatos.perfil.pdf');
         Route::get('candidatos/{candidato}/convocacao-pdf', [App\Http\Controllers\Admin\CandidatoController::class, 'exportarConvocacaoPdf'])->name('candidatos.convocacao.pdf');
         Route::resource('public-docs', \App\Http\Controllers\Admin\PublicDocumentController::class)->parameters(['public-docs' => 'public_doc']);
+        Route::get('/transmissao', [TransmissaoController::class, 'index'])->name('transmissao.index');
+        Route::get('/transmissao/whatsapp/{candidato}', [TransmissaoController::class, 'whatsapp'])->name('transmissao.whatsapp'); // marca contato e redireciona
+        Route::post('/transmissao/email/{candidato}', [TransmissaoController::class, 'email'])->name('transmissao.email');       // envia e-mail e marca contato
 
 
         // Rotas para Gerenciamento de Usuários (com o novo UserController)
