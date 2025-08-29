@@ -11,6 +11,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Casts\Attribute; 
+use App\Support\NameCase; 
+
 
 class Candidato extends Model
 {
@@ -89,7 +91,14 @@ class Candidato extends Model
         'prorrogacao_data_fim' => 'date',
     ];
 
-    protected $appends = ['completion_percentage', 'pontuacao_final', 'perfil_pdf_url', 'convocacao_pdf_url'];
+    protected $appends = [
+    'completion_percentage',
+    'pontuacao_final',
+    'perfil_pdf_url',
+    'convocacao_pdf_url',
+    'nome_completo_formatado', // <-- ADICIONADO
+];
+
     /**
      * O método "booted" do modelo.
      */
@@ -200,7 +209,8 @@ public function getPontuacaoFinalAttribute()
     if (isset($this->attributes['pontuacao_final']) && $this->attributes['pontuacao_final'] > 0) {
         return $this->attributes['pontuacao_final'];
     }
-    
+
+     
     // Caso contrário, calcule
     if (method_exists($this, 'calcularPontuacaoDetalhada')) {
         $pontuacaoDetalhada = $this->calcularPontuacaoDetalhada();
@@ -209,6 +219,12 @@ public function getPontuacaoFinalAttribute()
     
     return 0;
 }
+
+public function getNomeCompletoFormatadoAttribute(): string
+{
+    return NameCase::person((string)($this->attributes['nome_completo'] ?? ''));
+}
+
     
     public static function getCompletableFields(): array
     {

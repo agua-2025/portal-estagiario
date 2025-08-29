@@ -32,7 +32,7 @@
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @forelse ($candidatos as $candidato)
                                         <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo_formatado }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->cpf }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->curso->nome ?? 'Não informado' }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

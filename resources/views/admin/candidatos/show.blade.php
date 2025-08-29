@@ -7,7 +7,7 @@
                     {{-- CABEÇALHO COM STATUS --}}
                     <div class="flex flex-col lg:flex-row justify-between items-start mb-4 border-b pb-3">
                         <div>
-                            <h2 class="text-xl font-semibold text-gray-800">{{ $candidato->nome_completo ?? $candidato->user->name }}</h2>
+                            <h2 class="text-xl font-semibold text-gray-800">{{ $candidato->nome_completo_formatado ?? $candidato->user->name }}</h2>
                             <p class="text-sm text-gray-500">Inscrição: {{ $candidato->created_at->format('d/m/Y H:i') }}</p>
                         </div>
                         <div class="mt-3 lg:mt-0 flex items-center gap-3">
@@ -95,13 +95,74 @@
                         </div>
                     </div>
 
-                    {{-- NAVEGAÇÃO POR ABAS --}}
-                    <div class="border-b border-gray-200 mb-4">
-                        <nav class="-mb-px flex space-x-4" aria-label="Tabs">
-                            <button @click="tab = 'perfil'" :class="{ 'border-blue-500 text-blue-600': tab === 'perfil', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': tab !== 'perfil' }" class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Perfil</button>
-                            <button @click="tab = 'analise'" :class="{ 'border-blue-500 text-blue-600': tab === 'analise', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': tab !== 'analise' }" class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Documentos</button>
-                            <button @click="tab = 'acoes'" :class="{ 'border-blue-500 text-blue-600': tab === 'acoes', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': tab !== 'acoes' }" class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Ações Finais</button>
-                        </nav>
+                    {{-- NAVEGAÇÃO POR ABAS (estilo pill + badges) --}}
+                    @php
+                        // Conta documentos pendentes (faltando, enviados ou rejeitados)
+                        $docsPendentes = 0;
+                        foreach ($documentosNecessarios as $tipo => $rotulo) {
+                            $doc = $documentosEnviados->get($tipo);
+                            if (!$doc || $doc->status !== 'aprovado') {
+                                $docsPendentes++;
+                            }
+                        }
+                        // Conta atividades não aprovadas (para eventual badge futuro)
+                        $atividadesPendentes = $candidato->atividades()->whereIn('status', ['enviado','Em Análise','Rejeitada'])->count();
+                    @endphp
+
+                    <div class="mb-4">
+                    <div class="inline-flex w-full sm:w-auto bg-gray-100/80 rounded-xl p-1 shadow-inner backdrop-blur">
+                        {{-- PERFIL --}}
+                        <button type="button"
+                        @click="tab = 'perfil'"
+                        :class="tab === 'perfil'
+                            ? 'bg-white shadow text-blue-700'
+                            : 'text-gray-600 hover:text-gray-800'"
+                        class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all">
+                        {{-- ícone usuário --}}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5.121 17.804A9 9 0 1118.88 6.196 9 9 0 015.12 17.804zM15 11a3 3 0 10-6 0 3 3 0 006 0z" />
+                        </svg>
+                        <span>Perfil</span>
+                        </button>
+
+                        {{-- DOCUMENTOS --}}
+                        <button type="button"
+                        @click="tab = 'analise'"
+                        :class="tab === 'analise'
+                            ? 'bg-white shadow text-blue-700'
+                            : 'text-gray-600 hover:text-gray-800'"
+                        class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all">
+                        {{-- ícone pasta --}}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                        </svg>
+                        <span>Documentos</span>
+
+                        {{-- badge de pendências --}}
+                        @if($docsPendentes > 0)
+                            <span class="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-red-600 text-white">
+                            {{ $docsPendentes }}
+                            </span>
+                        @endif
+                        </button>
+
+                        {{-- AÇÕES FINAIS --}}
+                        <button type="button"
+                        @click="tab = 'acoes'"
+                        :class="tab === 'acoes'
+                            ? 'bg-white shadow text-blue-700'
+                            : 'text-gray-600 hover:text-gray-800'"
+                        class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all">
+                        {{-- ícone martelo/gavel --}}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14.7 5.3l4 4-9.4 9.4a2 2 0 01-1.414.586H6a2 2 0 01-2-2v-1.886a2 2 0 01.586-1.414L14.7 5.3zM13 7l4 4" />
+                        </svg>
+                        <span>Ações Finais</span>
+                        </button>
+                    </div>
                     </div>
 
                     {{-- Aba 1: Perfil do Candidato --}}
@@ -115,8 +176,8 @@
                         <div class="mt-4">
                             <h3 class="text-base font-semibold text-gray-800 mb-3">Dados Pessoais</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                                {{ renderDetail('Nome da Mãe', $candidato->nome_mae) }}
-                                {{ renderDetail('Nome do Pai', $candidato->nome_pai) }}
+                                {{ renderDetail('Nome da Mãe', \App\Support\NameCase::person($candidato->nome_mae ?? '')) }}
+                                {{ renderDetail('Nome do Pai', \App\Support\NameCase::person($candidato->nome_pai ?? '')) }}
                                 {{ renderDetail('Data de Nascimento', optional($candidato->data_nascimento)->format('d/m/Y')) }}
                                 {{ renderDetail('Sexo', $candidato->sexo) }}
                                 {{ renderDetail('CPF', $candidato->cpf) }}
@@ -173,7 +234,7 @@
                                                 @endif
                                             </div>
                                             
-                                            <<div class="flex items-center gap-1 ml-3 flex-shrink-0">
+                                            <div class="flex items-center gap-1 ml-3 flex-shrink-0">
     @if($documentoEnviado)
         {{-- O botão 'Ver' fica sempre visível, como você pediu --}}
         <a href="{{ route('candidato.documentos.show', $documentoEnviado) }}" target="_blank" class="px-3 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700">Ver</a>

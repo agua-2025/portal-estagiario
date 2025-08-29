@@ -177,7 +177,7 @@
                         <tbody class="divide-y divide-gray-200">
                             @forelse ($convocados->take(5) as $candidato)
                                 <tr class="hover:bg-gray-50 transition-colors duration-150">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo_formatado }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                             {{ $candidato->curso->nome ?? 'N/A' }}
@@ -244,7 +244,7 @@
                                 </span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo_formatado }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                 {{ $candidato->curso->nome ?? 'N/A' }}

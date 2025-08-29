@@ -39,7 +39,7 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($convocados as $candidato)
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo_formatado }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                 {{ $candidato->curso->nome ?? 'N/A' }}
@@ -113,7 +113,7 @@
                                                     {{ $index + 1 }}º
                                                 </span>
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $candidato->nome_completo_formatado }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
                                                     {{ number_format($candidato->pontuacao_final, 2, ',', '.') }}
