@@ -87,7 +87,7 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-3 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900 candidate-name">{{ $candidato->nome_completo }}</div>
+                                            <div class="text-sm font-medium text-gray-900 candidate-name">{{ $candidato->nome_completo_formatado }}</div>
                                         </td>
                                         <td class="px-6 py-3 whitespace-nowrap">
                                             <div class="flex items-center">
