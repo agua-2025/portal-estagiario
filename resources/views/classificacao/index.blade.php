@@ -32,8 +32,9 @@
                                 <tr>
                                     <th style="width: 35%;" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome do Candidato</th>
                                     <th style="width: 25%;" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</th>
-                                    <th style="width: 20%;" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data da Convocação</th>
-                                    <th style="width: 20%;" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Nasc.</th>
+                                    <th style="width: 15%;" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data da Convocação</th>
+                                    <th style="width: 15%;" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Nasc.</th>
+                                    <th style="width: 10%;" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Edital</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -47,10 +48,15 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->convocado_em ? $candidato->convocado_em->format('d/m/Y') : 'N/A' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $candidato->data_nascimento ? $candidato->data_nascimento->format('d/m/Y') : 'N/A' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                            <a href="{{ route('admin.candidatos.convocacao.pdf', $candidato) }}" target="_blank" class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" title="Ver Edital de Convocação">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            </a>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Nenhum candidato convocado até o momento.</td>
+                                        <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">Nenhum candidato convocado até o momento.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

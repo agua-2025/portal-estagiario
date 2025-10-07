@@ -263,7 +263,15 @@ public function exportarPerfilPdf(Candidato $candidato)
                 $candidato->pontuacao_final = $pontuacao['total'];
                 return $candidato;
             })
-            ->sortByDesc('pontuacao_final');
+            // Lógica de ordenação correta para múltiplos critérios
+            ->sort(function ($a, $b) {
+                // Critério 1: Compara pela pontuação final (do maior para o menor)
+                if ($a->pontuacao_final !== $b->pontuacao_final) {
+                    return $b->pontuacao_final <=> $a->pontuacao_final;
+                }
+                // Critério 2 (Desempate): Se as pontuações forem iguais, compara pela data de nascimento (do mais velho para o mais novo)
+                return $a->data_nascimento <=> $b->data_nascimento;
+            });
 
         $candidatosPorCurso = $candidatosHomologados->groupBy('curso.nome');
 

@@ -90,7 +90,10 @@
                                             <div class="text-sm font-medium text-gray-900 candidate-name">{{ $candidato->nome_completo }}</div>
                                         </td>
                                         <td class="px-6 py-3 whitespace-nowrap">
-                                            <div class="text-sm font-bold text-gray-900 font-mono">{{ number_format($candidato->pontuacao_final, 2, ',', '.') }}</div>
+                                            <div class="flex items-center">
+                                                <div class="text-sm font-bold text-gray-900 font-mono">{{ number_format($candidato->pontuacao_final, 2, ',', '.') }}</div>
+                                                <div class="ml-4 text-xs text-gray-500">Nasc: {{ $candidato->data_nascimento->format('d/m/Y') }}</div>
+                                            </div>
                                         </td>
                                         <td class="px-6 py-3 whitespace-nowrap text-center">
                                             @if ($index == 0)
