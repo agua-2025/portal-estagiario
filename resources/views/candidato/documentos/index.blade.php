@@ -8,12 +8,28 @@
                         <h2 class="text-xl font-semibold text-gray-800">Meus Documentos</h2>
                         <p class="mt-1 text-sm text-gray-600">Envie os documentos necessários para validar a sua inscrição.</p>
                     </div>
-                    
+                    {{-- 🔔 AVISO DE PERFIL INCOMPLETO --}}
+                    @if(session('warn'))
+                    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 mb-6 rounded-r-lg" role="alert">
+                        <p>{{ session('warn') }}</p>
+                    </div>
+                    @endif
+
                     @if(session('success'))
                         <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-lg" role="alert">
                             <p>{{ session('success') }}</p>
                         </div>
                     @endif
+                    @if ($errors->any())
+                        <div class="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 mb-6 rounded-r-lg" role="alert">
+                            <ul class="list-disc ml-5">
+                                @foreach ($errors->all() as $error)
+                                    <li class="text-sm">{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     @if($candidato->status === 'Inscrição Incompleta' && !empty($candidato->admin_observacao))
                         <div class="p-4 mb-6 border-l-4 border-red-500 bg-red-50 text-red-800 rounded-r-lg" role="alert">
                             <h3 class="font-bold">Correção Necessária!</h3>

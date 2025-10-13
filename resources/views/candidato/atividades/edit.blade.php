@@ -36,13 +36,21 @@
                         <h2 class="text-xl font-semibold text-gray-800">Editar Item de Pontuação</h2>
                         <p class="mt-1 text-sm text-gray-600">Modifique as informações do item selecionado.</p>
                     </div>
-                    
-                    @if (session('success'))
-                        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-                            <p>{{ session('success') }}</p>
-                        </div>
+
+                    {{-- 🔔 AVISO DE PERFIL INCOMPLETO (se veio do redirect do controller) --}}
+                    @if(session('warn'))
+                    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 mb-4 rounded-r-lg" role="alert">
+                        <p>{{ session('warn') }}</p>
+                    </div>
                     @endif
-                    
+
+                    {{-- mensagens padrão --}}
+                    @if (session('success'))
+                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+                        <p>{{ session('success') }}</p>
+                    </div>
+                    @endif
+                                                       
                     @if ($errors->any())
                         <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
                             <p class="font-bold">Opa! Algo deu errado.</p>
