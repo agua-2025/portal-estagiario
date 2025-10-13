@@ -16,11 +16,10 @@ class DashboardController extends Controller
     // Estatísticas
     $totalInscricoes   = Candidato::count();
     $aguardandoAnalise = Candidato::where('status', 'Em Análise')->count();
-    $aprovados         = Candidato::where('status', 'Aprovado')->count();
     $rejeitados        = Candidato::where('status', 'Rejeitado')->count();
     $homologados       = Candidato::where('status', 'Homologado')->count();
-    $incompletas       = Candidato::where('status', 'Inscrição Incompleta')->count(); // 👈 novo
-    $convocados        = Candidato::where('status', 'Convocado')->count();             // 👈 novo
+    $incompletas       = Candidato::where('status', 'Inscrição Incompleta')->count(); 
+    $convocados        = Candidato::where('status', 'Convocado')->count();            
 
     // Últimas pendentes
     $ultimasPendentes = Candidato::where('status', 'Em Análise')
