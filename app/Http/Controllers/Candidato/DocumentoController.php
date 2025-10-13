@@ -68,14 +68,24 @@ public function store(Request $request)
     Log::debug('Iniciando store de documento. Request data: ' . json_encode($request->all()));
 
     $user = Auth::user();
-    $candidato = $user->candidato;
+$candidato = $user?->candidato;
 
-    // ✅ Blindagem mínima: exige candidato + papel + perfil completo (sem criar automaticamente)
-    if (! $user || ! $user->hasRole('candidato') || ! $candidato || ! $candidato->isComplete()) {
-        return redirect()
-            ->route('candidato.profile.edit')
-            ->with('warn', 'Complete seu perfil (dados obrigatórios) antes de enviar documentos.');
+// 🔒 Checagem defensiva: papel + perfil existente + método de completude
+$profileIsComplete = false;
+if ($candidato) {
+    if (method_exists($candidato, 'isComplete')) {
+        $profileIsComplete = $candidato->isComplete();
+    } elseif (method_exists($candidato, 'isProfileComplete')) {
+        $profileIsComplete = $candidato->isProfileComplete();
     }
+}
+
+if (! $user || ! $user->hasRole('candidato') || ! $candidato || ! $profileIsComplete) {
+    return redirect()
+        ->route('candidato.profile.edit')
+        ->with('warn', 'Complete seu perfil (dados obrigatórios) antes de enviar documentos.');
+}
+
 
     $previousStatus = $candidato->status;
 
@@ -94,10 +104,13 @@ public function store(Request $request)
     try {
         // Procura o documento antigo na relação do candidato
         $documentoAntigo = $candidato->documentos()->where('tipo_documento', $tipoDocumento)->first();
-        if ($documentoAntigo) {
-            Storage::disk('public')->delete($documentoAntigo->path);
+        if ($documentoAntigo && $documentoAntigo->path) {
+            if (Storage::disk('public')->exists($documentoAntigo->path)) {
+                Storage::disk('public')->delete($documentoAntigo->path);
+            }
             Log::info("Documento antigo do tipo '{$tipoDocumento}' substituído para o candidato ID {$candidato->id}.");
         }
+
 
         $filePath = $request->file('documento')->store('documentos/' . $user->id, 'public');
 
@@ -207,14 +220,23 @@ public function store(Request $request)
     $this->authorize('delete', $documento);
 
     $user = Auth::user();
-    $candidato = $user?->candidato;
+$candidato = $user?->candidato;
 
-    // ✅ Blindagem opcional (recomendada): não permitir alterar documentos com perfil incompleto
-    if (! $user || ! $user->hasRole('candidato') || ! $candidato || ! $candidato->isComplete()) {
-        return redirect()
-            ->route('candidato.profile.edit')
-            ->with('warn', 'Complete seu perfil antes de remover documentos.');
+$profileIsComplete = false;
+if ($candidato) {
+    if (method_exists($candidato, 'isComplete')) {
+        $profileIsComplete = $candidato->isComplete();
+    } elseif (method_exists($candidato, 'isProfileComplete')) {
+        $profileIsComplete = $candidato->isProfileComplete();
     }
+}
+
+if (! $user || ! $user->hasRole('candidato') || ! $candidato || ! $profileIsComplete) {
+    return redirect()
+        ->route('candidato.profile.edit')
+        ->with('warn', 'Complete seu perfil antes de remover documentos.');
+}
+
 
     if (! $candidato) {
         return redirect()->back()->with('error', 'Candidato não encontrado.');
@@ -227,8 +249,11 @@ public function store(Request $request)
         $tipoDocumentoRemovido = $documento->tipo_documento;
 
         // remove arquivo físico (se existir) e o registro
-        Storage::disk('public')->delete($documento->path);
+        if ($documento->path && Storage::disk('public')->exists($documento->path)) {
+            Storage::disk('public')->delete($documento->path);
+        }
         $documento->delete();
+
         Log::info("Documento ID {$documento->id} apagado. Tipo: {$tipoDocumentoRemovido}.");
 
         $documentosNecessariosParaVerificar = [

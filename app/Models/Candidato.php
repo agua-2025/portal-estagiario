@@ -111,9 +111,10 @@ class Candidato extends Model
 
             // 1. Apagar atividades e seus ficheiros
             foreach ($candidato->atividades as $atividade) {
-                if ($atividade->comprovativo_path && Storage::disk('public')->exists($atividade->comprovativo_path)) {
-                    Storage::disk('public')->delete($atividade->comprovativo_path);
-                }
+                if ($atividade->path && Storage::disk('public')->exists($atividade->path)) {
+                Storage::disk('public')->delete($atividade->path);
+            }
+
                 $atividade->delete();
             }
 
@@ -315,8 +316,11 @@ public function isProfileComplete(): bool
 {
     foreach (self::getCompletableFields() as $field) {
         $value = $this->{$field};
+
         if ($field === 'possui_deficiencia') {
-            if ($value === null) return false;
+            if ($value === null) {
+                return false;
+            }
         } else {
             if (is_string($value)) {
                 if (trim($value) === '') return false;
@@ -328,11 +332,12 @@ public function isProfileComplete(): bool
     return true;
 }
 
-/** Alias para padronizar as checagens */
+/** Alias seguro para todo o código usar */
 public function isComplete(): bool
 {
     return $this->isProfileComplete();
 }
+
 
     
     public function getFirstIncompleteField(): ?string
