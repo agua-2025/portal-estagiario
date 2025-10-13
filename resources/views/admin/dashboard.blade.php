@@ -8,46 +8,31 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-                    <!-- Seção de Estatísticas (minimalista, 1 linha no desktop) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div class="text-xs font-medium text-gray-500 flex items-center gap-2">
-            <span class="h-1.5 w-1.5 rounded-full bg-gray-300"></span>
-            Total de Inscrições
-            </div>
-            <p class="mt-2 text-3xl font-semibold tracking-tight text-gray-900">{{ $totalInscricoes }}</p>
+                <!-- Estatísticas: SEM scroll, responsivo -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 mb-8">
+        <div class="bg-white shadow-sm rounded-lg p-4">
+            <h3 class="text-xs font-medium text-gray-500">Total de Inscrições</h3>
+            <p class="mt-1 text-2xl font-semibold text-gray-900">{{ $totalInscricoes }}</p>
         </div>
 
-        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div class="text-xs font-medium text-gray-500 flex items-center gap-2">
-            <span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
-            Inscrições Incompletas
-            </div>
-            <p class="mt-2 text-3xl font-semibold tracking-tight text-gray-900">{{ $incompletas }}</p>
+        <div class="bg-white shadow-sm rounded-lg p-4">
+            <h3 class="text-xs font-medium text-gray-500">Inscrições Incompletas</h3>
+            <p class="mt-1 text-2xl font-semibold text-amber-600">{{ $incompletas }}</p>
         </div>
 
-        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div class="text-xs font-medium text-gray-500 flex items-center gap-2">
-            <span class="h-1.5 w-1.5 rounded-full bg-sky-400"></span>
-            Aguardando Análise
-            </div>
-            <p class="mt-2 text-3xl font-semibold tracking-tight text-gray-900">{{ $aguardandoAnalise }}</p>
+        <div class="bg-white shadow-sm rounded-lg p-4">
+            <h3 class="text-xs font-medium text-gray-500">Aguardando Análise</h3>
+            <p class="mt-1 text-2xl font-semibold text-yellow-600">{{ $aguardandoAnalise }}</p>
         </div>
 
-        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div class="text-xs font-medium text-gray-500 flex items-center gap-2">
-            <span class="h-1.5 w-1.5 rounded-full bg-indigo-400"></span>
-            Homologados
-            </div>
-            <p class="mt-2 text-3xl font-semibold tracking-tight text-gray-900">{{ $homologados }}</p>
+        <div class="bg-white shadow-sm rounded-lg p-4">
+            <h3 class="text-xs font-medium text-gray-500">Homologados</h3>
+            <p class="mt-1 text-2xl font-semibold text-blue-600">{{ $homologados }}</p>
         </div>
 
-        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div class="text-xs font-medium text-gray-500 flex items-center gap-2">
-            <span class="h-1.5 w-1.5 rounded-full bg-indigo-400"></span>
-            Convocados
-            </div>
-            <p class="mt-2 text-3xl font-semibold tracking-tight text-gray-900">{{ $convocados }}</p>
+        <div class="bg-white shadow-sm rounded-lg p-4">
+            <h3 class="text-xs font-medium text-gray-500">Convocados</h3>
+            <p class="mt-1 text-2xl font-semibold text-indigo-600">{{ $convocados }}</p>
         </div>
         </div>
 
