@@ -21,16 +21,6 @@
         </div>
 
         <div class="bg-white shadow-sm rounded-lg p-4">
-            <h3 class="text-xs font-medium text-gray-500">Aprovados</h3>
-            <p class="mt-1 text-2xl font-semibold text-green-600">{{ $aprovados }}</p>
-        </div>
-
-        <div class="bg-white shadow-sm rounded-lg p-4">
-            <h3 class="text-xs font-medium text-gray-500">Rejeitados</h3>
-            <p class="mt-1 text-2xl font-semibold text-red-600">{{ $rejeitados }}</p>
-        </div>
-
-        <div class="bg-white shadow-sm rounded-lg p-4">
             <h3 class="text-xs font-medium text-gray-500">Homologados</h3>
             <p class="mt-1 text-2xl font-semibold text-blue-600">{{ $homologados }}</p>
         </div>

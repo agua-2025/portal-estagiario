@@ -16,8 +16,6 @@ class DashboardController extends Controller
     // Estatísticas
     $totalInscricoes   = Candidato::count();
     $aguardandoAnalise = Candidato::where('status', 'Em Análise')->count();
-    $aprovados         = Candidato::where('status', 'Aprovado')->count();
-    $rejeitados        = Candidato::where('status', 'Rejeitado')->count();
     $homologados       = Candidato::where('status', 'Homologado')->count();
     $incompletas       = Candidato::where('status', 'Inscrição Incompleta')->count(); 
     $convocados        = Candidato::where('status', 'Convocado')->count();            
@@ -32,8 +30,6 @@ class DashboardController extends Controller
     return view('admin.dashboard', compact(
         'totalInscricoes',
         'aguardandoAnalise',
-        'aprovados',
-        'rejeitados',
         'homologados',
         'incompletas',   // 👈 novo
         'convocados',    // 👈 novo
