@@ -309,17 +309,15 @@ public function getPerfilPdfUrlAttribute()
         return round(($filledFields / $totalFields) * 100);
     }
 
+// App/Models/Candidato.php
+
 public function isProfileComplete(): bool
 {
     foreach (self::getCompletableFields() as $field) {
         $value = $this->{$field};
-
         if ($field === 'possui_deficiencia') {
-            if ($value === null) {
-                return false;
-            }
+            if ($value === null) return false;
         } else {
-            // se for string, considera vazio quando só tem espaços
             if (is_string($value)) {
                 if (trim($value) === '') return false;
             } else {
@@ -327,11 +325,10 @@ public function isProfileComplete(): bool
             }
         }
     }
-
     return true;
 }
 
-/** Alias simples para usar no restante do código */
+/** Alias para padronizar as checagens */
 public function isComplete(): bool
 {
     return $this->isProfileComplete();
