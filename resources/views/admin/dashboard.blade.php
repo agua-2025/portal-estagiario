@@ -5,11 +5,8 @@
         </h2>
     </x-slot>
 
-        <div class="py-12">
-        <div class="max-w-screen-2xl mx-auto sm:px-6 lg:px-8">  <!-- em vez de max-w-7xl -->
-            <!-- ...cards e resto da página... -->
-        </div>
-        </div>
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
                 <!-- Estatísticas: SEM scroll, responsivo -->
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 mb-8">
