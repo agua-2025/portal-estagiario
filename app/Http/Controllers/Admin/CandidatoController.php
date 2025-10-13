@@ -24,18 +24,17 @@ class CandidatoController extends Controller
         $query = Candidato::query()->with(['user', 'curso', 'instituicao']);
 
         if ($search) {
-            $query->where('nome_completo', 'like', "%{$search}%")
-                  ->orWhere('cpf', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('nome_completo', 'like', "%{$search}%")
+                ->orWhere('cpf', 'like', "%{$search}%");
+            });
         }
 
         $candidatos = $query->latest()->paginate(15);
         return view('admin.candidatos.index', compact('candidatos', 'search'));
     }
-    
-    // =================================================================
-    // ===== INÍCIO DA SEÇÃO DE RELATÓRIOS (VERSÃO CORRIGIDA) =====
-    // =================================================================
 
+    
     /**
      * Apenas carrega a página do construtor de relatórios com os dados para os filtros.
      */

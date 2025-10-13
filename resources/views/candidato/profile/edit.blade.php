@@ -3,6 +3,12 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
+                                {{-- 🔔 AVISO DE PERFIL INCOMPLETO (chega dos redirects de Documentos/Atividades) --}}
+            @if(session('warn'))
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 mb-6 rounded-r-lg" role="alert">
+                    <p>{{ session('warn') }}</p>
+                </div>
+            @endif
 
                     {{-- ✅ LÓGICA JAVASCRIPT CORRIGIDA E VARIÁVEIS DE STATUS --}}
                     <script>
