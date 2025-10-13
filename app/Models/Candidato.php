@@ -309,22 +309,34 @@ public function getPerfilPdfUrlAttribute()
         return round(($filledFields / $totalFields) * 100);
     }
 
-    public function isProfileComplete(): bool
-    {
-        foreach (self::getCompletableFields() as $field) {
-            $value = $this->{$field};
-            if ($field === 'possui_deficiencia') {
-                if ($value === null) {
-                    return false;
-                }
+public function isProfileComplete(): bool
+{
+    foreach (self::getCompletableFields() as $field) {
+        $value = $this->{$field};
+
+        if ($field === 'possui_deficiencia') {
+            if ($value === null) {
+                return false;
+            }
+        } else {
+            // se for string, considera vazio quando só tem espaços
+            if (is_string($value)) {
+                if (trim($value) === '') return false;
             } else {
-                if ($value === null || $value === '') {
-                    return false;
-                }
+                if ($value === null) return false;
             }
         }
-        return true;
     }
+
+    return true;
+}
+
+/** Alias simples para usar no restante do código */
+public function isComplete(): bool
+{
+    return $this->isProfileComplete();
+}
+
     
     public function getFirstIncompleteField(): ?string
     {

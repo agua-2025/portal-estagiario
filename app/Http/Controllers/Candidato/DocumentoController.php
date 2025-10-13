@@ -63,120 +63,120 @@ class DocumentoController extends Controller
     /**
      * Armazena um novo documento enviado pelo candidato.
      */
-    public function store(Request $request)
-    {
-        Log::debug('Iniciando store de documento. Request data: ' . json_encode($request->all()));
+public function store(Request $request)
+{
+    Log::debug('Iniciando store de documento. Request data: ' . json_encode($request->all()));
 
-        $user = Auth::user();
-        $candidato = $user->candidato; 
-        
-        // Se não existe candidato, cria agora (apenas no momento do save)
-        if (!$candidato) {
-            $candidato = Candidato::create([
-                'user_id' => $user->id,
-                'status' => 'Inscrição Incompleta'
-            ]);
+    $user = Auth::user();
+    $candidato = $user->candidato;
+
+    // ✅ Blindagem mínima: exige candidato + papel + perfil completo (sem criar automaticamente)
+    if (! $user || ! $user->hasRole('candidato') || ! $candidato || ! $candidato->isComplete()) {
+        return redirect()
+            ->route('candidato.profile.edit')
+            ->with('warn', 'Complete seu perfil (dados obrigatórios) antes de enviar documentos.');
+    }
+
+    $previousStatus = $candidato->status;
+
+    Log::debug("Status do candidato ANTES da operação (DocumentoController@store): {$previousStatus}");
+    Log::debug("ID do Candidato: {$candidato->id}");
+
+    $request->validate([
+        'tipo_documento' => 'required|string',
+        'documento' => 'required|file|mimes:pdf,jpg,png,jpeg|max:2048',
+    ]);
+
+    $tipoDocumento = $request->input('tipo_documento');
+
+    DB::beginTransaction();
+
+    try {
+        // Procura o documento antigo na relação do candidato
+        $documentoAntigo = $candidato->documentos()->where('tipo_documento', $tipoDocumento)->first();
+        if ($documentoAntigo) {
+            Storage::disk('public')->delete($documentoAntigo->path);
+            Log::info("Documento antigo do tipo '{$tipoDocumento}' substituído para o candidato ID {$candidato->id}.");
         }
-        
-        $previousStatus = $candidato->status; 
 
-        Log::debug("Status do candidato ANTES da operação (DocumentoController@store): {$previousStatus}");
-        Log::debug("ID do Candidato: {$candidato->id}");
+        $filePath = $request->file('documento')->store('documentos/' . $user->id, 'public');
 
-        $request->validate([
-            'tipo_documento' => 'required|string',
-            'documento' => 'required|file|mimes:pdf,jpg,png,jpeg|max:2048',
-        ]);
+        // Cria ou atualiza o documento na relação do candidato
+        $candidato->documentos()->updateOrCreate(
+            ['tipo_documento' => $tipoDocumento],
+            [
+                'user_id' => $user->id, // retrocompatibilidade/auditoria
+                'path' => $filePath,
+                'nome_original' => $request->file('documento')->getClientOriginalName(),
+                'status' => 'enviado',
+            ]
+        );
+        Log::info("Documento '{$tipoDocumento}' enviado por candidato ID {$candidato->id}. Caminho: {$filePath}");
 
-        $tipoDocumento = $request->input('tipo_documento');
+        $documentosNecessariosParaVerificar = [
+            'HISTORICO_ESCOLAR',
+            'DECLARACAO_MATRICULA',
+            'DECLARACAO_ELEITORAL',
+        ];
+        if ($candidato->sexo === 'Masculino') {
+            $documentosNecessariosParaVerificar[] = 'RESERVISTA';
+        }
+        if ($candidato->possui_deficiencia) {
+            $documentosNecessariosParaVerificar[] = 'LAUDO_MEDICO';
+        }
 
-        DB::beginTransaction();
+        // Recarrega a relação de documentos a partir do candidato
+        $candidato->load('documentos');
+        $tiposDocumentosEnviados = $candidato->documentos->pluck('tipo_documento')->unique()->toArray();
 
-        try {
-            // Procura o documento antigo na relação do candidato
-            $documentoAntigo = $candidato->documentos()->where('tipo_documento', $tipoDocumento)->first();
-            if ($documentoAntigo) {
-                Storage::disk('public')->delete($documentoAntigo->path); 
-                Log::info("Documento antigo do tipo '{$tipoDocumento}' substituído para o candidato ID {$candidato->id}.");
-            }
+        $todosObrigatoriosEnviados = empty(array_diff($documentosNecessariosParaVerificar, $tiposDocumentosEnviados));
+        Log::debug("Verificação de documentos obrigatórios: Todos enviados? " . ($todosObrigatoriosEnviados ? 'Sim' : 'Não'));
 
-            $filePath = $request->file('documento')->store('documentos/' . $user->id, 'public'); 
+        if (in_array($tipoDocumento, $documentosNecessariosParaVerificar) && in_array($previousStatus, ['Homologado', 'Aprovado', 'Em Análise'])) {
+            $candidato->status = 'Em Análise';
+            $candidato->homologado_em = null;
+            $candidato->homologacao_observacoes = null;
 
-            // Cria ou atualiza o documento na relação do candidato
-            $candidato->documentos()->updateOrCreate(
-                ['tipo_documento' => $tipoDocumento],
-                [
-                    'user_id' => $user->id, // Mantém o user_id por retrocompatibilidade ou auditoria
-                    'path' => $filePath, 
-                    'nome_original' => $request->file('documento')->getClientOriginalName(),
-                    'status' => 'enviado',
-                ]
-            );
-            Log::info("Documento '{$tipoDocumento}' enviado por candidato ID {$candidato->id}. Caminho: {$filePath}");
+            $revertHistory = $candidato->revert_reason ?? [];
+            if (!is_array($revertHistory)) { $revertHistory = []; }
 
-            $documentosNecessariosParaVerificar = [
-                'HISTORICO_ESCOLAR',
-                'DECLARACAO_MATRICULA',
-                'DECLARACAO_ELEITORAL',
+            $revertHistory[] = [
+                'timestamp' => Carbon::now()->toDateTimeString(),
+                'reason' => "Documento obrigatório '{$tipoDocumento}' alterado/substituído pelo candidato.",
+                'action' => 'document_update',
+                'document_type' => $tipoDocumento,
+                'previous_status' => $previousStatus,
             ];
-            if ($candidato->sexo === 'Masculino') {
-                $documentosNecessariosParaVerificar[] = 'RESERVISTA';
-            }
-            if ($candidato->possui_deficiencia) {
-                $documentosNecessariosParaVerificar[] = 'LAUDO_MEDICO';
-            }
+            $candidato->revert_reason = array_slice($revertHistory, -5);
 
-            // Recarrega a relação de documentos a partir do candidato
-            $candidato->load('documentos');
-            $tiposDocumentosEnviados = $candidato->documentos->pluck('tipo_documento')->unique()->toArray();
-            
-            $todosObrigatoriosEnviados = empty(array_diff($documentosNecessariosParaVerificar, $tiposDocumentosEnviados));
-            Log::debug("Verificação de documentos obrigatórios: Todos enviados? " . ($todosObrigatoriosEnviados ? 'Sim' : 'Não'));
-
-            if (in_array($tipoDocumento, $documentosNecessariosParaVerificar) && in_array($previousStatus, ['Homologado', 'Aprovado', 'Em Análise'])) {
-                $candidato->status = 'Em Análise';
-                $candidato->homologado_em = null;
-                $candidato->homologacao_observacoes = null;
-                
-                $revertHistory = $candidato->revert_reason ?? [];
-                if (!is_array($revertHistory)) { $revertHistory = []; }
-
-                $revertHistory[] = [
-                    'timestamp' => Carbon::now()->toDateTimeString(),
-                    'reason' => "Documento obrigatório '{$tipoDocumento}' alterado/substituído pelo candidato.", 
-                    'action' => 'document_update',
-                    'document_type' => $tipoDocumento,
-                    'previous_status' => $previousStatus,
-                ];
-                $candidato->revert_reason = array_slice($revertHistory, -5);
-
-                $candidato->save();
-                Log::info("Candidato ID {$candidato->id} (Status anterior: {$previousStatus}) alterou documento '{$tipoDocumento}' e voltou para 'Em Análise'.");
-                
-                DB::commit();
-                return redirect()->back()->with('success', 'Documento enviado com sucesso! Sua inscrição voltou para "Em Análise" devido à alteração.');
-            } 
-            elseif ($todosObrigatoriosEnviados && $candidato->status === 'Inscrição Incompleta') {
-                $candidato->status = 'Em Análise'; 
-                $candidato->revert_reason = null;
-                $candidato->save();
-                Log::info("Candidato ID {$candidato->id} mudou para 'Em Análise' após enviar todos os documentos obrigatórios.");
-                
-                DB::commit();
-                return redirect()->back()->with('success', 'Documento enviado com sucesso! Sua inscrição agora está "Em Análise".');
-            } else {
-                Log::debug("Candidato ID {$candidato->id} status não alterado.");
-            }
+            $candidato->save();
+            Log::info("Candidato ID {$candidato->id} (Status anterior: {$previousStatus}) alterou documento '{$tipoDocumento}' e voltou para 'Em Análise'.");
 
             DB::commit();
-            return redirect()->back()->with('success', 'Documento enviado com sucesso!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Erro na transação de store de documento: " . $e->getMessage(), ['exception' => $e]);
-            return redirect()->back()->with('error', 'Ocorreu um erro ao processar sua solicitação.');
+            return redirect()->back()->with('success', 'Documento enviado com sucesso! Sua inscrição voltou para "Em Análise" devido à alteração.');
         }
+        elseif ($todosObrigatoriosEnviados && $candidato->status === 'Inscrição Incompleta') {
+            $candidato->status = 'Em Análise';
+            $candidato->revert_reason = null;
+            $candidato->save();
+            Log::info("Candidato ID {$candidato->id} mudou para 'Em Análise' após enviar todos os documentos obrigatórios.");
+
+            DB::commit();
+            return redirect()->back()->with('success', 'Documento enviado com sucesso! Sua inscrição agora está "Em Análise".');
+        } else {
+            Log::debug("Candidato ID {$candidato->id} status não alterado.");
+        }
+
+        DB::commit();
+        return redirect()->back()->with('success', 'Documento enviado com sucesso!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error("Erro na transação de store de documento: " . $e->getMessage(), ['exception' => $e]);
+        return redirect()->back()->with('error', 'Ocorreu um erro ao processar sua solicitação.');
     }
+}
+
 
     public function show(Documento $documento)
     {
@@ -203,74 +203,83 @@ class DocumentoController extends Controller
     }
 
     public function destroy(Documento $documento)
-    {
-        $this->authorize('delete', $documento); 
+{
+    $this->authorize('delete', $documento);
 
-        $user = Auth::user();
-        $candidato = $user->candidato;
-        
-        if (!$candidato) {
-            return redirect()->back()->with('error', 'Candidato não encontrado.');
+    $user = Auth::user();
+    $candidato = $user?->candidato;
+
+    // ✅ Blindagem opcional (recomendada): não permitir alterar documentos com perfil incompleto
+    if (! $user || ! $user->hasRole('candidato') || ! $candidato || ! $candidato->isComplete()) {
+        return redirect()
+            ->route('candidato.profile.edit')
+            ->with('warn', 'Complete seu perfil antes de remover documentos.');
+    }
+
+    if (! $candidato) {
+        return redirect()->back()->with('error', 'Candidato não encontrado.');
+    }
+
+    $previousStatus = $candidato->status;
+
+    DB::beginTransaction();
+    try {
+        $tipoDocumentoRemovido = $documento->tipo_documento;
+
+        // remove arquivo físico (se existir) e o registro
+        Storage::disk('public')->delete($documento->path);
+        $documento->delete();
+        Log::info("Documento ID {$documento->id} apagado. Tipo: {$tipoDocumentoRemovido}.");
+
+        $documentosNecessariosParaVerificar = [
+            'HISTORICO_ESCOLAR',
+            'DECLARACAO_MATRICULA',
+            'DECLARACAO_ELEITORAL',
+        ];
+        if ($candidato->sexo === 'Masculino') {
+            $documentosNecessariosParaVerificar[] = 'RESERVISTA';
         }
-        
-        $previousStatus = $candidato->status; 
-
-        DB::beginTransaction();
-        try {
-            $tipoDocumentoRemovido = $documento->tipo_documento;
-            Storage::disk('public')->delete($documento->path); 
-            $documento->delete(); 
-            Log::info("Documento ID {$documento->id} apagado. Tipo: {$tipoDocumentoRemovido}.");
-
-            $documentosNecessariosParaVerificar = [
-                'HISTORICO_ESCOLAR',
-                'DECLARACAO_MATRICULA',
-                'DECLARACAO_ELEITORAL',
-            ];
-            if ($candidato->sexo === 'Masculino') {
-                $documentosNecessariosParaVerificar[] = 'RESERVISTA';
-            }
-            if ($candidato->possui_deficiencia) {
-                $documentosNecessariosParaVerificar[] = 'LAUDO_MEDICO';
-            }
-
-            // Recarrega e verifica os documentos a partir do candidato
-            $candidato->load('documentos');
-            $tiposDocumentosRestantes = $candidato->documentos()->pluck('tipo_documento')->unique()->toArray();
-            
-            $todosObrigatoriosAindaPresentes = empty(array_diff($documentosNecessariosParaVerificar, $tiposDocumentosRestantes));
-
-            if (in_array($tipoDocumentoRemovido, $documentosNecessariosParaVerificar)) {
-                if ($previousStatus === 'Homologado' || $previousStatus === 'Aprovado' || $previousStatus === 'Em Análise') {
-                    $candidato->status = $todosObrigatoriosAindaPresentes ? 'Em Análise' : 'Inscrição Incompleta';
-                    
-                    $candidato->homologado_em = null;
-                    $candidato->homologacao_observacoes = null;
-                    
-                    $revertHistory = $candidato->revert_reason ?? [];
-                    if (!is_array($revertHistory)) { $revertHistory = []; }
-                    $revertHistory[] = [
-                        'timestamp' => Carbon::now()->toDateTimeString(),
-                        'reason' => "Documento obrigatório '{$tipoDocumentoRemovido}' removido pelo candidato.", 
-                        'action' => 'document_delete',
-                        'document_type' => $tipoDocumentoRemovido,
-                        'previous_status' => $previousStatus,
-                    ];
-                    $candidato->revert_reason = array_slice($revertHistory, -5);
-                    $candidato->save();
-                    Log::info("Candidato ID {$candidato->id} (Status: {$previousStatus}) removeu documento '{$tipoDocumentoRemovido}' e mudou para '{$candidato->status}'.");
-                    
-                    DB::commit();
-                    return redirect()->back()->with('success', 'Documento removido! Sua inscrição precisa ser reanalisada.');
-                }
-            }
-
-            DB::commit();
-            return redirect()->route('candidato.documentos.index')->with('success', 'Documento removido com sucesso!');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Erro ao apagar documento ID {$documento->id}: " . $e->getMessage());
-            return redirect()->back()->with('error', 'Ocorreu um erro ao remover o documento.');
+        if ($candidato->possui_deficiencia) {
+            $documentosNecessariosParaVerificar[] = 'LAUDO_MEDICO';
         }
+
+        // Recarrega e verifica os documentos restantes
+        $candidato->load('documentos');
+        $tiposDocumentosRestantes = $candidato->documentos()->pluck('tipo_documento')->unique()->toArray();
+        $todosObrigatoriosAindaPresentes = empty(array_diff($documentosNecessariosParaVerificar, $tiposDocumentosRestantes));
+
+        if (in_array($tipoDocumentoRemovido, $documentosNecessariosParaVerificar)) {
+            if (in_array($previousStatus, ['Homologado', 'Aprovado', 'Em Análise'], true)) {
+                $candidato->status = $todosObrigatoriosAindaPresentes ? 'Em Análise' : 'Inscrição Incompleta';
+
+                $candidato->homologado_em = null;
+                $candidato->homologacao_observacoes = null;
+
+                $revertHistory = $candidato->revert_reason ?? [];
+                if (!is_array($revertHistory)) { $revertHistory = []; }
+
+                $revertHistory[] = [
+                    'timestamp' => Carbon::now()->toDateTimeString(),
+                    'reason' => "Documento obrigatório '{$tipoDocumentoRemovido}' removido pelo candidato.",
+                    'action' => 'document_delete',
+                    'document_type' => $tipoDocumentoRemovido,
+                    'previous_status' => $previousStatus,
+                ];
+                $candidato->revert_reason = array_slice($revertHistory, -5);
+
+                $candidato->save();
+                Log::info("Candidato ID {$candidato->id} (Status: {$previousStatus}) removeu documento '{$tipoDocumentoRemovido}' e mudou para '{$candidato->status}'.");
+
+                DB::commit();
+                return redirect()->back()->with('success', 'Documento removido! Sua inscrição precisa ser reanalisada.');
+            }
+        }
+
+        DB::commit();
+        return redirect()->route('candidato.documentos.index')->with('success', 'Documento removido com sucesso!');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error("Erro ao apagar documento ID {$documento->id}: " . $e->getMessage());
+        return redirect()->back()->with('error', 'Ocorreu um erro ao remover o documento.');
     }
 }
