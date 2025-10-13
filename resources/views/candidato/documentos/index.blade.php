@@ -8,12 +8,30 @@
                         <h2 class="text-xl font-semibold text-gray-800">Meus Documentos</h2>
                         <p class="mt-1 text-sm text-gray-600">Envie os documentos necessários para validar a sua inscrição.</p>
                     </div>
-                    {{-- 🔔 AVISO DE PERFIL INCOMPLETO --}}
+                    {{-- AVISO: perfil incompleto --}}
                     @if(session('warn'))
-                    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 mb-6 rounded-r-lg" role="alert">
-                        <p>{{ session('warn') }}</p>
+                    <div class="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                        <div class="flex items-start gap-3">
+                        <div class="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-yellow-200 text-yellow-800">
+                            ⚠️
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-yellow-900">Antes de continuar…</h3>
+                            <p class="mt-1 text-sm text-yellow-900">
+                            {{ session('warn') }}
+                            </p>
+
+                            <div class="mt-3">
+                            <a href="{{ route('candidato.profile.edit') }}"
+                                class="inline-flex items-center rounded-md bg-yellow-600 px-4 py-2 text-sm font-semibold text-white hover:bg-yellow-700">
+                                Preencher meu perfil agora
+                            </a>
+                            </div>
+                        </div>
+                        </div>
                     </div>
                     @endif
+
 
                     @if(session('success'))
                         <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-lg" role="alert">
