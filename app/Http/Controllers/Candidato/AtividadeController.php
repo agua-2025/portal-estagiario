@@ -20,16 +20,33 @@ class AtividadeController extends Controller
     use AuthorizesRequests;
 
     public function index()
-    {
-        $user = Auth::user();
-        $candidato = $user->candidato;
-        $regrasDePontuacao = TipoDeAtividade::all();
-        
-        // ✅ AJUSTE: Busca as atividades a partir da nova relação correta no candidato
-        $atividadesEnviadas = $candidato ? $candidato->atividades()->with('tipoDeAtividade')->latest()->get() : collect();
+{
+    $user = Auth::user();
+    $candidato = $user?->candidato;
 
-        return view('candidato.atividades.index', compact('regrasDePontuacao', 'atividadesEnviadas'));
+    // 🔒 Bloqueio no INDEX de Atividades também
+    $profileIsComplete = false;
+    if ($candidato) {
+        if (method_exists($candidato, 'isComplete')) {
+            $profileIsComplete = $candidato->isComplete();
+        } elseif (method_exists($candidato, 'isProfileComplete')) {
+            $profileIsComplete = $candidato->isProfileComplete();
+        }
     }
+
+    if (! $user || ! $user->hasRole('candidato') || ! $candidato || ! $profileIsComplete) {
+        return redirect()
+            ->route('candidato.profile.edit')
+            ->with('warn', 'Complete seu perfil (dados obrigatórios) antes de acessar Atividades.');
+    }
+
+    // ✔️ Daqui pra baixo só roda com perfil válido
+    $regrasDePontuacao = TipoDeAtividade::all();
+    $atividadesEnviadas = $candidato->atividades()->with('tipoDeAtividade')->latest()->get();
+
+    return view('candidato.atividades.index', compact('regrasDePontuacao', 'atividadesEnviadas'));
+}
+
 
 public function store(Request $request)
 {
@@ -281,4 +298,6 @@ public function store(Request $request)
         Log::error("Erro ao apagar atividade ID {$atividade->id}: " . $e->getMessage());
         return redirect()->back()->with('error', 'Ocorreu um erro ao remover a atividade.');
     }
+}
+
 }
