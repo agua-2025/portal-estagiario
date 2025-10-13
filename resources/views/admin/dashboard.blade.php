@@ -16,6 +16,11 @@
         </div>
 
         <div class="bg-white shadow-sm rounded-lg p-4">
+            <h3 class="text-xs font-medium text-gray-500">Inscrições Incompletas</h3>
+            <p class="mt-1 text-2xl font-semibold text-amber-600">{{ $incompletas }}</p>
+        </div>
+
+        <div class="bg-white shadow-sm rounded-lg p-4">
             <h3 class="text-xs font-medium text-gray-500">Aguardando Análise</h3>
             <p class="mt-1 text-2xl font-semibold text-yellow-600">{{ $aguardandoAnalise }}</p>
         </div>
@@ -23,11 +28,6 @@
         <div class="bg-white shadow-sm rounded-lg p-4">
             <h3 class="text-xs font-medium text-gray-500">Homologados</h3>
             <p class="mt-1 text-2xl font-semibold text-blue-600">{{ $homologados }}</p>
-        </div>
-
-        <div class="bg-white shadow-sm rounded-lg p-4">
-            <h3 class="text-xs font-medium text-gray-500">Inscrições Incompletas</h3>
-            <p class="mt-1 text-2xl font-semibold text-amber-600">{{ $incompletas }}</p>
         </div>
 
         <div class="bg-white shadow-sm rounded-lg p-4">
