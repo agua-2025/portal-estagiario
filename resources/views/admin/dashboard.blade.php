@@ -8,29 +8,44 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            <!-- Secção de Estatísticas -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-sm font-medium text-gray-500">Total de Inscrições</h3>
-                    <p class="mt-1 text-3xl font-semibold text-gray-900">{{ $totalInscricoes }}</p>
-                </div>
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-sm font-medium text-gray-500">Aguardando Análise</h3>
-                    <p class="mt-1 text-3xl font-semibold text-yellow-600">{{ $aguardandoAnalise }}</p>
-                </div>
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-sm font-medium text-gray-500">Aprovados</h3>
-                    <p class="mt-1 text-3xl font-semibold text-green-600">{{ $aprovados }}</p>
-                </div>
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-sm font-medium text-gray-500">Rejeitados</h3>
-                    <p class="mt-1 text-3xl font-semibold text-red-600">{{ $rejeitados }}</p>
-                </div>
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-sm font-medium text-gray-500">Homologados</h3>
-                    <p class="mt-1 text-3xl font-semibold text-blue-600">{{ $homologados }}</p>
-                </div>
+                    <!-- Secção de Estatísticas -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-6 mb-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-sm font-medium text-gray-500">Total de Inscrições</h3>
+                <p class="mt-1 text-3xl font-semibold text-gray-900">{{ $totalInscricoes }}</p>
             </div>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-sm font-medium text-gray-500">Aguardando Análise</h3>
+                <p class="mt-1 text-3xl font-semibold text-yellow-600">{{ $aguardandoAnalise }}</p>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-sm font-medium text-gray-500">Aprovados</h3>
+                <p class="mt-1 text-3xl font-semibold text-green-600">{{ $aprovados }}</p>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-sm font-medium text-gray-500">Rejeitados</h3>
+                <p class="mt-1 text-3xl font-semibold text-red-600">{{ $rejeitados }}</p>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-sm font-medium text-gray-500">Homologados</h3>
+                <p class="mt-1 text-3xl font-semibold text-blue-600">{{ $homologados }}</p>
+            </div>
+
+            {{-- NOVOS --}}
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-sm font-medium text-gray-500">Inscrições Incompletas</h3>
+                <p class="mt-1 text-3xl font-semibold text-amber-600">{{ $incompletas ?? 0 }}</p>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-sm font-medium text-gray-500">Convocados</h3>
+                <p class="mt-1 text-3xl font-semibold text-indigo-600">{{ $convocados ?? 0 }}</p>
+            </div>
+        </div>
 
             <!-- Secção de Ações Pendentes -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">

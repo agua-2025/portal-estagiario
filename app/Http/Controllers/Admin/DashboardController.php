@@ -12,29 +12,32 @@ class DashboardController extends Controller
      * Mostra o painel de controlo do administrador com estatísticas e ações pendentes.
      */
     public function index()
-    {
-        // 1. Obter as estatísticas
-        $totalInscricoes = Candidato::count();
-        $aguardandoAnalise = Candidato::where('status', 'Em Análise')->count(); // ✅ CORRIGIDO
-        $aprovados = Candidato::where('status', 'Aprovado')->count();
-        $rejeitados = Candidato::where('status', 'Rejeitado')->count();
-        $homologados = Candidato::where('status', 'Homologado')->count(); // ✅ ADICIONADO
+{
+    // Estatísticas
+    $totalInscricoes   = Candidato::count();
+    $aguardandoAnalise = Candidato::where('status', 'Em Análise')->count();
+    $aprovados         = Candidato::where('status', 'Aprovado')->count();
+    $rejeitados        = Candidato::where('status', 'Rejeitado')->count();
+    $homologados       = Candidato::where('status', 'Homologado')->count();
+    $incompletas       = Candidato::where('status', 'Inscrição Incompleta')->count(); // 👈 novo
+    $convocados        = Candidato::where('status', 'Convocado')->count();             // 👈 novo
 
-        // 2. Obter as últimas 10 inscrições que precisam de ser analisadas
-        $ultimasPendentes = Candidato::where('status', 'Em Análise') // ✅ CORRIGIDO
-                                      ->with('user', 'curso') // Otimização para carregar dados relacionados
-                                      ->latest() // Ordena pelas mais recentes
-                                      ->take(10)
-                                      ->get();
+    // Últimas pendentes
+    $ultimasPendentes = Candidato::where('status', 'Em Análise')
+        ->with('user','curso')
+        ->latest()
+        ->take(10)
+        ->get();
 
-        // 3. Enviar os dados para a view
-        return view('admin.dashboard', compact(
-            'totalInscricoes',
-            'aguardandoAnalise',
-            'aprovados',
-            'rejeitados',
-            'homologados', // ✅ ADICIONADO
-            'ultimasPendentes'
-        ));
-    }
+    return view('admin.dashboard', compact(
+        'totalInscricoes',
+        'aguardandoAnalise',
+        'aprovados',
+        'rejeitados',
+        'homologados',
+        'incompletas',   // 👈 novo
+        'convocados',    // 👈 novo
+        'ultimasPendentes'
+    ));
+}
 }
